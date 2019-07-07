@@ -1,0 +1,16 @@
+[package]
+name = "surf"
+version = "1.0.0"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rustasync/surf"
+documentation = "https://docs.rs/surf"
+description = "HTTP client framework."
+keywords = ["http", "client", "framework", "request"]
+categories = ["web-programming", "web-programming::http-client"]
+authors = ["Yoshua Wuyts <yoshuawuyts@gmail.com>"]
+readme = "README.md"
+edition = "2018"
+
+[dependencies]
+
+[dev-dependencies]
