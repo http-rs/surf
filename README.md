@@ -30,8 +30,10 @@ look at some of these issues:
 - [Issues labeled "good first issue"][good-first-issue]
 - [Issues labeled "help wanted"][help-wanted]
 
-## References
-None.
+## See Also
+- [rustasync/http-client](https://github.com/rustasync/http-client)
+- [rustasync/http-service](https://github.com/rustasync/http-service)
+- [rustasync/tide](https://github.com/rustasync/tide)
 
 ## License
 [MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
