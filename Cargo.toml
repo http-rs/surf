@@ -14,5 +14,6 @@ edition = "2018"
 [dependencies]
 hyper = "0.12.32"
 http = "0.1.17"
+futures-preview = "0.3.0-alpha.17"
 
 [dev-dependencies]
