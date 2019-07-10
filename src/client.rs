@@ -1,9 +1,8 @@
 use futures::compat::Compat01As03;
-use futures::prelude::*;
 use serde::Serialize;
-use std::io;
 
 use super::Fail;
+use super::Response;
 
 /// Create an HTTP request.
 #[derive(Debug)]
@@ -28,7 +27,7 @@ impl Client {
     }
 
     /// Set JSON as the body.
-    pub fn json<T: Serialize>(mut self, json: &T) -> Result<Self, Fail> {
+    pub fn json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
         self.body = serde_json::to_vec(json)?.into();
         let content_type = "application/json".parse().unwrap();
         self.headers.insert("content-type", content_type);
@@ -37,18 +36,25 @@ impl Client {
 
     /// Send a request and format the response as a `FormData`.
     pub async fn form(self) -> Result<(), Fail> {
-        let mut _res = self.send().await?;
+        // let mut _res = self.send().await?;
         unimplemented!();
     }
 
     /// Send th request and get back a response.
-    pub async fn send(self) -> Result<Response, Fail> {
+    pub async fn send(self) -> Result<Response<Box<impl futures::io::AsyncRead>>, Fail> {
+        use std::io;
+        use futures::prelude::*;
         let req = hyper::Request::builder()
             .method(self.method)
             .uri(self.uri)
             .body(self.body)?;
         let client = hyper::Client::new();
-        let res = Compat01As03::new(client.request(req)).await?;
-        Ok(Response::new(res))
+        let mut res = Compat01As03::new(client.request(req)).await?;
+        let body = std::mem::replace(res.body_mut(), hyper::Body::empty());
+        let body = Box::new(Compat01As03::new(body)
+            .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
+            .map_err(|_| io::ErrorKind::InvalidData.into())
+            .into_async_read());
+        Ok(Response::new(res, body))
     }
 }
