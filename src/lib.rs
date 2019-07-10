@@ -14,9 +14,9 @@
 mod client;
 mod response;
 
+pub use client::*;
 #[doc(inline)]
 pub use http;
-pub use client::*;
 pub use response::*;
 
 /// A generic error type.

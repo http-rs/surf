@@ -42,8 +42,8 @@ impl Client {
 
     /// Send th request and get back a response.
     pub async fn send(self) -> Result<Response<Box<impl futures::io::AsyncRead>>, Fail> {
-        use std::io;
         use futures::prelude::*;
+        use std::io;
         let req = hyper::Request::builder()
             .method(self.method)
             .uri(self.uri)
@@ -51,10 +51,12 @@ impl Client {
         let client = hyper::Client::new();
         let mut res = Compat01As03::new(client.request(req)).await?;
         let body = std::mem::replace(res.body_mut(), hyper::Body::empty());
-        let body = Box::new(Compat01As03::new(body)
-            .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
-            .map_err(|_| io::ErrorKind::InvalidData.into())
-            .into_async_read());
+        let body = Box::new(
+            Compat01As03::new(body)
+                .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
+                .map_err(|_| io::ErrorKind::InvalidData.into())
+                .into_async_read(),
+        );
         Ok(Response::new(res, body))
     }
 }
