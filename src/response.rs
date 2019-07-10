@@ -12,25 +12,12 @@ use super::Fail;
 pub struct Response<R: AsyncRead> {
     response: hyper::Response<hyper::Body>,
     reader: R,
-    read_done: bool,
-    pos: usize,
-    cap: usize,
-    amt: u64,
-    buf: Option<Vec<u8>>,
 }
 
 impl<R: AsyncRead + Unpin> Response<R> {
     /// Create a new instance.
     pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: R) -> Self {
-        Self {
-            response,
-            reader,
-            read_done: false,
-            amt: 0,
-            pos: 0,
-            cap: 0,
-            buf: None,
-        }
+        Self { response, reader }
     }
 
     /// Reads the entire request body into a byte buffer.
