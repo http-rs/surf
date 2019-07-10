@@ -40,16 +40,36 @@ impl Client {
         }
     }
 
-    /// Send a request and format the response as a `String`.
-    pub async fn send_text(self) -> Result<String, Fail> {
+    /// Send a request.
+    pub async fn send(self) -> Result<Response, Fail> {
         let req = hyper::Request::builder()
             .method(self.method)
             .uri(self.uri)
             .body(self.body)?;
         let client = hyper::Client::new();
         let res = Compat01As03::new(client.request(req)).await?;
-        let mut res = Response::new(res);
+        Ok(Response::new(res))
+    }
+
+    /// Send a request and format the response as a `String`.
+    pub async fn string(self) -> Result<String, Fail> {
+        let mut res = self.send().await?;
         Ok(res.body_string().await?)
+    }
+
+    /// Send a request and format the response as a `json`.
+    pub async fn json(self) -> Result<(), Fail> {
+        unimplemented!();
+    }
+
+    /// Send a request and format the response as a `Vec<u8>`.
+    pub async fn bytes(self) -> Result<Vec<u8>, Fail> {
+        unimplemented!();
+    }
+
+    /// Send a request and format the response as a `FormData`.
+    pub async fn form_data(self) -> Result<(), Fail> {
+        unimplemented!();
     }
 }
 
