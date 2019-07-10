@@ -29,7 +29,7 @@ impl<R: AsyncRead + Unpin> Response<R> {
     ///
     /// Any I/O error encountered while reading the body is immediately returned
     /// as an `Err`.
-    pub async fn into_bytes(mut self) -> Result<Vec<u8>, Fail> {
+    pub async fn into_bytes(mut self) -> io::Result<Vec<u8>> {
         let mut buf = vec![];
         self.reader.read_to_end(&mut buf).await?;
         Ok(buf)
@@ -49,6 +49,20 @@ impl<R: AsyncRead + Unpin> Response<R> {
     pub async fn into_string(self) -> Result<String, Fail> {
         let bytes = self.into_bytes().await?;
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
+    }
+
+    /// Reads and deserialized the entire request body via json.
+    ///
+    /// # Errors
+    ///
+    /// Any I/O error encountered while reading the body is immediately returned
+    /// as an `Err`.
+    ///
+    /// If the body cannot be interpreted as valid json for the target type `T`,
+    /// an `Err` is returned.
+    pub async fn into_json<T: serde::de::DeserializeOwned>(self) -> std::io::Result<T> {
+        let body_bytes = self.into_bytes().await?;
+        Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
     }
 }
 
