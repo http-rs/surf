@@ -26,6 +26,17 @@ impl Client {
         }
     }
 
+    /// Insert a header.
+    pub fn header(
+        mut self,
+        key: impl http::header::IntoHeaderName,
+        value: impl AsRef<str>,
+    ) -> Self {
+        let value = value.as_ref().to_owned();
+        self.headers.insert(key, value.parse().unwrap());
+        self
+    }
+
     /// Set JSON as the body.
     pub fn json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
         self.body = serde_json::to_vec(json)?.into();
@@ -48,6 +59,7 @@ impl Client {
             .method(self.method)
             .uri(self.uri)
             .body(self.body)?;
+
         let client = hyper::Client::new();
         let mut res = Compat01As03::new(client.request(req)).await?;
         let body = std::mem::replace(res.body_mut(), hyper::Body::empty());
