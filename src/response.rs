@@ -10,8 +10,8 @@ use super::Fail;
 /// A response returned by `surf::Client`.
 #[derive(Debug)]
 pub struct Response<R: AsyncRead> {
-    response: hyper::Response<hyper::Body>,
-    reader: R,
+    pub(crate) response: hyper::Response<hyper::Body>,
+    pub(crate) reader: R,
 }
 
 impl<R: AsyncRead + Unpin> Response<R> {

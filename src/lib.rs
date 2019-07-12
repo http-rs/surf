@@ -11,6 +11,7 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
+mod cache;
 mod client;
 mod response;
 
