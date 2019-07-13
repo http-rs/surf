@@ -79,6 +79,12 @@ impl Client {
                 .map_err(|_| io::ErrorKind::InvalidData.into())
                 .into_async_read(),
         );
-        Ok(Response::new(res, body))
+        let res = Response::new(res, body);
+        if cache::is_cacheable(&req) {
+            if let Some(c) = self.cache {
+                return c.put(req, res).await;
+            }
+        }
+        Ok(res)
     }
 }

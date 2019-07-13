@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use cacache;
 use futures::prelude::*;
 use http::Request;
@@ -44,17 +42,37 @@ impl Cacache {
         }
     }
 
-    pub async fn put<T, U>(&self, req: Request<T>, res: Response<U>) -> Response<U>
+    pub async fn put<T, U>(&self, req: Request<T>, res: Response<U>) -> Result<Response<U>, Fail>
     where
-        U: AsyncRead,
+        U: AsyncRead + Unpin,
     {
         let mut metadata = Map::new();
         metadata.insert(
             "status".into(),
             Value::Number(Number::from(res.response.status().as_u16())),
         );
+        let mut headers = Map::new();
+        for (key, value) in res.response.headers().iter() {
+            headers.insert(key.as_str().into(), Value::String(value.to_str()?.into()));
+        }
+        metadata.insert("headers".into(), Value::Object(headers));
         let metadata = Value::Object(metadata);
-        let put_opts = cacache::put::PutOpts::new().metadata(metadata);
+        let put = cacache::put::PutOpts::new()
+            .metadata(metadata)
+            .open_async(&self.path, cache_key(&req))
+            .await?;
+        let mut buf = [0; 1024 * 256];
+        loop {
+            let amt = res.read(&mut buf).await?;
+            if amt == 0 {
+                break;
+            } else {
+                put.write_all(&buf[0..amt]).await?;
+            }
+        }
+        put.commit().await?;
+        let res = self.matched(&req).await?.unwrap();
+        Ok(res)
     }
 
     pub async fn delete<T>(&self, req: Request<T>) -> Result<bool, Fail> {
