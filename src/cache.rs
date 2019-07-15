@@ -1,18 +1,44 @@
 use cacache;
 use futures::prelude::*;
-use http::Request;
+use http::{HeaderMap, Request};
 use hyper;
 use serde_json::{Map, Number, Value};
 
 use crate::response::Response;
 use crate::Fail;
 
-pub fn is_cacheable<T>(req: &Request<T>) -> bool {
-    unimplemented!();
+pub fn has_cond_header(headers: &HeaderMap) -> bool {
+    for key in headers.keys() {
+        let key = key.as_str().to_lowercase();
+        if [
+            "if-modified-since",
+            "if-none-match",
+            "if-unmodified-since",
+            "if-match",
+            "if-range",
+        ]
+        .iter()
+        .any(|x| String::from(*x) == key)
+        {
+            return true;
+        }
+    }
+    false
 }
 
 fn cache_key<T>(req: &Request<T>) -> String {
     format!("surf:req:v1:{}", req.uri())
+}
+
+#[derive(Debug, PartialEq)]
+/// Cache modes, based on JavaScript's `fetch()` cache modes.
+pub enum CacheMode {
+    Default,
+    NoStore,
+    NoCache,
+    Reload,
+    ForceCache,
+    OnlyIfCached,
 }
 
 #[derive(Debug)]
