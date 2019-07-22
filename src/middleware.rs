@@ -1,14 +1,14 @@
 //! Middleware types
 
-// use crate::Response;
+use crate::{Request, Response};
 use futures::future::BoxFuture;
 use std::sync::Arc;
 
-type Response = http::Response<()>;
-
+/// Application context.
+#[derive(Debug)]
 pub struct Context<State> {
     state: Arc<State>,
-    request: http::Request<()>,
+    request: Request,
 }
 
 /// Middleware that wraps around remaining middleware chain.
@@ -17,6 +17,7 @@ pub trait Middleware<State>: 'static + Send + Sync {
     fn handle<'a>(&'a self, cx: Context<State>, next: Next<'a, State>) -> BoxFuture<'a, Response>;
 }
 
+// This allows functions to work as middleware too.
 impl<State, F> Middleware<State> for F
 where
     F: Send
@@ -32,13 +33,20 @@ where
 /// The remainder of a middleware chain, including the endpoint.
 #[allow(missing_debug_implementations)]
 pub struct Next<'a, State> {
-    endpoint: &'a (dyn (Fn(Context<State>) -> BoxFuture<'static, Response>) + 'static + Send + Sync),
+    endpoint:
+        &'a (dyn (Fn(Context<State>) -> BoxFuture<'static, Response>) + 'static + Send + Sync),
     next_middleware: &'a [Arc<dyn Middleware<State>>],
 }
 
 impl<'a, State: 'static> Next<'a, State> {
     /// Create a new instance
-    pub fn new(endpoint: &'a (dyn (Fn(Context<State>) -> BoxFuture<'static, Response>) + 'static + Send + Sync), next: &'a [Arc<dyn Middleware<State>>]) -> Self {
+    pub fn new(
+        endpoint: &'a (dyn (Fn(Context<State>) -> BoxFuture<'static, Response>)
+                 + 'static
+                 + Send
+                 + Sync),
+        next: &'a [Arc<dyn Middleware<State>>],
+    ) -> Self {
         Self {
             endpoint,
             next_middleware: next,

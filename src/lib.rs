@@ -11,11 +11,12 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
-mod client;
-mod middleware;
+mod request;
 mod response;
 
-pub use client::*;
+pub mod middleware;
+
+pub use request::Request;
 #[doc(inline)]
 pub use http;
 pub use response::*;
@@ -23,14 +24,14 @@ pub use response::*;
 /// A generic error type.
 pub type Fail = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-/// Perform a `GET` request.
-pub fn get(uri: impl AsRef<str>) -> Client {
+/// Perform a oneshot `GET` request.
+pub fn get(uri: impl AsRef<str>) -> Request {
     let uri = uri.as_ref().to_owned().parse().unwrap();
-    Client::new(http::Method::GET, uri)
+    Request::new(http::Method::GET, uri)
 }
 
-/// Perform a `POST` request.
-pub fn post(uri: impl AsRef<str>) -> Client {
+/// Perform a oneshot `POST` request.
+pub fn post(uri: impl AsRef<str>) -> Request {
     let uri = uri.as_ref().to_owned().parse().unwrap();
-    Client::new(http::Method::POST, uri)
+    Request::new(http::Method::POST, uri)
 }

@@ -6,7 +6,7 @@ use super::Response;
 
 /// Create an HTTP request.
 #[derive(Debug)]
-pub struct Client {
+pub struct Request {
     client: hyper::client::Builder,
     method: http::Method,
     headers: http::HeaderMap,
@@ -14,7 +14,7 @@ pub struct Client {
     body: hyper::Body,
 }
 
-impl Client {
+impl Request {
     /// Create a new instance.
     pub fn new(method: http::Method, uri: http::Uri) -> Self {
         Self {
@@ -52,7 +52,7 @@ impl Client {
     }
 
     /// Send th request and get back a response.
-    pub async fn send(self) -> Result<Response<Box<impl futures::io::AsyncRead>>, Fail> {
+    pub async fn send(self) -> Result<Response, Fail> {
         use futures::prelude::*;
         use std::io;
         let req = hyper::Request::builder()

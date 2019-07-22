@@ -1,22 +1,21 @@
 use futures::prelude::*;
-use std::io;
 
-use std::io::Error;
+use std::io::{self, Error};
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use std::fmt;
 
 use super::Fail;
 
-/// A response returned by `surf::Client`.
-#[derive(Debug)]
-pub struct Response<R: AsyncRead> {
+/// A response returned by `Request`.
+pub struct Response {
     response: hyper::Response<hyper::Body>,
-    reader: R,
+    reader: Box<dyn AsyncRead + Unpin>,
 }
 
-impl<R: AsyncRead + Unpin> Response<R> {
+impl Response {
     /// Create a new instance.
-    pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: R) -> Self {
+    pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: Box<dyn AsyncRead + Unpin>) -> Self {
         Self { response, reader }
     }
 
@@ -66,7 +65,7 @@ impl<R: AsyncRead + Unpin> Response<R> {
     }
 }
 
-impl<R: AsyncRead> AsyncRead for Response<R> {
+impl AsyncRead for Response {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -75,3 +74,12 @@ impl<R: AsyncRead> AsyncRead for Response<R> {
         Pin::new(&mut self).poll_read(cx, buf)
     }
 }
+
+impl fmt::Debug for Response {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Response")
+            .field("response", &self.response)
+            .finish()
+    }
+}
+
