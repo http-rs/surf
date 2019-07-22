@@ -14,6 +14,8 @@
 mod request;
 mod response;
 
+pub mod http_client_hyper;
+pub mod http_client;
 pub mod middleware;
 
 pub use request::Request;
