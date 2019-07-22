@@ -10,12 +10,12 @@ use super::Fail;
 /// A response returned by `Request`.
 pub struct Response {
     response: hyper::Response<hyper::Body>,
-    reader: Box<dyn AsyncRead + Unpin>,
+    reader: Box<dyn AsyncRead + Unpin + Send + 'static>,
 }
 
 impl Response {
     /// Create a new instance.
-    pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: Box<dyn AsyncRead + Unpin>) -> Self {
+    pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: Box<dyn AsyncRead + Unpin + Send + 'static>) -> Self {
         Self { response, reader }
     }
 
@@ -71,7 +71,7 @@ impl AsyncRead for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<Result<usize, Error>> {
-        Pin::new(&mut self).poll_read(cx, buf)
+        Pin::new(&mut self.reader).poll_read(cx, buf)
     }
 }
 
@@ -82,4 +82,3 @@ impl fmt::Debug for Response {
             .finish()
     }
 }
-

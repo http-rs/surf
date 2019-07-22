@@ -55,7 +55,7 @@ impl Request {
     pub async fn send(self) -> Result<Response, Fail> {
         use futures::prelude::*;
         use std::io;
-        let req = hyper::Request::builder()
+        let req = http::Request::builder()
             .method(self.method)
             .uri(self.uri)
             .body(self.body)?;
