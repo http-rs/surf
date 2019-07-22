@@ -30,6 +30,13 @@ pub struct Body {
     reader: Box<dyn AsyncRead + Unpin + Send + 'static>,
 }
 
+impl Body {
+    /// Create a new instance from a reader.
+    pub fn from_reader(reader: Box<dyn AsyncRead + Unpin + Send + 'static>) -> Self {
+        Self { reader }
+    }
+}
+
 impl AsyncRead for Body {
     fn poll_read(
         mut self: Pin<&mut Self>,

@@ -2,12 +2,12 @@
 
 use futures::compat::{Compat01As03, Compat as Compat03As01};
 use futures::future::BoxFuture;
-use futures::io::AsyncRead;
+use futures::prelude::*;
 use std::task::{Context, Poll};
 use std::pin::Pin;
 use std::io;
 
-use super::http_client::{HttpClient, Request, Response};
+use super::http_client::{HttpClient, Request, Response, Body};
 
 /// Hyper HTTP Client.
 pub struct HyperClient {
@@ -22,7 +22,7 @@ impl HyperClient {
 }
 
 impl HttpClient for HyperClient {
-    type Error = io::Error;
+    type Error = hyper::error::Error;
 
     fn send(req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         Box::pin(async move {
@@ -37,15 +37,15 @@ impl HttpClient for HyperClient {
             let mut res = Compat01As03::new(client.request(req)).await?;
 
             // Convert the response body.
-            let body = std::mem::replace(res.body_mut(), hyper::Body::empty());
-            let body = Compat01As03::new(body)
+            let (parts, body) = res.into_parts();
+            let body_reader = Compat01As03::new(body)
                 .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
                 .map_err(|_| io::ErrorKind::InvalidData.into())
                 .into_async_read();
-            std::mem::replace(res.body_mut(), body);
+            let body = Body::from_reader(Box::new(body_reader));
+            let res = http::Response::from_parts(parts, body);
 
-            Ok(res);
-            unimplemented!();
+            Ok(res)
         })
     }
 }
@@ -54,21 +54,22 @@ struct ByteStream<R: AsyncRead> {
     reader: R
 }
 
-impl<R: AsyncRead> futures::Stream for ByteStream<R> {
-    type Item = Result<hyper::Chunk, hyper::error::Error>;
+impl<R: AsyncRead + Unpin> futures::Stream for ByteStream<R> {
+    type Item = Result<hyper::Chunk, Box<dyn std::error::Error + Send + Sync + 'static>>;
 
     fn poll_next(
         self: Pin<&mut Self>, 
         cx: &mut Context<'_>
     ) -> Poll<Option<Self::Item>> {
+        // This is not at all efficient, but that's okay for now.
         let mut buf = vec![];
-        let read = futures::ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf));
+        let read = futures::ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf))?;
         if read == 0 {
-            return None;
+            return Poll::Ready(None);
         } else {
             buf.shrink_to_fit();
             let chunk = hyper::Chunk::from(buf);
-            Some(Ok(chunk))
+            Poll::Ready(Some(Ok(chunk)))
         }
     }
 }

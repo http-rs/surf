@@ -9,7 +9,7 @@ use super::Fail;
 
 /// A response returned by `Request`.
 pub struct Response {
-    response: hyper::Response<hyper::Body>,
+    response: http::Response<crate::http_client::Body>,
     reader: Box<dyn AsyncRead + Unpin + Send + 'static>,
 }
 
