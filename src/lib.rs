@@ -12,6 +12,7 @@
 #![feature(async_await)]
 
 mod client;
+mod middleware;
 mod response;
 
 pub use client::*;
