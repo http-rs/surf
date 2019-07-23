@@ -17,7 +17,7 @@ pub type Request = http::Request<Body>;
 pub type Response = http::Response<Body>;
 
 /// An abstract HTTP client.
-pub trait HttpClient: Debug + Unpin + Send + Sync + Copy + 'static {
+pub trait HttpClient: Debug + Unpin + Send + Sync + Clone + 'static {
     /// The associated error type.
     type Error: Error + Send + Sync;
 

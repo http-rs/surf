@@ -1,7 +1,6 @@
 use crate::Request;
 use crate::http_client::HttpClient;
 use crate::http_client::hyper::HyperClient;
-use std::sync::Arc;
 
 /// A persistent HTTP client.
 #[derive(Debug)]
@@ -26,6 +25,6 @@ impl<C: HttpClient> Client<C> {
     /// Submit an HTTP `POST` request.
     pub fn post(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().to_owned().parse().unwrap();
-        Request::with_client(http::Method::POST, uri, self.client)
+        Request::with_client(http::Method::POST, uri, self.client.clone())
     }
 }

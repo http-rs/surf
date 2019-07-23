@@ -13,13 +13,19 @@ use super::{Body, HttpClient, Request, Response};
 /// Hyper HTTP Client.
 #[derive(Debug)]
 pub struct HyperClient {
-    client: Arc<hyper::Client>,
+    client: Arc<hyper::Client<hyper::client::HttpConnector, hyper::Body>>,
 }
 
 impl HyperClient {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
         Self { client: Arc::new(hyper::Client::new()) }
+    }
+}
+
+impl Clone for HyperClient {
+    fn clone(&self) -> Self {
+        Self { client: self.client.clone() }
     }
 }
 
