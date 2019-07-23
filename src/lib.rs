@@ -25,11 +25,12 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
-mod http_client;
+mod client;
 mod one_off;
 mod request;
 mod response;
 
+pub mod http_client;
 pub mod middleware;
 
 #[doc(inline)]
@@ -38,6 +39,7 @@ pub use http;
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 pub use request::Request;
 pub use response::Response;
+pub use client::Client;
 
 /// A generic error type.
 pub type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;

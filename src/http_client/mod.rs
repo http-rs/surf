@@ -6,7 +6,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use std::{fmt, io};
 
-pub(crate) mod hyper;
+pub mod hyper;
 
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;
@@ -15,7 +15,7 @@ pub type Request = http::Request<Body>;
 pub type Response = http::Response<Body>;
 
 /// An abstract HTTP client.
-pub(crate) trait HttpClient {
+pub trait HttpClient {
     /// The associated error type.
     type Error;
 

@@ -11,7 +11,7 @@ use super::{Body, HttpClient, Request, Response};
 
 /// Hyper HTTP Client.
 #[derive(Debug)]
-pub(crate) struct HyperClient {
+pub struct HyperClient {
     _priv: (),
 }
 

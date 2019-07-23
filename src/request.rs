@@ -13,9 +13,9 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use std::fmt::Debug;
 
 struct RequestState {
-    client: hyper::client::Builder,
     method: http::Method,
     headers: http::HeaderMap,
     middleware: Option<Vec<Arc<dyn Middleware>>>,
@@ -26,29 +26,30 @@ struct RequestState {
 impl fmt::Debug for RequestState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("RequestState")
-            .field("client", &self.client)
             .field("method", &self.method)
             .field("uri", &self.uri)
+            .field("middleware", &"[<middleware>]")
             .field("body", &"<body>")
             .finish()
     }
 }
 
 /// Create an HTTP request.
-pub struct Request {
+pub struct Request<C: HttpClient + Debug + Unpin> {
+    client: C,
     /// Holds the state of the request
     req: Option<RequestState>,
     /// Holds the state of the `impl Future`
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
 }
 
-impl Request {
+impl Request<HyperClient> {
     /// Create a new instance.
     pub fn new(method: http::Method, uri: http::Uri) -> Self {
         Self {
+            client: HyperClient::new(),
             fut: None,
             req: Some(RequestState {
-                client: hyper::client::Client::builder(),
                 body: Body::empty(),
                 headers: http::HeaderMap::new(),
                 middleware: Some(vec![]),
@@ -56,6 +57,13 @@ impl Request {
                 uri,
             }),
         }
+    }
+}
+
+impl<C: HttpClient + Debug + Unpin> Request<C> {
+    /// Create a new instance with an `HttpClient` instance.
+    pub fn with_client(_method: http::Method, _uri: http::Uri, _client: C) -> Self {
+        unimplemented!();
     }
 
     /// Push middleware onto the middleware stack.
@@ -116,7 +124,7 @@ impl Request {
     }
 }
 
-impl Future for Request {
+impl<C: HttpClient + Debug + Unpin> Future for Request<C> {
     type Output = Result<Response, Exception>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -155,7 +163,7 @@ impl TryInto<http::Request<Body>> for RequestState {
     }
 }
 
-impl fmt::Debug for Request {
+impl<C: HttpClient + Debug + Unpin> fmt::Debug for Request<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.req, f)
     }
