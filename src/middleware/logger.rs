@@ -8,7 +8,7 @@
 //! let mut res = surf::get("http://google.com")
 //!     .middleware(surf::middleware::logger::new())
 //!     .await?;
-//! dbg!(res.into_string().await?);
+//! dbg!(res.body_string().await?);
 //! # Ok(()) }
 //! ```
 

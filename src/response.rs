@@ -45,8 +45,8 @@ impl Response {
     /// as an `Err`.
     ///
     /// If the body cannot be interpreted as valid UTF-8, an `Err` is returned.
-    pub async fn into_string(self) -> Result<String, Exception> {
-        let bytes = self.into_bytes().await?;
+    pub async fn body_string(&mut self) -> Result<String, Exception> {
+        let bytes = self.body_bytes().await?;
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
     }
 
