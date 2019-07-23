@@ -5,10 +5,10 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main(runtime_tokio::Tokio)]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let res = surf::get("http://google.com")
+//! let mut res = surf::get("http://google.com")
 //!     .middleware(surf::middleware::logger::new())
 //!     .await?;
-//! dbg!(res.into_string().await?);
+//! dbg!(res.body_string().await?);
 //! # Ok(()) }
 //! ```
 

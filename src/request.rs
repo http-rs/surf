@@ -97,10 +97,22 @@ impl Request {
         Ok(self)
     }
 
-    /// Send a request and format the response as a `FormData`.
-    pub async fn form(self) -> Result<(), Exception> {
-        let mut _res = self.await?;
-        unimplemented!();
+    /// Submit the request and get the response body as bytes.
+    pub async fn recv_bytes(self) -> Result<Vec<u8>, Exception> {
+        let mut req = self.await?;
+        Ok(req.body_bytes().await?)
+    }
+
+    /// Submit the request and get the response body as a string.
+    pub async fn recv_string(self) -> Result<String, Exception> {
+        let mut req = self.await?;
+        Ok(req.body_string().await?)
+    }
+
+    /// Submit the request and get the response body as a string.
+    pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+        let mut req = self.await?;
+        Ok(req.body_json::<T>().await?)
     }
 }
 
