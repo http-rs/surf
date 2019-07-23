@@ -5,17 +5,10 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main(runtime_tokio::Tokio)]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("http://google.com").await?;
-//! dbg!(res.body_string().await?);
-//! # Ok(()) }
-//! ```
-//!
-//! It's also possible to skip the intermediate `Response`, and access the response type directly.
-//! ```
-//! # #![feature(async_await)]
-//! # #[runtime::main(runtime_tokio::Tokio)]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! dbg!(surf::get("http://google.com").recv_string().await?);
+//! let res = surf::get("http://google.com")
+//!     .middleware(surf::middleware::logger::new())
+//!     .await?;
+//! dbg!(res.into_string().await?);
 //! # Ok(()) }
 //! ```
 
