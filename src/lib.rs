@@ -1,8 +1,15 @@
 //! HTTP client framework.
 //!
-//! ## Example
-//!
-//! ```rust
+//! # Examples
+//! ```
+//! # #![feature(async_await)]
+//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! let res = surf::get("http://google.com")
+//!     .middleware(surf::middleware::logger::new())
+//!     .send().await?;
+//! dbg!(res.into_string().await?);
+//! # Ok(()) }
 //! ```
 
 #![forbid(unsafe_code, future_incompatible, rust_2018_idioms)]
@@ -11,25 +18,29 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
-mod client;
+mod request;
 mod response;
+mod http_client;
 
-pub use client::*;
+pub mod middleware;
+
 #[doc(inline)]
 pub use http;
-pub use response::*;
+
+pub use response::Response;
+pub use request::Request;
 
 /// A generic error type.
 pub type Fail = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-/// Perform a `GET` request.
-pub fn get(uri: impl AsRef<str>) -> Client {
+/// Perform a oneshot `GET` request.
+pub fn get(uri: impl AsRef<str>) -> Request {
     let uri = uri.as_ref().to_owned().parse().unwrap();
-    Client::new(http::Method::GET, uri)
+    Request::new(http::Method::GET, uri)
 }
 
-/// Perform a `POST` request.
-pub fn post(uri: impl AsRef<str>) -> Client {
+/// Perform a oneshot `POST` request.
+pub fn post(uri: impl AsRef<str>) -> Request {
     let uri = uri.as_ref().to_owned().parse().unwrap();
-    Client::new(http::Method::POST, uri)
+    Request::new(http::Method::POST, uri)
 }

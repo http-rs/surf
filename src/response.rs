@@ -1,23 +1,22 @@
 use futures::prelude::*;
-use std::io;
 
-use std::io::Error;
+use std::fmt;
+use std::io::{self, Error};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+use super::http_client;
 use super::Fail;
 
-/// A response returned by `surf::Client`.
-#[derive(Debug)]
-pub struct Response<R: AsyncRead> {
-    response: hyper::Response<hyper::Body>,
-    reader: R,
+/// A response returned by `Request`.
+pub struct Response {
+    response: http_client::Response,
 }
 
-impl<R: AsyncRead + Unpin> Response<R> {
+impl Response {
     /// Create a new instance.
-    pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: R) -> Self {
-        Self { response, reader }
+    pub(crate) fn new(response: http_client::Response) -> Self {
+        Self { response }
     }
 
     /// Reads the entire request body into a byte buffer.
@@ -31,7 +30,7 @@ impl<R: AsyncRead + Unpin> Response<R> {
     /// as an `Err`.
     pub async fn into_bytes(mut self) -> io::Result<Vec<u8>> {
         let mut buf = vec![];
-        self.reader.read_to_end(&mut buf).await?;
+        self.response.body_mut().read_to_end(&mut buf).await?;
         Ok(buf)
     }
 
@@ -66,12 +65,20 @@ impl<R: AsyncRead + Unpin> Response<R> {
     }
 }
 
-impl<R: AsyncRead> AsyncRead for Response<R> {
+impl AsyncRead for Response {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<Result<usize, Error>> {
-        Pin::new(&mut self).poll_read(cx, buf)
+        Pin::new(&mut self.response.body_mut()).poll_read(cx, buf)
+    }
+}
+
+impl fmt::Debug for Response {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Response")
+            .field("response", &self.response)
+            .finish()
     }
 }
