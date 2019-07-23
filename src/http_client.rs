@@ -18,7 +18,7 @@ pub trait HttpClient {
     type Error;
 
     /// Perform a request.
-    fn send(req: Request) -> BoxFuture<'static, Result<Response, Self::Error>>;
+    fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>>;
 }
 
 /// The raw body of an http request or response.
@@ -31,6 +31,11 @@ pub struct Body {
 }
 
 impl Body {
+    pub fn empty() -> Self {
+        Self {
+            reader: Box::new(std::io::empty()),
+        }
+    }
     /// Create a new instance from a reader.
     pub fn from_reader(reader: Box<dyn AsyncRead + Unpin + Send + 'static>) -> Self {
         Self { reader }
@@ -50,5 +55,14 @@ impl AsyncRead for Body {
 impl fmt::Debug for Body {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Body").field("reader", &"<hidden>").finish()
+    }
+}
+
+impl From<Vec<u8>> for Body {
+    #[inline]
+    fn from(vec: Vec<u8>) -> Body {
+        Self {
+            reader: Box::new(io::Cursor::new(vec)),
+        }
     }
 }

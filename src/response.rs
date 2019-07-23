@@ -1,22 +1,22 @@
 use futures::prelude::*;
 
+use std::fmt;
 use std::io::{self, Error};
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use std::fmt;
 
+use super::http_client;
 use super::Fail;
 
 /// A response returned by `Request`.
 pub struct Response {
-    response: http::Response<crate::http_client::Body>,
-    reader: Box<dyn AsyncRead + Unpin + Send + 'static>,
+    response: http_client::Response,
 }
 
 impl Response {
     /// Create a new instance.
-    pub(crate) fn new(response: hyper::Response<hyper::Body>, reader: Box<dyn AsyncRead + Unpin + Send + 'static>) -> Self {
-        Self { response, reader }
+    pub(crate) fn new(response: http_client::Response) -> Self {
+        Self { response }
     }
 
     /// Reads the entire request body into a byte buffer.
@@ -30,7 +30,7 @@ impl Response {
     /// as an `Err`.
     pub async fn into_bytes(mut self) -> io::Result<Vec<u8>> {
         let mut buf = vec![];
-        self.reader.read_to_end(&mut buf).await?;
+        self.response.body_mut().read_to_end(&mut buf).await?;
         Ok(buf)
     }
 
@@ -71,7 +71,7 @@ impl AsyncRead for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<Result<usize, Error>> {
-        Pin::new(&mut self.reader).poll_read(cx, buf)
+        Pin::new(&mut self.response.body_mut()).poll_read(cx, buf)
     }
 }
 

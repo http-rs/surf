@@ -1,8 +1,8 @@
-use futures::compat::Compat01As03;
 use serde::Serialize;
 
 use super::Fail;
 use super::Response;
+use super::http_client::{Body, HttpClient};
 
 /// Create an HTTP request.
 #[derive(Debug)]
@@ -11,7 +11,7 @@ pub struct Request {
     method: http::Method,
     headers: http::HeaderMap,
     uri: http::Uri,
-    body: hyper::Body,
+    body: Body,
 }
 
 impl Request {
@@ -19,7 +19,7 @@ impl Request {
     pub fn new(method: http::Method, uri: http::Uri) -> Self {
         Self {
             client: hyper::client::Client::builder(),
-            body: hyper::Body::empty(),
+            body: Body::empty(),
             headers: http::HeaderMap::new(),
             method,
             uri,
@@ -53,22 +53,13 @@ impl Request {
 
     /// Send th request and get back a response.
     pub async fn send(self) -> Result<Response, Fail> {
-        use futures::prelude::*;
-        use std::io;
         let req = http::Request::builder()
             .method(self.method)
             .uri(self.uri)
             .body(self.body)?;
 
-        let client = hyper::Client::new();
-        let mut res = Compat01As03::new(client.request(req)).await?;
-        let body = std::mem::replace(res.body_mut(), hyper::Body::empty());
-        let body = Box::new(
-            Compat01As03::new(body)
-                .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
-                .map_err(|_| io::ErrorKind::InvalidData.into())
-                .into_async_read(),
-        );
-        Ok(Response::new(res, body))
+        let hyper_client = super::http_client_hyper::HyperClient::new();
+        let res = hyper_client.send(req).await?;
+        Ok(Response::new(res))
     }
 }

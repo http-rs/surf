@@ -24,7 +24,7 @@ impl HyperClient {
 impl HttpClient for HyperClient {
     type Error = hyper::error::Error;
 
-    fn send(req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
+    fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         Box::pin(async move {
             // Convert the request body.
             let (parts, body) = req.into_parts();
