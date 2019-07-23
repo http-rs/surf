@@ -59,11 +59,7 @@ use std::sync::Arc;
 /// Middleware that wraps around remaining middleware chain.
 pub trait Middleware: 'static + Send + Sync {
     /// Asynchronously handle the request, and return a response.
-    fn handle<'a>(
-        &'a self,
-        req: Request,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, Exception>>;
+    fn handle<'a>(&'a self, req: Request, next: Next<'a>) -> BoxFuture<'a, Result<Response, Exception>>;
 }
 
 // This allows functions to work as middleware too.
@@ -74,11 +70,7 @@ where
         + 'static
         + for<'a> Fn(Request, Next<'a>) -> BoxFuture<'a, Result<Response, Exception>>,
 {
-    fn handle<'a>(
-        &'a self,
-        req: Request,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, Exception>> {
+    fn handle<'a>(&'a self, req: Request, next: Next<'a>) -> BoxFuture<'a, Result<Response, Exception>> {
         (self)(req, next)
     }
 }

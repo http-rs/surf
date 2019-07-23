@@ -91,20 +91,14 @@ impl Request {
         Ok(self)
     }
 
-    /// Submit the request and get the response body as bytes.
-    pub async fn recv_bytes(self) -> Result<Vec<u8>, Exception> {
-        let mut req = self.await?;
-        Ok(req.body_bytes().await?)
-    }
-
-    /// Submit the request and get the response body as a string.
-    pub async fn recv_string(self) -> Result<String, Exception> {
-        let mut req = self.await?;
-        Ok(req.body_string().await?)
+    /// Send a request and format the response as a `FormData`.
+    pub async fn form(self) -> Result<(), Exception> {
+        // let mut _res = self.send().await?;
+        unimplemented!();
     }
 
     /// Send the request and get back a response.
-    pub async fn send(mut self) -> Result<Response, Fail> {
+    pub async fn send(mut self) -> Result<Response, Exception> {
         // We can safely unwrap here because this is the only time we take ownership of the
         // middleware stack.
         let middleware = self.middleware.take().unwrap();
