@@ -14,6 +14,7 @@
 mod request;
 mod response;
 
+pub mod middleware_logger;
 pub mod http_client_hyper;
 pub mod http_client;
 pub mod middleware;

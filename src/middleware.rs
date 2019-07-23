@@ -1,4 +1,54 @@
 //! Middleware types
+//!
+//! # Examples
+//! ```
+//! # #![feature(async_await)]
+//! use futures::future::BoxFuture;
+//! use surf::middleware::{Next, Middleware};
+//! use surf::http_client::{Request, Response};
+//! use std::time;
+//!
+//! /// Log each request's duration
+//! #[derive(Debug)]
+//! pub struct Logger;
+//!
+//! impl Middleware for Logger {
+//!     fn handle<'a>(
+//!         &'a self,
+//!         req: Request,
+//!         next: Next<'a>,
+//!     ) -> BoxFuture<'a, Result<Response, surf::Fail>> {
+//!         Box::pin(async move {
+//!             println!("sending request to {}", req.uri());
+//!             let now = time::Instant::now();
+//!             let res = next.run(req).await?;
+//!             println!("request completed ({:?})", now.elapsed());
+//!             Ok(res)
+//!         })
+//!     }
+//! }
+//! ```
+//! `Middleware` can also be instantiated using a free function thanks to some convenient trait
+//! implementations.
+//!
+//! ```
+//! # #![feature(async_await)]
+//! use futures::future::BoxFuture;
+//! use surf::middleware::{Next, Middleware};
+//! use surf::http_client::{Request, Response};
+//! use std::time;
+//!
+//!
+//! fn logger<'a>(req: Request, next: Next<'a>) -> BoxFuture<'a, Result<Response, surf::Fail>> {
+//!     Box::pin(async move {
+//!         println!("sending request to {}", req.uri());
+//!         let now = time::Instant::now();
+//!         let res = next.run(req).await?;
+//!         println!("request completed ({:?})", now.elapsed());
+//!         Ok(res)
+//!     })
+//! }
+//! ```
 
 use crate::Fail;
 use crate::http_client::{Request, Response};
