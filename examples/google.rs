@@ -5,8 +5,8 @@ type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
 async fn main() -> Result<(), Exception> {
     let string = surf::get("http://google.com")
         .middleware(surf::middleware::logger::new())
-        .recv_string()
+        .send()
         .await?;
-    dbg!(string);
+    dbg!(res.into_string().await?);
     Ok(())
 }

@@ -9,10 +9,7 @@ use super::Response;
 
 use std::convert::TryInto;
 use std::fmt;
-use std::future::Future;
-use std::pin::Pin;
 use std::sync::Arc;
-use std::task::{Context, Poll};
 
 struct RequestState {
     client: hyper::client::Builder,
@@ -25,11 +22,8 @@ struct RequestState {
 
 impl fmt::Debug for RequestState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RequestState")
+        f.debug_struct("Request")
             .field("client", &self.client)
-            .field("method", &self.method)
-            .field("uri", &self.uri)
-            .field("body", &"<body>")
             .finish()
     }
 }
@@ -109,10 +103,19 @@ impl Request {
         Ok(req.body_string().await?)
     }
 
-    /// Submit the request and get the response body as a string.
-    pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
-        let mut req = self.await?;
-        Ok(req.body_json::<T>().await?)
+    /// Send the request and get back a response.
+    pub async fn send(mut self) -> Result<Response, Fail> {
+        // We can safely unwrap here because this is the only time we take ownership of the
+        // middleware stack.
+        let middleware = self.middleware.take().unwrap();
+
+        let next = Next::new(&middleware, &|req| {
+            Box::pin(async move { HyperClient::new().send(req).await.map_err(|e| e.into()) })
+        });
+
+        let req = self.try_into()?;
+        let res = next.run(req).await?;
+        Ok(Response::new(res))
     }
 }
 
