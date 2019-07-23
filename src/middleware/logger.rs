@@ -12,8 +12,8 @@
 //! # Ok(()) }
 //! ```
 
+use crate::middleware::{Middleware, Next, Request, Response};
 use futures::future::BoxFuture;
-use crate::middleware::{Next, Middleware, Request, Response};
 use std::time;
 
 /// Log each request's duration

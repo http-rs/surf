@@ -1,14 +1,14 @@
 use serde::Serialize;
 
-use super::http_client::{Body, HttpClient};
 use super::http_client::hyper::HyperClient;
+use super::http_client::{Body, HttpClient};
 use super::middleware::{Middleware, Next};
 use super::Fail;
 use super::Response;
 
 use std::convert::TryInto;
-use std::sync::Arc;
 use std::fmt;
+use std::sync::Arc;
 
 /// Create an HTTP request.
 pub struct Request {
@@ -22,7 +22,9 @@ pub struct Request {
 
 impl fmt::Debug for Request {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Request").field("client", &self.client).finish()
+        f.debug_struct("Request")
+            .field("client", &self.client)
+            .finish()
     }
 }
 
@@ -79,9 +81,7 @@ impl Request {
         let middleware = self.middleware.take().unwrap();
 
         let next = Next::new(&middleware, &|req| {
-            Box::pin(async move {
-                HyperClient::new().send(req).await.map_err(|e| e.into())
-            })
+            Box::pin(async move { HyperClient::new().send(req).await.map_err(|e| e.into()) })
         });
 
         let req = self.try_into()?;

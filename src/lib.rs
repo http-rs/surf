@@ -18,29 +18,19 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
+mod http_client;
+mod one_off;
 mod request;
 mod response;
-mod http_client;
 
 pub mod middleware;
 
 #[doc(inline)]
 pub use http;
 
-pub use response::Response;
+pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 pub use request::Request;
+pub use response::Response;
 
 /// A generic error type.
 pub type Fail = Box<dyn std::error::Error + Send + Sync + 'static>;
-
-/// Perform a oneshot `GET` request.
-pub fn get(uri: impl AsRef<str>) -> Request {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
-    Request::new(http::Method::GET, uri)
-}
-
-/// Perform a oneshot `POST` request.
-pub fn post(uri: impl AsRef<str>) -> Request {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
-    Request::new(http::Method::POST, uri)
-}
