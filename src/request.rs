@@ -1,19 +1,29 @@
 use serde::Serialize;
-use std::convert::TryInto;
 
 use super::http_client::{Body, HttpClient};
 use super::http_client_hyper::HyperClient;
+use super::middleware::{Middleware, Next};
 use super::Fail;
 use super::Response;
 
+use std::convert::TryInto;
+use std::sync::Arc;
+use std::fmt;
+
 /// Create an HTTP request.
-#[derive(Debug)]
 pub struct Request {
     client: hyper::client::Builder,
     method: http::Method,
     headers: http::HeaderMap,
+    middleware: Option<Vec<Arc<dyn Middleware>>>,
     uri: http::Uri,
     body: Body,
+}
+
+impl fmt::Debug for Request {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Request").field("client", &self.client).finish()
+    }
 }
 
 impl Request {
@@ -23,9 +33,18 @@ impl Request {
             client: hyper::client::Client::builder(),
             body: Body::empty(),
             headers: http::HeaderMap::new(),
+            middleware: Some(vec![]),
             method,
             uri,
         }
+    }
+
+    /// Push middleware onto the middleware stack.
+    pub fn middleware(mut self, mw: impl Middleware) -> Self {
+        // We can safely unwrap here because middleware is only ever set to None
+        // in the finalizing `send` method.
+        self.middleware.as_mut().unwrap().push(Arc::new(mw));
+        self
     }
 
     /// Insert a header.
@@ -54,9 +73,19 @@ impl Request {
     }
 
     /// Send the request and get back a response.
-    pub async fn send(self) -> Result<Response, Fail> {
+    pub async fn send(mut self) -> Result<Response, Fail> {
+        // We can safely unwrap here because this is the only time we take ownership of the
+        // middleware stack.
+        let middleware = self.middleware.take().unwrap();
+
+        let next = Next::new(&middleware, &|req| {
+            Box::pin(async move {
+                HyperClient::new().send(req).await.map_err(|e| e.into())
+            })
+        });
+
         let req = self.try_into()?;
-        let res = HyperClient::new().send(req).await?;
+        let res = next.run(req).await?;
         Ok(Response::new(res))
     }
 }
