@@ -3,7 +3,7 @@ use serde::Serialize;
 use super::http_client::hyper::HyperClient;
 use super::http_client::{Body, HttpClient};
 use super::middleware::{Middleware, Next};
-use super::Fail;
+use super::Exception;
 use super::Response;
 
 use std::convert::TryInto;
@@ -69,13 +69,13 @@ impl Request {
     }
 
     /// Send a request and format the response as a `FormData`.
-    pub async fn form(self) -> Result<(), Fail> {
+    pub async fn form(self) -> Result<(), Exception> {
         // let mut _res = self.send().await?;
         unimplemented!();
     }
 
     /// Send the request and get back a response.
-    pub async fn send(mut self) -> Result<Response, Fail> {
+    pub async fn send(mut self) -> Result<Response, Exception> {
         // We can safely unwrap here because this is the only time we take ownership of the
         // middleware stack.
         let middleware = self.middleware.take().unwrap();

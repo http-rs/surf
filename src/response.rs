@@ -6,7 +6,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use super::http_client;
-use super::Fail;
+use super::Exception;
 
 /// A response returned by `Request`.
 pub struct Response {
@@ -45,7 +45,7 @@ impl Response {
     /// as an `Err`.
     ///
     /// If the body cannot be interpreted as valid UTF-8, an `Err` is returned.
-    pub async fn into_string(self) -> Result<String, Fail> {
+    pub async fn into_string(self) -> Result<String, Exception> {
         let bytes = self.into_bytes().await?;
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
     }

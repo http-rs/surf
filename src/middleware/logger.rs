@@ -25,7 +25,7 @@ impl Middleware for Logger {
         &'a self,
         req: Request,
         next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, crate::Fail>> {
+    ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
         Box::pin(async move {
             println!("sending request to {}", req.uri());
             let now = time::Instant::now();

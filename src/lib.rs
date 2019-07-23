@@ -33,4 +33,4 @@ pub use request::Request;
 pub use response::Response;
 
 /// A generic error type.
-pub type Fail = Box<dyn std::error::Error + Send + Sync + 'static>;
+pub type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
