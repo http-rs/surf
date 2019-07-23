@@ -49,7 +49,7 @@
 //! ```
 
 #[doc(inline)]
-pub use crate::http_client::{HttpClient, Request, Response};
+pub use crate::http_client::{Body, HttpClient, Request, Response};
 
 pub mod logger;
 
