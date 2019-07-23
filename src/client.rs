@@ -1,13 +1,12 @@
 use crate::Request;
 use crate::http_client::HttpClient;
 use crate::http_client::hyper::HyperClient;
-
-use std::fmt::Debug;
+use std::sync::Arc;
 
 /// A persistent HTTP client.
 #[derive(Debug)]
 pub struct Client<C: HttpClient> {
-    http_client: C,
+    client: C,
 }
 
 impl Client<HyperClient> {
@@ -17,16 +16,16 @@ impl Client<HyperClient> {
     }
 }
 
-impl<C: HttpClient + Debug + Unpin> Client<C> {
+impl<C: HttpClient> Client<C> {
     /// Create a new instance with an `http_client::HttpClient` instance.
-    pub fn with_client(http_client: C) -> Self {
-        Self { http_client }
+    pub fn with_client(client: C) -> Self {
+        let client = client;
+        Self { client }
     }
 
     /// Submit an HTTP `POST` request.
-    pub fn post(&self, uri: impl AsRef<str>, client: C) -> Request<C> {
+    pub fn post(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().to_owned().parse().unwrap();
-        Request::with_client(http::Method::POST, uri, client)
+        Request::with_client(http::Method::POST, uri, self.client)
     }
-
 }

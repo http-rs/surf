@@ -15,15 +15,15 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::fmt::Debug;
 
-struct RequestState {
+struct RequestState<C: HttpClient> {
     method: http::Method,
     headers: http::HeaderMap,
-    middleware: Option<Vec<Arc<dyn Middleware>>>,
+    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     uri: http::Uri,
     body: Body,
 }
 
-impl fmt::Debug for RequestState {
+impl<C: HttpClient> fmt::Debug for RequestState<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("RequestState")
             .field("method", &self.method)
@@ -35,11 +35,11 @@ impl fmt::Debug for RequestState {
 }
 
 /// Create an HTTP request.
-pub struct Request<C: HttpClient + Debug + Unpin> {
+pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     /// Holds a `http_client::HttpClient` implementation
     client: Option<C>,
     /// Holds the state of the request
-    req: Option<RequestState>,
+    req: Option<RequestState<C>>,
     /// Holds the state of the `impl Future`
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
 }
@@ -51,7 +51,7 @@ impl Request<HyperClient> {
     }
 }
 
-impl<C: HttpClient + Debug + Unpin> Request<C> {
+impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
     pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
         Self {
@@ -68,7 +68,7 @@ impl<C: HttpClient + Debug + Unpin> Request<C> {
     }
 
     /// Push middleware onto the middleware stack.
-    pub fn middleware(mut self, mw: impl Middleware) -> Self {
+    pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
         self.req
             .as_mut()
             .unwrap()
@@ -125,7 +125,7 @@ impl<C: HttpClient + Debug + Unpin> Request<C> {
     }
 }
 
-impl<C: HttpClient + Debug + Unpin> Future for Request<C> {
+impl<C: HttpClient> Future for Request<C> {
     type Output = Result<Response, Exception>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -138,13 +138,13 @@ impl<C: HttpClient + Debug + Unpin> Future for Request<C> {
             let req = req.try_into()?;
 
             self.fut = Some(Box::pin(async move {
-                let next = Next::new(&middleware, &|req| {
+                let next = Next::new(&middleware, &|req, client| {
                     Box::pin(
                         async move { client.send(req).await.map_err(|e| e.into()) },
                     )
                 });
 
-                let res = next.run(req).await?;
+                let res = next.run(req, client).await?;
                 Ok(Response::new(res))
             }));
         }
@@ -153,7 +153,7 @@ impl<C: HttpClient + Debug + Unpin> Future for Request<C> {
     }
 }
 
-impl TryInto<http::Request<Body>> for RequestState {
+impl <C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
     type Error = http::Error;
 
     fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
@@ -165,7 +165,7 @@ impl TryInto<http::Request<Body>> for RequestState {
     }
 }
 
-impl<C: HttpClient + Debug + Unpin> fmt::Debug for Request<C> {
+impl<C: HttpClient> fmt::Debug for Request<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.req, f)
     }

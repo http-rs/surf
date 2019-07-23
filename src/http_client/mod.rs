@@ -2,9 +2,11 @@
 use futures::future::BoxFuture;
 use futures::io::AsyncRead;
 
+use std::error::Error;
+use std::fmt::{self, Debug};
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use std::{fmt, io};
+use std::io;
 
 pub mod hyper;
 
@@ -15,9 +17,9 @@ pub type Request = http::Request<Body>;
 pub type Response = http::Response<Body>;
 
 /// An abstract HTTP client.
-pub trait HttpClient {
+pub trait HttpClient: Debug + Unpin + Send + Sync + Copy + 'static {
     /// The associated error type.
-    type Error;
+    type Error: Error + Send + Sync;
 
     /// Perform a request.
     fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>>;

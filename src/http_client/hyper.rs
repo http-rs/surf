@@ -6,19 +6,20 @@ use futures::prelude::*;
 use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use std::sync::Arc;
 
 use super::{Body, HttpClient, Request, Response};
 
 /// Hyper HTTP Client.
 #[derive(Debug)]
 pub struct HyperClient {
-    _priv: (),
+    client: Arc<hyper::Client>,
 }
 
 impl HyperClient {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
-        Self { _priv: () }
+        Self { client: Arc::new(hyper::Client::new()) }
     }
 }
 
