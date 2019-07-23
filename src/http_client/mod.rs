@@ -17,6 +17,15 @@ pub type Request = http::Request<Body>;
 pub type Response = http::Response<Body>;
 
 /// An abstract HTTP client.
+///
+/// ## Spawning new request from middleware
+/// When threading the trait through a layer of middleware, the middleware must be able to perform
+/// new requests. In order to enable this we pass an `HttpClient` instance through the middleware,
+/// with a `Clone` implementation. In order to spawn a new request, `clone` is called, and a new
+/// request is enabled.
+///
+/// How `Clone` is implemented is up to the implementors, but in an ideal scenario combining this
+/// with the `Client` builder will allow for high connection reuse, improving latency.
 pub trait HttpClient: Debug + Unpin + Send + Sync + Clone + 'static {
     /// The associated error type.
     type Error: Error + Send + Sync;

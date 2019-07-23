@@ -26,12 +26,13 @@ impl<C: HttpClient> Middleware<C> for Logger {
     fn handle<'a>(
         &'a self,
         req: Request,
+        client: C,
         next: Next<'a, C>,
     ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
         Box::pin(async move {
             println!("sending request to {}", req.uri());
             let now = time::Instant::now();
-            let res = next.run(req).await?;
+            let res = next.run(req, client).await?;
             println!("request completed ({:?})", now.elapsed());
             Ok(res)
         })

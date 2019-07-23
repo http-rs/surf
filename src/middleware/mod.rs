@@ -50,7 +50,7 @@
 #[doc(inline)]
 pub use crate::http_client::{Request, Response, HttpClient};
 
-// pub mod logger;
+pub mod logger;
 
 use crate::Exception;
 use futures::future::BoxFuture;
@@ -62,6 +62,7 @@ pub trait Middleware<C: HttpClient>: 'static + Send + Sync {
     fn handle<'a>(
         &'a self,
         req: Request,
+        client: C,
         next: Next<'a, C>,
     ) -> BoxFuture<'a, Result<Response, Exception>>;
 }
@@ -72,14 +73,15 @@ where
     F: Send
         + Sync
         + 'static
-        + for<'a> Fn(Request, Next<'a, C>) -> BoxFuture<'a, Result<Response, Exception>>,
+        + for<'a> Fn(Request, C, Next<'a, C>) -> BoxFuture<'a, Result<Response, Exception>>,
 {
     fn handle<'a>(
         &'a self,
         req: Request,
+        client: C,
         next: Next<'a, C>,
     ) -> BoxFuture<'a, Result<Response, Exception>> {
-        (self)(req, next)
+        (self)(req, client, next)
     }
 }
 
@@ -112,7 +114,7 @@ impl<'a, C: HttpClient> Next<'a, C> {
     pub fn run(mut self, req: Request, client: C) -> BoxFuture<'a, Result<Response, Exception>> {
         if let Some((current, next)) = self.next_middleware.split_first() {
             self.next_middleware = next;
-            current.handle(req, self)
+            current.handle(req, client, self)
         } else {
             (self.endpoint)(req, client)
         }
