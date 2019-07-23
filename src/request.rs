@@ -1,8 +1,10 @@
 use serde::Serialize;
+use std::convert::TryInto;
 
+use super::http_client::{Body, HttpClient};
+use super::http_client_hyper::HyperClient;
 use super::Fail;
 use super::Response;
-use super::http_client::{Body, HttpClient};
 
 /// Create an HTTP request.
 #[derive(Debug)]
@@ -51,15 +53,22 @@ impl Request {
         unimplemented!();
     }
 
-    /// Send th request and get back a response.
+    /// Send the request and get back a response.
     pub async fn send(self) -> Result<Response, Fail> {
-        let req = http::Request::builder()
+        let req = self.try_into()?;
+        let res = HyperClient::new().send(req).await?;
+        Ok(Response::new(res))
+    }
+}
+
+impl TryInto<http::Request<Body>> for Request {
+    type Error = http::Error;
+
+    fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
+        let res = http::Request::builder()
             .method(self.method)
             .uri(self.uri)
             .body(self.body)?;
-
-        let hyper_client = super::http_client_hyper::HyperClient::new();
-        let res = hyper_client.send(req).await?;
-        Ok(Response::new(res))
+        Ok(res)
     }
 }
