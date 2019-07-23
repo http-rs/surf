@@ -10,6 +10,7 @@ use std::io;
 use super::http_client::{HttpClient, Request, Response, Body};
 
 /// Hyper HTTP Client.
+#[derive(Debug)]
 pub struct HyperClient {
     _priv: ()
 }
@@ -34,7 +35,7 @@ impl HttpClient for HyperClient {
 
             // Make a request.
             let client = hyper::Client::new();
-            let mut res = Compat01As03::new(client.request(req)).await?;
+            let res = Compat01As03::new(client.request(req)).await?;
 
             // Convert the response body.
             let (parts, body) = res.into_parts();
@@ -58,7 +59,7 @@ impl<R: AsyncRead + Unpin> futures::Stream for ByteStream<R> {
     type Item = Result<hyper::Chunk, Box<dyn std::error::Error + Send + Sync + 'static>>;
 
     fn poll_next(
-        self: Pin<&mut Self>, 
+        mut self: Pin<&mut Self>,
         cx: &mut Context<'_>
     ) -> Poll<Option<Self::Item>> {
         // This is not at all efficient, but that's okay for now.
