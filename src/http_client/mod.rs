@@ -4,11 +4,11 @@ use futures::io::AsyncRead;
 
 use std::error::Error;
 use std::fmt::{self, Debug};
+use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use std::io;
 
-pub mod hyper;
+pub(crate) mod hyper;
 
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;
