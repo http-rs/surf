@@ -7,7 +7,7 @@
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let res = surf::get("http://google.com")
 //!     .middleware(surf::middleware::logger::new())
-//!     .send().await?;
+//!     .await?;
 //! dbg!(res.into_string().await?);
 //! # Ok(()) }
 //! ```
