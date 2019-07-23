@@ -31,11 +31,13 @@ pub struct Body {
 }
 
 impl Body {
+    /// Create a new empty body.
     pub fn empty() -> Self {
         Self {
             reader: Box::new(std::io::empty()),
         }
     }
+
     /// Create a new instance from a reader.
     pub fn from_reader(reader: Box<dyn AsyncRead + Unpin + Send + 'static>) -> Self {
         Self { reader }

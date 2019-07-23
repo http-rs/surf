@@ -51,6 +51,7 @@ impl HttpClient for HyperClient {
     }
 }
 
+/// A type that wraps an `AsyncRead` into a `Stream` of `hyper::Chunk`.
 struct ByteStream<R: AsyncRead> {
     reader: R
 }
