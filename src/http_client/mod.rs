@@ -6,6 +6,8 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 use std::{fmt, io};
 
+pub(crate) mod hyper;
+
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;
 

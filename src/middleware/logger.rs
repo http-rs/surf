@@ -1,8 +1,19 @@
 //! Logging middleware.
+//!
+//! # Examples
+//! ```
+//! # #![feature(async_await)]
+//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! let res = surf::get("http://google.com")
+//!     .middleware(surf::middleware::logger::new())
+//!     .send().await?;
+//! dbg!(res.into_string().await?);
+//! # Ok(()) }
+//! ```
 
 use futures::future::BoxFuture;
-use crate::middleware::{Next, Middleware};
-use crate::http_client::{Request, Response};
+use crate::middleware::{Next, Middleware, Request, Response};
 use std::time;
 
 /// Log each request's duration

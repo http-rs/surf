@@ -1,8 +1,15 @@
 //! HTTP client framework.
 //!
-//! ## Example
-//!
-//! ```rust
+//! # Examples
+//! ```
+//! # #![feature(async_await)]
+//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! let res = surf::get("http://google.com")
+//!     .middleware(surf::middleware::logger::new())
+//!     .send().await?;
+//! dbg!(res.into_string().await?);
+//! # Ok(()) }
 //! ```
 
 #![forbid(unsafe_code, future_incompatible, rust_2018_idioms)]
@@ -13,16 +20,15 @@
 
 mod request;
 mod response;
+mod http_client;
 
-pub mod middleware_logger;
-pub mod http_client_hyper;
-pub mod http_client;
 pub mod middleware;
 
-pub use request::Request;
 #[doc(inline)]
 pub use http;
-pub use response::*;
+
+pub use response::Response;
+pub use request::Request;
 
 /// A generic error type.
 pub type Fail = Box<dyn std::error::Error + Send + Sync + 'static>;

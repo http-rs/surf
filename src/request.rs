@@ -1,7 +1,7 @@
 use serde::Serialize;
 
 use super::http_client::{Body, HttpClient};
-use super::http_client_hyper::HyperClient;
+use super::http_client::hyper::HyperClient;
 use super::middleware::{Middleware, Next};
 use super::Fail;
 use super::Response;

@@ -4,8 +4,7 @@
 //! ```
 //! # #![feature(async_await)]
 //! use futures::future::BoxFuture;
-//! use surf::middleware::{Next, Middleware};
-//! use surf::http_client::{Request, Response};
+//! use surf::middleware::{Next, Middleware, Request, Response};
 //! use std::time;
 //!
 //! /// Log each request's duration
@@ -34,10 +33,8 @@
 //! ```
 //! # #![feature(async_await)]
 //! use futures::future::BoxFuture;
-//! use surf::middleware::{Next, Middleware};
-//! use surf::http_client::{Request, Response};
+//! use surf::middleware::{Next, Middleware, Request, Response};
 //! use std::time;
-//!
 //!
 //! fn logger<'a>(req: Request, next: Next<'a>) -> BoxFuture<'a, Result<Response, surf::Fail>> {
 //!     Box::pin(async move {
@@ -50,8 +47,12 @@
 //! }
 //! ```
 
+#[doc(inline)]
+pub use crate::http_client::{Request, Response};
+
+pub mod logger;
+
 use crate::Fail;
-use crate::http_client::{Request, Response};
 use futures::future::BoxFuture;
 use std::sync::Arc;
 
@@ -77,9 +78,11 @@ where
 /// The remainder of a middleware chain, including the endpoint.
 #[allow(missing_debug_implementations)]
 pub struct Next<'a> {
-    endpoint:
-        &'a (dyn (Fn(Request) -> BoxFuture<'static, Result<Response, Fail>>) + 'static + Send + Sync),
     next_middleware: &'a [Arc<dyn Middleware>],
+    endpoint: &'a (dyn (Fn(Request) -> BoxFuture<'static, Result<Response, Fail>>)
+             + 'static
+             + Send
+             + Sync),
 }
 
 impl<'a> Next<'a> {

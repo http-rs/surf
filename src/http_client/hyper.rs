@@ -7,17 +7,17 @@ use std::task::{Context, Poll};
 use std::pin::Pin;
 use std::io;
 
-use super::http_client::{HttpClient, Request, Response, Body};
+use super::{HttpClient, Request, Response, Body};
 
 /// Hyper HTTP Client.
 #[derive(Debug)]
-pub struct HyperClient {
+pub(crate) struct HyperClient {
     _priv: ()
 }
 
 impl HyperClient {
     /// Create a new instance.
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { _priv: () }
     }
 }
