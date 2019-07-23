@@ -36,7 +36,8 @@ impl fmt::Debug for RequestState {
 
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin> {
-    client: C,
+    /// Holds a `http_client::HttpClient` implementation
+    client: Option<C>,
     /// Holds the state of the request
     req: Option<RequestState>,
     /// Holds the state of the `impl Future`
@@ -46,9 +47,16 @@ pub struct Request<C: HttpClient + Debug + Unpin> {
 impl Request<HyperClient> {
     /// Create a new instance.
     pub fn new(method: http::Method, uri: http::Uri) -> Self {
+        Self::with_client(method, uri, HyperClient::new())
+    }
+}
+
+impl<C: HttpClient + Debug + Unpin> Request<C> {
+    /// Create a new instance with an `HttpClient` instance.
+    pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
         Self {
-            client: HyperClient::new(),
             fut: None,
+            client: Some(client),
             req: Some(RequestState {
                 body: Body::empty(),
                 headers: http::HeaderMap::new(),
@@ -57,13 +65,6 @@ impl Request<HyperClient> {
                 uri,
             }),
         }
-    }
-}
-
-impl<C: HttpClient + Debug + Unpin> Request<C> {
-    /// Create a new instance with an `HttpClient` instance.
-    pub fn with_client(_method: http::Method, _uri: http::Uri, _client: C) -> Self {
-        unimplemented!();
     }
 
     /// Push middleware onto the middleware stack.
@@ -132,13 +133,14 @@ impl<C: HttpClient + Debug + Unpin> Future for Request<C> {
             // We can safely unwrap here because this is the only time we take ownership of the
             // request and middleware stack.
             let mut req = self.req.take().unwrap();
+            let client = self.client.take().unwrap();
             let middleware = req.middleware.take().unwrap();
             let req = req.try_into()?;
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req| {
                     Box::pin(
-                        async move { HyperClient::new().send(req).await.map_err(|e| e.into()) },
+                        async move { client.send(req).await.map_err(|e| e.into()) },
                     )
                 });
 
