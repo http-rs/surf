@@ -13,42 +13,51 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use std::fmt::Debug;
 
-struct RequestState {
-    client: hyper::client::Builder,
+struct RequestState<C: HttpClient> {
     method: http::Method,
     headers: http::HeaderMap,
-    middleware: Option<Vec<Arc<dyn Middleware>>>,
+    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     uri: http::Uri,
     body: Body,
 }
 
-impl fmt::Debug for RequestState {
+impl<C: HttpClient> fmt::Debug for RequestState<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("RequestState")
-            .field("client", &self.client)
             .field("method", &self.method)
             .field("uri", &self.uri)
+            .field("middleware", &"[<middleware>]")
             .field("body", &"<body>")
             .finish()
     }
 }
 
 /// Create an HTTP request.
-pub struct Request {
+pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
+    /// Holds a `http_client::HttpClient` implementation
+    client: Option<C>,
     /// Holds the state of the request
-    req: Option<RequestState>,
+    req: Option<RequestState<C>>,
     /// Holds the state of the `impl Future`
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
 }
 
-impl Request {
+impl Request<HyperClient> {
     /// Create a new instance.
     pub fn new(method: http::Method, uri: http::Uri) -> Self {
+        Self::with_client(method, uri, HyperClient::new())
+    }
+}
+
+impl<C: HttpClient> Request<C> {
+    /// Create a new instance with an `HttpClient` instance.
+    pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
         Self {
             fut: None,
+            client: Some(client),
             req: Some(RequestState {
-                client: hyper::client::Client::builder(),
                 body: Body::empty(),
                 headers: http::HeaderMap::new(),
                 middleware: Some(vec![]),
@@ -59,7 +68,7 @@ impl Request {
     }
 
     /// Push middleware onto the middleware stack.
-    pub fn middleware(mut self, mw: impl Middleware) -> Self {
+    pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
         self.req
             .as_mut()
             .unwrap()
@@ -116,7 +125,7 @@ impl Request {
     }
 }
 
-impl Future for Request {
+impl<C: HttpClient> Future for Request<C> {
     type Output = Result<Response, Exception>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -124,17 +133,18 @@ impl Future for Request {
             // We can safely unwrap here because this is the only time we take ownership of the
             // request and middleware stack.
             let mut req = self.req.take().unwrap();
+            let client = self.client.take().unwrap();
             let middleware = req.middleware.take().unwrap();
             let req = req.try_into()?;
 
             self.fut = Some(Box::pin(async move {
-                let next = Next::new(&middleware, &|req| {
+                let next = Next::new(&middleware, &|req, client| {
                     Box::pin(
-                        async move { HyperClient::new().send(req).await.map_err(|e| e.into()) },
+                        async move { client.send(req).await.map_err(|e| e.into()) },
                     )
                 });
 
-                let res = next.run(req).await?;
+                let res = next.run(req, client).await?;
                 Ok(Response::new(res))
             }));
         }
@@ -143,7 +153,7 @@ impl Future for Request {
     }
 }
 
-impl TryInto<http::Request<Body>> for RequestState {
+impl <C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
     type Error = http::Error;
 
     fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
@@ -155,7 +165,7 @@ impl TryInto<http::Request<Body>> for RequestState {
     }
 }
 
-impl fmt::Debug for Request {
+impl<C: HttpClient> fmt::Debug for Request<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.req, f)
     }

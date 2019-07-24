@@ -13,6 +13,8 @@
 //! ```
 
 use crate::middleware::{Middleware, Next, Request, Response};
+use crate::http_client::HttpClient;
+
 use futures::future::BoxFuture;
 use std::time;
 
@@ -20,16 +22,17 @@ use std::time;
 #[derive(Debug)]
 pub struct Logger;
 
-impl Middleware for Logger {
+impl<C: HttpClient> Middleware<C> for Logger {
     fn handle<'a>(
         &'a self,
         req: Request,
-        next: Next<'a>,
+        client: C,
+        next: Next<'a, C>,
     ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
         Box::pin(async move {
             println!("sending request to {}", req.uri());
             let now = time::Instant::now();
-            let res = next.run(req).await?;
+            let res = next.run(req, client).await?;
             println!("request completed ({:?})", now.elapsed());
             Ok(res)
         })

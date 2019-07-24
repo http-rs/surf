@@ -25,6 +25,7 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
+mod client;
 mod http_client;
 mod one_off;
 mod request;
@@ -35,6 +36,7 @@ pub mod middleware;
 #[doc(inline)]
 pub use http;
 
+pub use client::Client;
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 pub use request::Request;
 pub use response::Response;

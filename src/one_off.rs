@@ -1,4 +1,5 @@
 use super::Request;
+use super::http_client::hyper::HyperClient;
 
 /// Perform a one-off `GET` request.
 ///
@@ -10,7 +11,7 @@ use super::Request;
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET
-pub fn get(uri: impl AsRef<str>) -> Request {
+pub fn get(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::GET, uri)
 }
@@ -34,7 +35,7 @@ pub fn get(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
-pub fn head(uri: impl AsRef<str>) -> Request {
+pub fn head(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::HEAD, uri)
 }
@@ -54,24 +55,28 @@ pub fn head(uri: impl AsRef<str>) -> Request {
 /// this case, the content type is selected by putting the adequate string in the enctype attribute
 /// of the <form> element or the formenctype attribute of the <input> or <button> elements:
 ///
-///     application/x-www-form-urlencoded: the keys and values are encoded in key-value tuples separated by '&', with a '=' between the key and the value. Non-alphanumeric characters in both keys and values are percent encoded: this is the reason why this type is not suitable to use with binary data (use multipart/form-data instead)
-///     multipart/form-data: each value is sent as a block of data ("body part"), with a user agent-defined delimiter ("boundary") separating each part. The keys are given in the Content-Disposition header of each part.
-///     text/plain
+/// ```txt
+/// application/x-www-form-urlencoded: the keys and values are encoded in key-value tuples separated by '&', with a '=' between the key and the value. Non-alphanumeric characters in both keys and values are percent encoded: this is the reason why this type is not suitable to use with binary data (use multipart/form-data instead)
+/// multipart/form-data: each value is sent as a block of data ("body part"), with a user agent-defined delimiter ("boundary") separating each part. The keys are given in the Content-Disposition header of each part.
+/// text/plain
+/// ```
 ///
 /// When the POST request is sent via a method other than an HTML form — like via an XMLHttpRequest
 /// — the body can take any type. As described in the HTTP 1.1 specification, POST is designed to
 /// allow a uniform method to cover the following functions:
 ///
-///     Annotation of existing resources
-///     Posting a message to a bulletin board, newsgroup, mailing list, or similar group of articles;
-///     Adding a new user through a signup modal;
-///     Providing a block of data, such as the result of submitting a form, to a data-handling process;
-///     Extending a database through an append operation.
+/// ```txt
+/// Annotation of existing resources
+/// Posting a message to a bulletin board, newsgroup, mailing list, or similar group of articles;
+/// Adding a new user through a signup modal;
+/// Providing a block of data, such as the result of submitting a form, to a data-handling process;
+/// Extending a database through an append operation.
+/// ```
 ///
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
-pub fn post(uri: impl AsRef<str>) -> Request {
+pub fn post(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::POST, uri)
 }
@@ -90,7 +95,7 @@ pub fn post(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT
-pub fn put(uri: impl AsRef<str>) -> Request {
+pub fn put(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PUT, uri)
 }
@@ -104,7 +109,7 @@ pub fn put(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE
-pub fn delete(uri: impl AsRef<str>) -> Request {
+pub fn delete(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::DELETE, uri)
 }
@@ -127,7 +132,7 @@ pub fn delete(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
-pub fn connect(uri: impl AsRef<str>) -> Request {
+pub fn connect(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::CONNECT, uri)
 }
@@ -143,7 +148,7 @@ pub fn connect(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS
-pub fn options(uri: impl AsRef<str>) -> Request {
+pub fn options(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::OPTIONS, uri)
 }
@@ -163,7 +168,7 @@ pub fn options(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE
-pub fn trace(uri: impl AsRef<str>) -> Request {
+pub fn trace(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::TRACE, uri)
 }
@@ -189,7 +194,7 @@ pub fn trace(uri: impl AsRef<str>) -> Request {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH
-pub fn patch(uri: impl AsRef<str>) -> Request {
+pub fn patch(uri: impl AsRef<str>) -> Request<HyperClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PATCH, uri)
 }
