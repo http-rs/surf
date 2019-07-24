@@ -15,7 +15,7 @@ pub type Request = http::Request<Body>;
 pub type Response = http::Response<Body>;
 
 /// An abstract HTTP client.
-pub trait HttpClient {
+pub(crate) trait HttpClient {
     /// The associated error type.
     type Error;
 

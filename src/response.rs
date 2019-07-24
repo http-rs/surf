@@ -6,7 +6,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use super::http_client;
-use super::Fail;
+use super::Exception;
 
 /// A response returned by `Request`.
 pub struct Response {
@@ -28,7 +28,7 @@ impl Response {
     ///
     /// Any I/O error encountered while reading the body is immediately returned
     /// as an `Err`.
-    pub async fn into_bytes(mut self) -> io::Result<Vec<u8>> {
+    pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = vec![];
         self.response.body_mut().read_to_end(&mut buf).await?;
         Ok(buf)
@@ -45,8 +45,8 @@ impl Response {
     /// as an `Err`.
     ///
     /// If the body cannot be interpreted as valid UTF-8, an `Err` is returned.
-    pub async fn into_string(self) -> Result<String, Fail> {
-        let bytes = self.into_bytes().await?;
+    pub async fn body_string(&mut self) -> Result<String, Exception> {
+        let bytes = self.body_bytes().await?;
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
     }
 
@@ -59,8 +59,8 @@ impl Response {
     ///
     /// If the body cannot be interpreted as valid json for the target type `T`,
     /// an `Err` is returned.
-    pub async fn into_json<T: serde::de::DeserializeOwned>(self) -> std::io::Result<T> {
-        let body_bytes = self.into_bytes().await?;
+    pub async fn body_json<T: serde::de::DeserializeOwned>(&mut self) -> std::io::Result<T> {
+        let body_bytes = self.body_bytes().await?;
         Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
     }
 }

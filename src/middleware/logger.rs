@@ -5,15 +5,15 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main(runtime_tokio::Tokio)]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let res = surf::get("http://google.com")
+//! let mut res = surf::get("http://google.com")
 //!     .middleware(surf::middleware::logger::new())
-//!     .send().await?;
-//! dbg!(res.into_string().await?);
+//!     .await?;
+//! dbg!(res.body_string().await?);
 //! # Ok(()) }
 //! ```
 
+use crate::middleware::{Middleware, Next, Request, Response};
 use futures::future::BoxFuture;
-use crate::middleware::{Next, Middleware, Request, Response};
 use std::time;
 
 /// Log each request's duration
@@ -25,7 +25,7 @@ impl Middleware for Logger {
         &'a self,
         req: Request,
         next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, crate::Fail>> {
+    ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
         Box::pin(async move {
             println!("sending request to {}", req.uri());
             let now = time::Instant::now();

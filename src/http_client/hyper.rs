@@ -1,18 +1,18 @@
 //! HTTP Client adapter for Hyper.
 
-use futures::compat::{Compat01As03, Compat as Compat03As01};
+use futures::compat::{Compat as Compat03As01, Compat01As03};
 use futures::future::BoxFuture;
 use futures::prelude::*;
-use std::task::{Context, Poll};
-use std::pin::Pin;
 use std::io;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
-use super::{HttpClient, Request, Response, Body};
+use super::{Body, HttpClient, Request, Response};
 
 /// Hyper HTTP Client.
 #[derive(Debug)]
 pub(crate) struct HyperClient {
-    _priv: ()
+    _priv: (),
 }
 
 impl HyperClient {
@@ -53,16 +53,13 @@ impl HttpClient for HyperClient {
 
 /// A type that wraps an `AsyncRead` into a `Stream` of `hyper::Chunk`.
 struct ByteStream<R: AsyncRead> {
-    reader: R
+    reader: R,
 }
 
 impl<R: AsyncRead + Unpin> futures::Stream for ByteStream<R> {
     type Item = Result<hyper::Chunk, Box<dyn std::error::Error + Send + Sync + 'static>>;
 
-    fn poll_next(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>
-    ) -> Poll<Option<Self::Item>> {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // This is not at all efficient, but that's okay for now.
         let mut buf = vec![];
         let read = futures::ready!(Pin::new(&mut self.reader).poll_read(cx, &mut buf))?;

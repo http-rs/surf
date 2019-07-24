@@ -5,10 +5,17 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main(runtime_tokio::Tokio)]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let res = surf::get("http://google.com")
-//!     .middleware(surf::middleware::logger::new())
-//!     .send().await?;
-//! dbg!(res.into_string().await?);
+//! let mut res = surf::get("http://google.com").await?;
+//! dbg!(res.body_string().await?);
+//! # Ok(()) }
+//! ```
+//!
+//! It's also possible to skip the intermediate `Response`, and access the response type directly.
+//! ```
+//! # #![feature(async_await)]
+//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! dbg!(surf::get("http://google.com").recv_string().await?);
 //! # Ok(()) }
 //! ```
 
@@ -18,29 +25,19 @@
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
+mod http_client;
+mod one_off;
 mod request;
 mod response;
-mod http_client;
 
 pub mod middleware;
 
 #[doc(inline)]
 pub use http;
 
-pub use response::Response;
+pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 pub use request::Request;
+pub use response::Response;
 
 /// A generic error type.
-pub type Fail = Box<dyn std::error::Error + Send + Sync + 'static>;
-
-/// Perform a oneshot `GET` request.
-pub fn get(uri: impl AsRef<str>) -> Request {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
-    Request::new(http::Method::GET, uri)
-}
-
-/// Perform a oneshot `POST` request.
-pub fn post(uri: impl AsRef<str>) -> Request {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
-    Request::new(http::Method::POST, uri)
-}
+pub type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
