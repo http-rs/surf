@@ -74,7 +74,6 @@ impl HttpClient for HyperClient {
             // Convert the response body.
             let (parts, body) = res.into_parts();
             let body_stream = Compat01As03::new(body)
-                .map(|c| dbg!(c))
                 .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
                 .map_err(|_| io::ErrorKind::InvalidData.into());
             let body_reader = IntoAsyncRead::new(body_stream);
