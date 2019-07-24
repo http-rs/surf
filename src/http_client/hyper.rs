@@ -24,10 +24,17 @@ pub struct HyperClient {
 impl HyperClient {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
+        // Create a TLS decoder, TCP stream, and combine them into a `Connector` to be passed to
+        // Hyper.
         let tcp_connector = RuntimeTcpConnector::new();
         let tls_connector = TlsConnector::new().unwrap();
         let https = HttpsConnector::from((tcp_connector, tls_connector));
-        let client = hyper::Client::builder().build::<_, hyper::Body>(https);
+
+        // Create the Hyper client with the `Connector`, and make sure we use `runtime` to spawn
+        // futures.
+        let client = hyper::Client::builder()
+            .executor(Compat03As01::new(runtime::task::Spawner::new()))
+            .build::<_, hyper::Body>(https);
         Self {
             client: Arc::new(client),
         }
