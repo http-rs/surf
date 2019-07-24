@@ -12,8 +12,8 @@
 //! # Ok(()) }
 //! ```
 
-use crate::middleware::{Middleware, Next, Request, Response};
 use crate::http_client::HttpClient;
+use crate::middleware::{Middleware, Next, Request, Response};
 
 use futures::future::BoxFuture;
 use std::time;

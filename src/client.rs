@@ -76,4 +76,3 @@ impl<C: HttpClient> Client<C> {
         Request::with_client(http::Method::PATCH, uri, self.client.clone())
     }
 }
-

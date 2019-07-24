@@ -21,5 +21,4 @@ hyper-tls = "0.3.2"
 runtime = "0.3.0-alpha.6"
 
 [dev-dependencies]
-runtime = "0.3.0-alpha.6"
 runtime-tokio = "0.3.0-alpha.5"

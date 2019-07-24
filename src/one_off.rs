@@ -1,5 +1,5 @@
-use super::Request;
 use super::http_client::hyper::HyperClient;
+use super::Request;
 
 /// Perform a one-off `GET` request.
 ///
