@@ -13,7 +13,7 @@ use super::{Body, HttpClient, Request, Response};
 /// Hyper HTTP Client.
 #[derive(Debug)]
 pub struct HyperClient {
-    client: Arc<hyper::Client<hyper::client::HttpConnector, hyper::Body>>,
+    client: Arc<hyper::Client<HttpsConnector<HttpConnector>, hyper::Body>>,
 }
 
 impl HyperClient {
