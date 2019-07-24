@@ -3,7 +3,7 @@
 //! # Examples
 //! ```
 //! # #![feature(async_await)]
-//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let mut res = surf::get("https://google.com").await?;
 //! dbg!(res.body_string().await?);
@@ -13,7 +13,7 @@
 //! It's also possible to skip the intermediate `Response`, and access the response type directly.
 //! ```
 //! # #![feature(async_await)]
-//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! dbg!(surf::get("https://google.com").recv_string().await?);
 //! # Ok(()) }

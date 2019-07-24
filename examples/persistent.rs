@@ -6,12 +6,12 @@ async fn main() -> Result<(), Exception> {
     let client = surf::Client::new();
 
     let req1 = client
-        .get("http://google.com")
+        .get("https://google.com")
         .middleware(surf::middleware::logger::new())
         .recv_string();
 
     let req2 = client
-        .get("http://google.com")
+        .get("https://google.com")
         .middleware(surf::middleware::logger::new())
         .recv_string();
 
