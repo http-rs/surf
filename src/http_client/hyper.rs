@@ -36,7 +36,7 @@ impl HttpClient for HyperClient {
         Box::pin(async move {
             // Convert the request body.
             let (parts, body) = req.into_parts();
-            let byte_stream = Compat03As01::new(ByteStream { reader: body });
+            let byte_stream = Compat03As01::new(ChunkStream { reader: body });
             let body = hyper::Body::wrap_stream(byte_stream);
             let req = hyper::Request::from_parts(parts, body);
 
@@ -59,11 +59,11 @@ impl HttpClient for HyperClient {
 }
 
 /// A type that wraps an `AsyncRead` into a `Stream` of `hyper::Chunk`.
-struct ByteStream<R: AsyncRead> {
+struct ChunkStream<R: AsyncRead> {
     reader: R,
 }
 
-impl<R: AsyncRead + Unpin> futures::Stream for ByteStream<R> {
+impl<R: AsyncRead + Unpin> futures::Stream for ChunkStream<R> {
     type Item = Result<hyper::Chunk, Box<dyn std::error::Error + Send + Sync + 'static>>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
