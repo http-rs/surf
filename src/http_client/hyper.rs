@@ -136,7 +136,7 @@ impl hyper_connect::Connect for RuntimeTcpConnector {
 
             // Create a TcpStream and return it.
             let tcp_stream = TcpStream::connect((dest.host(), port)).await?;
-            Ok((tcp_stream.compat(), hyper_connect::Connected::new()))
+            Ok((Compat03As01::new(tcp_stream), hyper_connect::Connected::new()))
         }))
     }
 }
