@@ -3,6 +3,9 @@
 use futures::compat::{Compat as Compat03As01, Compat01As03};
 use futures::future::BoxFuture;
 use futures::prelude::*;
+use hyper_tls::HttpsConnector;
+use hyper::client::HttpConnector;
+
 use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -13,13 +16,15 @@ use super::{Body, HttpClient, Request, Response};
 /// Hyper HTTP Client.
 #[derive(Debug)]
 pub struct HyperClient {
-    client: Arc<hyper::Client<hyper::client::HttpConnector, hyper::Body>>,
+    client: Arc<hyper::Client<HttpsConnector<HttpConnector>, hyper::Body>>,
 }
 
 impl HyperClient {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
-        Self { client: Arc::new(hyper::Client::new()) }
+        let https = HttpsConnector::new(4).unwrap();
+        let client = hyper::Client::builder().build::<_, hyper::Body>(https);
+        Self { client: Arc::new(client) }
     }
 }
 
@@ -33,6 +38,7 @@ impl HttpClient for HyperClient {
     type Error = hyper::error::Error;
 
     fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
+        let client = self.client.clone();
         Box::pin(async move {
             // Convert the request body.
             let (parts, body) = req.into_parts();
@@ -41,7 +47,6 @@ impl HttpClient for HyperClient {
             let req = hyper::Request::from_parts(parts, body);
 
             // Make a request.
-            let client = hyper::Client::new();
             let res = Compat01As03::new(client.request(req)).await?;
 
             // Convert the response body.
