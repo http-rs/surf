@@ -4,12 +4,11 @@ use futures::compat::{Compat as Compat03As01, Compat01As03};
 use futures::future::BoxFuture;
 use futures::prelude::*;
 use hyper::client::connect as hyper_connect;
-use hyper::client::HttpConnector;
 use hyper_tls::HttpsConnector;
 use runtime::net::TcpStream;
+use native_tls::TlsConnector;
 
 use std::io;
-use std::net::{SocketAddr, ToSocketAddrs};
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
@@ -19,13 +18,15 @@ use super::{Body, HttpClient, Request, Response};
 /// Hyper HTTP Client.
 #[derive(Debug)]
 pub struct HyperClient {
-    client: Arc<hyper::Client<HttpsConnector<HttpConnector>, hyper::Body>>,
+    client: Arc<hyper::Client<HttpsConnector<RuntimeTcpConnector>, hyper::Body>>,
 }
 
 impl HyperClient {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
-        let https = HttpsConnector::new(4).unwrap();
+        let tcp_connector = RuntimeTcpConnector::new();
+        let tls_connector = TlsConnector::new().unwrap();
+        let https = HttpsConnector::from((tcp_connector, tls_connector));
         let client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Self {
             client: Arc::new(client),
@@ -94,9 +95,18 @@ impl<R: AsyncRead + Unpin> futures::Stream for ChunkStream<R> {
 
 /// The struct passed to Hyper so we can use arbitrary `AsyncRead` + `AsyncWrite` streams to make
 /// connections.
-pub struct HyperConnector;
+pub(crate) struct RuntimeTcpConnector {
+    _priv: (),
+}
 
-impl hyper_connect::Connect for HyperConnector {
+impl RuntimeTcpConnector {
+    /// Create a new instance
+    pub(crate) fn new() -> Self {
+        Self { _priv: () }
+    }
+}
+
+impl hyper_connect::Connect for RuntimeTcpConnector {
     type Transport = Compat03As01<TcpStream>;
     type Error = io::Error;
     type Future = Compat03As01<
@@ -111,59 +121,15 @@ impl hyper_connect::Connect for HyperConnector {
 
     fn connect(&self, dest: hyper_connect::Destination) -> Self::Future {
         Compat03As01::new(Box::pin(async move {
-            let addr = (
-                dest.host(),
-                dest.port().unwrap_or_else(|| match dest.scheme() {
-                    "https" => 443,
-                    _ => 80,
-                }),
-            );
+            let port = match dest.port() {
+                Some(port) => port,
+                None if dest.scheme() == "https" => 443,
+                None => 80
+            };
 
-            let addr = addr.to_socket_addrs()?.next();
-            let addr = addr.ok_or_else(|| {
-                io::Error::new(io::ErrorKind::Other, "destination resolved to no address")
-            })?;
-
-            // Create the TcpStream and send it to the TcpConnector
-            let tcp_stream = TcpStream::connect(addr).await?;
-            Ok::<TcpStream, io::Error>(tcp_stream);
-            unimplemented!()
+            // Create a TcpStream and return it.
+            let tcp_stream = TcpStream::connect((dest.host(), port)).await?;
+            Ok((tcp_stream.compat(), hyper_connect::Connected::new()))
         }))
     }
 }
-
-// /// The `Future` returned for each call to `connect` inside `Hyper`.
-// pub struct HyperTcpConnector(Result<TcpStream, Option<io::Error>>);
-
-// impl HyperTcpConnector {
-//     pub fn new(dest: hyper_connect::Destination) -> Self {
-//         Self(Ok(stream)).compat();
-//         unimplemented!();
-//     }
-// }
-
-// impl Future for HyperTcpConnector {
-//     type Output = Result<(Compat03As01<TcpStream>, hyper_connect::Connected), io::Error>;
-
-//     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-//         let connector = self.0.as_mut().map_err(|x| x.take().unwrap())?;
-//         let stream = futures::ready!(connector.poll_unpin(cx)?);
-//         Poll::Ready(Ok((stream.compat(), hyper_connect::Connected::new())))
-//     }
-// }
-
-// pub struct TcpConnector {
-//     addr: SocketAddr,
-//     stream: Option<TcpStream>,
-// }
-
-// impl Future for TcpConnector {
-//     type Output = io::Result<TcpStream>;
-
-//     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-//         let stream = self.stream.as_mut().unwrap();
-//         futures::ready!(stream.async_connect(&self.addr, cx))?;
-//         let stream = self.stream.take().unwrap();
-//         Poll::Ready(Ok(stream))
-//     }
-// }
