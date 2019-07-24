@@ -30,7 +30,7 @@ impl Response {
     /// as an `Err`.
     pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = Vec::with_capacity(1024);
-        self.response.body_mut().read(&mut buf).await?;
+        self.response.body_mut().read_to_end(&mut buf).await?;
         Ok(buf)
     }
 

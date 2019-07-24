@@ -2,12 +2,15 @@
 
 use futures::compat::{Compat as Compat03As01, Compat01As03};
 use futures::future::BoxFuture;
-use futures::ready;
+use futures::future::FutureObj;
 use futures::prelude::*;
+use futures::ready;
+use futures::task::SpawnError;
 use hyper::client::connect as hyper_connect;
 use hyper_tls::HttpsConnector;
-use runtime::net::TcpStream;
 use native_tls::TlsConnector;
+use runtime::net::TcpStream;
+use runtime_raw::Runtime;
 
 use std::io;
 use std::pin::Pin;
@@ -31,11 +34,14 @@ impl HyperClient {
         let tls_connector = TlsConnector::new().unwrap();
         let https = HttpsConnector::from((tcp_connector, tls_connector));
 
-        // Create the Hyper client with the `Connector`, and make sure we use `runtime` to spawn
-        // futures.
+        // Create the Hyper client with the `Connector`, and make sure we use `runtime-tokio` to
+        // spawn futures. Unfortunately, if futures are spawned onto `runtime-native`, we get weird
+        // deadlocks. :(
+
         let client = hyper::Client::builder()
-            .executor(Compat03As01::new(runtime::task::Spawner::new()))
+            .executor(Compat03As01::new(TokioSpawner))
             .build::<_, hyper::Body>(https);
+
         Self {
             client: Arc::new(client),
         }
@@ -235,5 +241,14 @@ impl hyper_connect::Connect for RuntimeTcpConnector {
             let tcp_stream = TcpStream::connect((dest.host(), port)).await?;
             Ok((Compat03As01::new(tcp_stream), hyper_connect::Connected::new()))
         }))
+    }
+}
+
+#[derive(Debug)]
+struct TokioSpawner;
+
+impl futures::task::Spawn for &TokioSpawner {
+    fn spawn_obj(&mut self, future: FutureObj<'static, ()>) -> Result<(), SpawnError> {
+        runtime_tokio::Tokio.spawn_boxed(future.boxed())
     }
 }
