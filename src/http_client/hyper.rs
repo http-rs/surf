@@ -2,6 +2,7 @@
 
 use futures::compat::{Compat as Compat03As01, Compat01As03};
 use futures::future::BoxFuture;
+use futures::ready;
 use futures::prelude::*;
 use hyper::client::connect as hyper_connect;
 use hyper_tls::HttpsConnector;
@@ -66,10 +67,11 @@ impl HttpClient for HyperClient {
 
             // Convert the response body.
             let (parts, body) = res.into_parts();
-            let body_reader = Compat01As03::new(body)
+            let body_stream = Compat01As03::new(body)
+                .map(|c| dbg!(c))
                 .map(|chunk| chunk.map(|chunk| chunk.to_vec()))
-                .map_err(|_| io::ErrorKind::InvalidData.into())
-                .into_async_read();
+                .map_err(|_| io::ErrorKind::InvalidData.into());
+            let body_reader = IntoAsyncRead::new(body_stream);
             let body = Body::from_reader(Box::new(body_reader));
             let res = http::Response::from_parts(parts, body);
 
@@ -78,7 +80,102 @@ impl HttpClient for HyperClient {
     }
 }
 
-/// A type that wraps an `AsyncRead` into a `Stream` of `hyper::Chunk`.
+/// An `AsyncRead` for the [`into_async_read`](super::TryStreamExt::into_async_read) combinator.
+#[derive(Debug)]
+#[must_use = "streams do nothing unless polled"]
+struct IntoAsyncRead<St>
+where
+    St: TryStream<Error = io::Error> + Unpin,
+    St::Ok: AsRef<[u8]>,
+{
+    stream: St,
+    state: ReadState<St::Ok>,
+}
+
+impl<St> Unpin for IntoAsyncRead<St>
+where
+    St: TryStream<Error = io::Error> + Unpin,
+    St::Ok: AsRef<[u8]>,
+{
+}
+
+#[derive(Debug)]
+enum ReadState<T: AsRef<[u8]>> {
+    Ready { chunk: T, chunk_start: usize },
+    PendingChunk,
+    Eof,
+}
+
+impl<St> IntoAsyncRead<St>
+where
+    St: TryStream<Error = io::Error> + Unpin,
+    St::Ok: AsRef<[u8]>,
+{
+    pub(super) fn new(stream: St) -> Self {
+        IntoAsyncRead {
+            stream,
+            state: ReadState::PendingChunk,
+        }
+    }
+}
+
+impl<St> AsyncRead for IntoAsyncRead<St>
+where
+    St: TryStream<Error = io::Error> + Unpin,
+    St::Ok: AsRef<[u8]>,
+{
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut [u8],
+    ) -> Poll<io::Result<usize>> {
+        loop {
+            match &mut self.state {
+                ReadState::Ready { chunk, chunk_start } => {
+                    let chunk = chunk.as_ref();
+                    let len = std::cmp::min(buf.len(), chunk.len() - *chunk_start);
+
+                    buf[..len].copy_from_slice(
+                        &chunk[*chunk_start..*chunk_start + len],
+                    );
+                    *chunk_start += len;
+
+                    if chunk.len() == *chunk_start {
+                        self.state = ReadState::PendingChunk;
+                    }
+
+                    return Poll::Ready(Ok(len));
+                }
+                ReadState::PendingChunk => {
+                    match ready!(self.stream.try_poll_next_unpin(cx)) {
+                        Some(Ok(chunk)) => {
+                            if !chunk.as_ref().is_empty() {
+                                self.state = ReadState::Ready {
+                                    chunk,
+                                    chunk_start: 0,
+                                };
+                            }
+                        }
+                        Some(Err(err)) => {
+                            self.state = ReadState::Eof;
+                            return Poll::Ready(Err(err));
+                        }
+                        None => {
+                            self.state = ReadState::Eof;
+                            return Poll::Ready(Ok(0));
+                        }
+                    }
+                }
+                ReadState::Eof => {
+                    return Poll::Ready(Ok(0));
+                }
+            }
+        }
+    }
+}
+
+/// A type that wraps an `AsyncRead` into a `Stream` of `hyper::Chunk`. Used for writing data to a
+/// Hyper response.
 struct ChunkStream<R: AsyncRead> {
     reader: R,
 }
