@@ -60,6 +60,7 @@ impl HttpClient for HyperClient {
     type Error = hyper::error::Error;
 
     fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
+        let client = self.client.clone();
         Box::pin(async move {
             // Convert the request body.
             let (parts, body) = req.into_parts();
@@ -68,7 +69,6 @@ impl HttpClient for HyperClient {
             let req = hyper::Request::from_parts(parts, body);
 
             // Make a request.
-            let client = hyper::Client::new();
             let res = Compat01As03::new(client.request(req)).await?;
 
             // Convert the response body.
