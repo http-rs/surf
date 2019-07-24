@@ -5,7 +5,7 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main(runtime_tokio::Tokio)]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("http://google.com").await?;
+//! let mut res = surf::get("https://google.com").await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
 //! ```
@@ -15,7 +15,7 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main(runtime_tokio::Tokio)]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! dbg!(surf::get("http://google.com").recv_string().await?);
+//! dbg!(surf::get("https://google.com").recv_string().await?);
 //! # Ok(()) }
 //! ```
 
