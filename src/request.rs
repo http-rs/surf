@@ -9,11 +9,11 @@ use super::Response;
 
 use std::convert::TryInto;
 use std::fmt;
+use std::fmt::Debug;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::fmt::Debug;
 
 struct RequestState<C: HttpClient> {
     method: http::Method,
@@ -139,9 +139,7 @@ impl<C: HttpClient> Future for Request<C> {
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req, client| {
-                    Box::pin(
-                        async move { client.send(req).await.map_err(|e| e.into()) },
-                    )
+                    Box::pin(async move { client.send(req).await.map_err(|e| e.into()) })
                 });
 
                 let res = next.run(req, client).await?;
@@ -153,7 +151,7 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-impl <C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
+impl<C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
     type Error = http::Error;
 
     fn try_into(self) -> Result<http::Request<Body>, Self::Error> {

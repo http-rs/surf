@@ -29,7 +29,7 @@ impl Response {
     /// Any I/O error encountered while reading the body is immediately returned
     /// as an `Err`.
     pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
-        let mut buf = vec![];
+        let mut buf = Vec::with_capacity(1024);
         self.response.body_mut().read_to_end(&mut buf).await?;
         Ok(buf)
     }

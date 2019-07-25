@@ -3,7 +3,7 @@
 //! # Examples
 //! ```
 //! # #![feature(async_await)]
-//! # #[runtime::main(runtime_tokio::Tokio)]
+//! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let mut res = surf::get("http://google.com")
 //!     .middleware(surf::middleware::logger::new())
@@ -12,8 +12,8 @@
 //! # Ok(()) }
 //! ```
 
-use crate::middleware::{Middleware, Next, Request, Response};
 use crate::http_client::HttpClient;
+use crate::middleware::{Middleware, Next, Request, Response};
 
 use futures::future::BoxFuture;
 use std::time;

@@ -12,12 +12,13 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-hyper = "0.12.32"
+hyper = { version = "0.12.32", default-features = false }
 http = "0.1.17"
-futures-preview = { version = "0.3.0-alpha.17", features = ["compat"] }
+futures-preview = { version = "0.3.0-alpha.17", features = ["compat", "io-compat"] }
 serde = "1.0.94"
 serde_json = "1.0.40"
-
-[dev-dependencies]
+hyper-tls = "0.3.2"
 runtime = "0.3.0-alpha.6"
+native-tls = "0.2.2"
 runtime-tokio = "0.3.0-alpha.5"
+runtime-raw = "0.3.0-alpha.4"

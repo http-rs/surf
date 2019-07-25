@@ -1,15 +1,17 @@
 #![feature(async_await)]
 type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-#[runtime::main(runtime_tokio::Tokio)]
+#[runtime::main]
 async fn main() -> Result<(), Exception> {
     let client = surf::Client::new();
 
-    let req1 = client.get("http://google.com")
+    let req1 = client
+        .get("https://google.com")
         .middleware(surf::middleware::logger::new())
         .recv_string();
 
-    let req2 = client.get("http://google.com")
+    let req2 = client
+        .get("https://google.com")
         .middleware(surf::middleware::logger::new())
         .recv_string();
 
