@@ -52,20 +52,21 @@
 
 ## About
 
-Surf is a modular HTTP client built around async/await. It's both really easy to
-use, and flexible enough to work for almost every use case.
-A modular HTTP client built around async/await. It's actively being developed by
-the Rust Async Ecosystem WG.
+Surf is the Rust HTTP client we've always wanted. It's completely modular, and
+built directly for `async/await`. Whether it's a quick script, or a
+cross-platform SDK, Surf will make it work.
+
+- Multi-platform out of the box
+- Extensible through a powerful middleware system
+- Reuses connections through the `Client` interface
+- Fully streaming requests and responses
+- TLS/SSL enabled by default
+- Swappable HTTP backends (`hyper (default)`, `libcurl (wip)`, `fetch (wip)`)
 
 ## Examples
-
 ```rust,no_run
-#![feature(async_await)]
-
-fn main() -> Result<(), std::io::Error> {
-    let mut res = surf::get("http://google.com").await?;
-    dbg!(res.body_string().await?);
-}
+let mut res = surf::get("https://google.com").await?;
+dbg!(res.body_string().await?);
 ```
 
 ## Installation
