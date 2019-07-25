@@ -45,8 +45,8 @@
 //! assert_eq!(res.status(), 200);
 //!
 //! let uri = "https://api.ipify.org?format=json";
-//! let ip: Ip = surf::get(uri).recv_json().await?;
-//! assert!(ip.ip.len() > 10);
+//! let Ip { ip } = surf::get(uri).recv_json().await?;
+//! assert!(ip.len() > 10);
 //! # Ok(()) }
 //! ```
 
