@@ -150,9 +150,12 @@ impl Client {
             if let Some(c) = self.cache {
                 if let Some(mut res) = c.matched(&req).await? {
                     let mut res_headers = res.response.headers_mut();
+                    // TODO - this needs to handle multiple potential Warning
+                    // headers
                     if let Some(warning) = res_headers.get("warning".into()) {
                         let code: String = warning
-                            .to_str()?
+                            .to_str()
+                            .unwrap_or("000")
                             .chars()
                             .take_while(|x| (*x).is_digit(10))
                             .collect();
