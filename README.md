@@ -1,17 +1,72 @@
-# surf
-[![crates.io version][1]][2] [![build status][3]][4]
-[![downloads][5]][6] [![docs.rs docs][7]][8]
+<h1 align="center">Surf</h1>
+<div align="center">
+ <strong>
+   Surf the web
+ </strong>
+</div>
 
-HTTP client framework.
+<br />
 
-- [Documentation][8]
-- [Crates.io][2]
-- [Releases][releases]
+<div align="center">
+  <!-- Crates version -->
+  <a href="https://crates.io/crates/tide">
+    <img src="https://img.shields.io/crates/v/surf.svg?style=flat-square"
+    alt="Crates.io version" />
+  </a>
+  <!-- Build Status -->
+  <a href="https://travis-ci.org/rustasync/surf">
+    <img src="https://img.shields.io/travis/rustasync/surf.svg?style=flat-square"
+      alt="Build Status" />
+  </a>
+  <!-- Downloads -->
+  <a href="https://crates.io/crates/surf">
+    <img src="https://img.shields.io/crates/d/surf.svg?style=flat-square"
+      alt="Download" />
+  </a>
+  <!-- docs.rs docs -->
+  <a href="https://docs.rs/surf">
+    <img src="https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square"
+      alt="docs.rs docs" />
+  </a>
+</div>
+
+<div align="center">
+  <h3>
+    <a href="https://docs.rs/surf">
+      API Docs
+    </a>
+    <span> | </span>
+    <a href="https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md">
+      Contributing
+    </a>
+    <span> | </span>
+    <a href="https://discordapp.com/channels/442252698964721669/474974025454452766">
+      Chat
+    </a>
+  </h3>
+</div>
+
+<div align="center">
+  <sub>Built with 🌊 by <a href="https://github.com/rustasync">The Rust Async Ecosystem WG</a>
+</div>
+
+## About
+
+Surf is the Rust HTTP client we've always wanted. It's completely modular, and
+built directly for `async/await`. Whether it's a quick script, or a
+cross-platform SDK, Surf will make it work.
+
+- Multi-platform out of the box
+- Extensible through a powerful middleware system
+- Reuses connections through the `Client` interface
+- Fully streaming requests and responses
+- TLS/SSL enabled by default
+- Swappable HTTP backends (`hyper (default)`, `libcurl (wip)`, `fetch (wip)`)
 
 ## Examples
-__Basic usage__
-```rust
-// tbi
+```rust,no_run
+let mut res = surf::get("https://google.com").await?;
+dbg!(res.body_string().await?);
 ```
 
 ## Installation

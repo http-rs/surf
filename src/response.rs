@@ -19,6 +19,11 @@ impl Response {
         Self { response }
     }
 
+    /// Get the HTTP status code.
+    pub fn status(&self) -> http::status::StatusCode {
+        self.response.status()
+    }
+
     /// Reads the entire request body into a byte buffer.
     ///
     /// This method can be called after the body has already been read, but will

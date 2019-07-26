@@ -1,6 +1,30 @@
-use std::error::Error;
+#![feature(async_await)]
 
-#[test]
-fn should_work() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
+#[runtime::test]
+async fn post_json() -> Result<(), surf::Exception> {
+    #[derive(serde::Deserialize, serde::Serialize)]
+    struct Cat {
+        name: String,
+    }
+
+    let cat = Cat {
+        name: "Chashu".to_string(),
+    };
+
+    let res = surf::post("https://httpbin.org/post").json(&cat)?.await?;
+    assert_eq!(res.status(), 200);
+    Ok(())
+}
+
+#[runtime::test]
+async fn get_json() -> Result<(), surf::Exception> {
+    #[derive(serde::Deserialize)]
+    struct Ip {
+        ip: String
+    }
+
+    let uri = "https://api.ipify.org?format=json";
+    let ip: Ip = surf::get(uri).recv_json().await?;
+    assert!(ip.ip.len() > 10);
     Ok(())
 }
