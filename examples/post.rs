@@ -2,6 +2,8 @@
 
 #[runtime::main]
 async fn main() -> Result<(), surf::Exception> {
+    femme::start(log::LevelFilter::Info)?;
+
     #[derive(serde::Serialize)]
     struct Cat {
         name: String,

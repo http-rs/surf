@@ -56,7 +56,7 @@ impl Request<HyperClient> {
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
     pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
-        Self {
+        let client = Self {
             fut: None,
             client: Some(client),
             req: Some(RequestState {
@@ -66,7 +66,12 @@ impl<C: HttpClient> Request<C> {
                 method,
                 uri,
             }),
-        }
+        };
+
+        #[cfg(feature="middleware-logger")]
+        let client = client.middleware(crate::middleware::logger::new());
+
+        client
     }
 
     /// Push middleware onto the middleware stack.
