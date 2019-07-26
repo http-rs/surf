@@ -1,4 +1,5 @@
 use futures::future::BoxFuture;
+use futures::prelude::*;
 use serde::Serialize;
 
 use super::http_client::hyper::HyperClient;
@@ -7,13 +8,14 @@ use super::middleware::{Middleware, Next};
 use super::Exception;
 use super::Response;
 
-use std::convert::TryInto;
+use std::convert::{TryInto, TryFrom};
 use std::fmt;
 use std::fmt::Debug;
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use std::io;
 
 struct RequestState<C: HttpClient> {
     method: http::Method,
@@ -94,6 +96,12 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Pass an `AsyncRead` stream as the request body.
+    pub fn body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self{
+        self.req.as_mut().unwrap().body = reader.into();
+        self
+    }
+
     /// Set JSON as the body.
     pub fn json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
         self.req.as_mut().unwrap().body = serde_json::to_vec(json)?.into();
@@ -160,6 +168,27 @@ impl<C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
             .uri(self.uri)
             .body(self.body)?;
         Ok(res)
+    }
+}
+
+impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>> for Request<HyperClient> {
+    type Error = io::Error;
+
+    /// Converts an `http::Request` to a `surf::Request`.
+    fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
+        let (parts, body) = http_request.into_parts();
+        let req = Self::new(parts.method, parts.uri);
+        let req = req.body(Box::new(Body::from(body)));
+        Ok(req)
+    }
+}
+
+impl<C: HttpClient> TryInto<http::Request<Body>> for Request<C> {
+    type Error = http::Error;
+
+    /// Converts a `surf::Request` to an `http::Request`.
+    fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
+        self.req.unwrap().try_into()
     }
 }
 
