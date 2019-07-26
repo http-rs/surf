@@ -81,3 +81,10 @@ impl From<Vec<u8>> for Body {
         }
     }
 }
+
+impl<R: AsyncRead + Unpin + Send + 'static> From<Box<R>> for Body {
+    /// Converts an `AsyncRead` into a Body.
+    fn from(reader: Box<R>) -> Self {
+        Self { reader }
+    }
+}
