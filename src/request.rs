@@ -62,9 +62,9 @@ impl<C: HttpClient> Request<C> {
     }
 
     /// Insert a header.
-    pub fn header(
+    pub fn set_header(
         mut self,
-        key: impl http::header::IntoHeaderName,
+        key: &'static str,
         value: impl AsRef<str>,
     ) -> Self {
         let value = value.as_ref().to_owned();
@@ -73,16 +73,25 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Get a header.
+    pub fn header(
+        &mut self,
+        key: &'static str,
+    ) -> Option<&'_ str> {
+        let req = self.req.as_mut().unwrap();
+        req.headers_mut().get(key).map(|h| h.to_str().unwrap())
+    }
+
     /// Pass an `AsyncRead` stream as the request body.
-    pub fn body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self {
+    pub fn set_body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self {
         *self.req.as_mut().unwrap().body_mut() = reader.into();
         self
     }
 
     /// Set JSON as the body.
-    pub fn json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
+    pub fn set_body_json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
-        Ok(self.header("Content-Type", "application/json"))
+        Ok(self.set_header("Content-Type", "application/json"))
     }
 
     /// Submit the request and get the response body as bytes.
@@ -138,7 +147,7 @@ impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
     fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
         let (parts, body) = http_request.into_parts();
         let req = Self::new(parts.method, parts.uri);
-        let req = req.body(Box::new(Body::from(body)));
+        let req = req.set_body(Box::new(Body::from(body)));
         Ok(req)
     }
 }
