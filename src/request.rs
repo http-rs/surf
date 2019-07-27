@@ -121,7 +121,7 @@ impl<C: HttpClient> Request<C> {
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
-    /// Set JSON as the body.
+    /// Set JSON as the request body.
     ///
     /// # Mime
     /// The encoding is set to `application/json`.
@@ -131,6 +131,18 @@ impl<C: HttpClient> Request<C> {
     pub fn set_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
         Ok(self.set_mime(mime::APPLICATION_JSON))
+    }
+
+    /// Set a string as the request body.
+    ///
+    /// # Mime
+    /// The encoding is set to `text/plain; charset=utf-8`.
+    ///
+    /// # Errors
+    /// This method will return an error if the provided data could not be serialized to JSON.
+    pub fn set_string(mut self, string: String) -> serde_json::Result<Self> {
+        *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
+        Ok(self.set_mime(mime::TEXT_PLAIN_UTF_8))
     }
 
     /// Submit the request and get the response body as bytes.
