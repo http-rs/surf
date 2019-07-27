@@ -1,4 +1,7 @@
 use futures::prelude::*;
+use http::status::StatusCode;
+use http::version::Version;
+use serde::de::DeserializeOwned;
 
 use std::fmt;
 use std::io::{self, Error};
@@ -20,8 +23,47 @@ impl Response {
     }
 
     /// Get the HTTP status code.
-    pub fn status(&self) -> http::status::StatusCode {
+    pub fn status(&self) -> StatusCode {
         self.response.status()
+    }
+
+    /// Set the HTTP status code.
+    pub fn set_status(&mut self, status: StatusCode) {
+        *self.response.status_mut() = status;
+    }
+
+    /// Get the HTTP protocol version.
+    pub fn version(&self) -> Version {
+        self.response.version()
+    }
+
+    /// Set the HTTP protocol version.
+    pub fn set_version(&mut self, version: Version) {
+        *self.response.version_mut() = version;
+    }
+
+    /// Get a header.
+    pub fn header(&self, key: &'static str) -> Option<&'_ str> {
+        let headers = self.response.headers();
+        headers.get(key).map(|h| h.to_str().unwrap())
+    }
+
+    /// Insert a header.
+    pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
+        let value = value.as_ref().to_owned();
+        let headers = self.response.headers_mut();
+        headers.insert(key, value.parse().unwrap());
+        self
+    }
+
+    /// Returns a mutable reference to the headers map.
+    pub fn headers(&self) -> &http::HeaderMap {
+        self.response.headers()
+    }
+
+    /// Returns a mutable reference to the headers map.
+    pub fn headers_mut(&mut self) -> &mut http::HeaderMap {
+        self.response.headers_mut()
     }
 
     /// Reads the entire request body into a byte buffer.
@@ -64,7 +106,7 @@ impl Response {
     ///
     /// If the body cannot be interpreted as valid json for the target type `T`,
     /// an `Err` is returned.
-    pub async fn body_json<T: serde::de::DeserializeOwned>(&mut self) -> std::io::Result<T> {
+    pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
         let body_bytes = self.body_bytes().await?;
         Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
     }

@@ -70,8 +70,7 @@ mod response;
 
 pub mod middleware;
 
-#[doc(inline)]
-pub use http;
+pub use url;
 
 pub use client::Client;
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};

@@ -1,6 +1,7 @@
 use futures::future::BoxFuture;
 use futures::prelude::*;
 use serde::Serialize;
+use url::Url;
 
 use super::http_client::hyper::HyperClient;
 use super::http_client::{self, Body, HttpClient};
@@ -31,17 +32,18 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
 
 impl Request<HyperClient> {
     /// Create a new instance.
-    pub fn new(method: http::Method, uri: http::Uri) -> Self {
-        Self::with_client(method, uri, HyperClient::new())
+    pub fn new(method: http::Method, url: impl AsRef<str>) -> Self {
+        Self::with_client(method, url, HyperClient::new())
     }
 }
 
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
-    pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
+    pub fn with_client(method: http::Method, url: impl AsRef<str>, client: C) -> Self {
         let mut req = http_client::Request::new(Body::empty());
+        let url: Url = url.as_ref().parse().unwrap();
         *req.method_mut() = method;
-        *req.uri_mut() = uri;
+        *req.uri_mut() = url.as_str().parse().unwrap();
         let client = Self {
             fut: None,
             client: Some(client),
@@ -61,6 +63,12 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Get a header.
+    pub fn header(&mut self, key: &'static str) -> Option<&'_ str> {
+        let req = self.req.as_mut().unwrap();
+        req.headers_mut().get(key).map(|h| h.to_str().unwrap())
+    }
+
     /// Insert a header.
     pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
         let value = value.as_ref().to_owned();
@@ -69,11 +77,19 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
-    /// Get a header.
-    pub fn header(&mut self, key: &'static str) -> Option<&'_ str> {
-        let req = self.req.as_mut().unwrap();
-        req.headers_mut().get(key).map(|h| h.to_str().unwrap())
-    }
+    // /// Get the uri.
+    // pub fn uri(&mut self) -> Uri {
+    //     let req = self.req.as_mut().unwrap();
+    //     req.headers_mut().get(key).map(|h| h.to_str().unwrap())
+    // }
+
+    // /// Insert a header.
+    // pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
+    //     let value = value.as_ref().to_owned();
+    //     let req = self.req.as_mut().unwrap();
+    //     req.headers_mut().insert(key, value.parse().unwrap());
+    //     self
+    // }
 
     /// Pass an `AsyncRead` stream as the request body.
     pub fn set_body(mut self, reader: Box<impl AsyncRead + Unpin + Send + 'static>) -> Self {
@@ -139,7 +155,8 @@ impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
     /// Converts an `http::Request` to a `surf::Request`.
     fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
         let (parts, body) = http_request.into_parts();
-        let req = Self::new(parts.method, parts.uri);
+        let url = format!("{}", parts.uri);
+        let req = Self::new(parts.method, url);
         let req = req.set_body(Box::new(Body::from(body)));
         Ok(req)
     }

@@ -48,6 +48,8 @@
 //! }
 //! ```
 
+pub use http;
+
 #[doc(inline)]
 pub use crate::http_client::{Body, HttpClient, Request, Response};
 
