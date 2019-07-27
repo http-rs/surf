@@ -20,7 +20,7 @@ async fn post_json() -> Result<(), surf::Exception> {
 async fn get_json() -> Result<(), surf::Exception> {
     #[derive(serde::Deserialize)]
     struct Ip {
-        ip: String
+        ip: String,
     }
 
     let uri = "https://api.ipify.org?format=json";

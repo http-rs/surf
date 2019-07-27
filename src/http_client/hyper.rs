@@ -138,12 +138,15 @@ impl hyper_connect::Connect for RuntimeTcpConnector {
             let port = match dest.port() {
                 Some(port) => port,
                 None if dest.scheme() == "https" => 443,
-                None => 80
+                None => 80,
             };
 
             // Create a TcpStream and return it.
             let tcp_stream = TcpStream::connect((dest.host(), port)).await?;
-            Ok((Compat03As01::new(tcp_stream), hyper_connect::Connected::new()))
+            Ok((
+                Compat03As01::new(tcp_stream),
+                hyper_connect::Connected::new(),
+            ))
         }))
     }
 }

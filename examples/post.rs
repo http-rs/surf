@@ -10,7 +10,11 @@ async fn main() -> Result<(), surf::Exception> {
     }
 
     let uri = "https://httpbin.org/post";
-    let res = surf::post(uri).json(&Cat { name: "Chashu".into() })?.await?;
+    let res = surf::post(uri)
+        .json(&Cat {
+            name: "Chashu".into(),
+        })?
+        .await?;
     assert_eq!(res.status(), 200);
     Ok(())
 }

@@ -8,14 +8,14 @@ use super::middleware::{Middleware, Next};
 use super::Exception;
 use super::Response;
 
-use std::convert::{TryFrom};
+use std::convert::TryFrom;
 use std::fmt;
 use std::fmt::Debug;
 use std::future::Future;
+use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::io;
 
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
@@ -57,10 +57,7 @@ impl<C: HttpClient> Request<C> {
 
     /// Push middleware onto the middleware stack.
     pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
-        self.middleware
-            .as_mut()
-            .unwrap()
-            .push(Arc::new(mw));
+        self.middleware.as_mut().unwrap().push(Arc::new(mw));
         self
     }
 
@@ -71,12 +68,13 @@ impl<C: HttpClient> Request<C> {
         value: impl AsRef<str>,
     ) -> Self {
         let value = value.as_ref().to_owned();
-        self.req.as_mut().unwrap().headers_mut().insert(key, value.parse().unwrap());
+        let req = self.req.as_mut().unwrap();
+        req.headers_mut().insert(key, value.parse().unwrap());
         self
     }
 
     /// Pass an `AsyncRead` stream as the request body.
-    pub fn body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self{
+    pub fn body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self {
         *self.req.as_mut().unwrap().body_mut() = reader.into();
         self
     }
@@ -131,7 +129,9 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>> for Request<HyperClient> {
+impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
+    for Request<HyperClient>
+{
     type Error = io::Error;
 
     /// Converts an `http::Request` to a `surf::Request`.
