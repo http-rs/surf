@@ -34,14 +34,16 @@
 //! ```no_run
 //! # #![feature(async_await)]
 //! # #[runtime::main]
+//! # use serde::{Deserialize, Serialize};
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! #[derive(serde::Deserialize, serde::Serialize)]
+//! #[derive(Deserialize, Serialize)]
 //! struct Ip {
 //!     ip: String
 //! }
 //!
 //! let uri = "https://httpbin.org/post";
-//! let res = surf::post(uri).json(&Ip { ip: "129.0.0.1".into() })?.await?;
+//! let data = &Ip { ip: "129.0.0.1".into() };
+//! let res = surf::post(uri).set_json(data)?.await?;
 //! assert_eq!(res.status(), 200);
 //!
 //! let uri = "https://api.ipify.org?format=json";

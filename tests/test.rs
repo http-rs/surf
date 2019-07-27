@@ -11,7 +11,9 @@ async fn post_json() -> Result<(), surf::Exception> {
         name: "Chashu".to_string(),
     };
 
-    let res = surf::post("https://httpbin.org/post").json(&cat)?.await?;
+    let res = surf::post("https://httpbin.org/post")
+        .set_json(&cat)?
+        .await?;
     assert_eq!(res.status(), 200);
     Ok(())
 }

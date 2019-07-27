@@ -62,11 +62,7 @@ impl<C: HttpClient> Request<C> {
     }
 
     /// Insert a header.
-    pub fn set_header(
-        mut self,
-        key: &'static str,
-        value: impl AsRef<str>,
-    ) -> Self {
+    pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
         let value = value.as_ref().to_owned();
         let req = self.req.as_mut().unwrap();
         req.headers_mut().insert(key, value.parse().unwrap());
@@ -74,22 +70,19 @@ impl<C: HttpClient> Request<C> {
     }
 
     /// Get a header.
-    pub fn header(
-        &mut self,
-        key: &'static str,
-    ) -> Option<&'_ str> {
+    pub fn header(&mut self, key: &'static str) -> Option<&'_ str> {
         let req = self.req.as_mut().unwrap();
         req.headers_mut().get(key).map(|h| h.to_str().unwrap())
     }
 
     /// Pass an `AsyncRead` stream as the request body.
-    pub fn set_body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self {
+    pub fn set_body(mut self, reader: Box<impl AsyncRead + Unpin + Send + 'static>) -> Self {
         *self.req.as_mut().unwrap().body_mut() = reader.into();
         self
     }
 
     /// Set JSON as the body.
-    pub fn set_body_json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
+    pub fn set_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
         Ok(self.set_header("Content-Type", "application/json"))
     }
