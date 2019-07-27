@@ -56,16 +56,6 @@ impl Response {
         self
     }
 
-    /// Returns a mutable reference to the headers map.
-    pub fn headers(&self) -> &http::HeaderMap {
-        self.response.headers()
-    }
-
-    /// Returns a mutable reference to the headers map.
-    pub fn headers_mut(&mut self) -> &mut http::HeaderMap {
-        self.response.headers_mut()
-    }
-
     /// Reads the entire request body into a byte buffer.
     ///
     /// This method can be called after the body has already been read, but will

@@ -29,6 +29,7 @@ runtime-raw = "0.3.0-alpha.4"
 log = { version = "0.4.7", features = ["kv_unstable"] }
 url = "2.0.0"
 mime = "0.3.13"
+mime_guess = "1.8.7"
 
 [dev-dependencies]
 serde = { version = "1.0.97", features = ["derive"] }

@@ -19,6 +19,8 @@ use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
+use std::path::Path;
+use std::fs;
 
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
@@ -143,6 +145,24 @@ impl<C: HttpClient> Request<C> {
     pub fn set_string(mut self, string: String) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
         Ok(self.set_mime(mime::TEXT_PLAIN_UTF_8))
+    }
+
+    /// Set a file as the request body.
+    ///
+    /// # Mime
+    /// The encoding is set based on the file extension using [`mime_guess`] if the operation was
+    /// successful. If `path` has no extension, or its extension has no known MIME type mapping,
+    /// then `None` is returned.
+    ///
+    /// # Errors
+    /// This method will return an error if the file couldn't be read.
+    ///
+    /// [`mime_guess`]: https://docs.rs/mime_guess
+    pub fn set_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
+        let mime = mime_guess::guess_mime_type(path);
+        let bytes = fs::read(path)?;
+        *self.req.as_mut().unwrap().body_mut() = bytes.into();
+        Ok(self.set_mime(mime))
     }
 
     /// Submit the request and get the response body as bytes.
