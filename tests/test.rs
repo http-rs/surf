@@ -12,7 +12,7 @@ async fn post_json() -> Result<(), surf::Exception> {
     };
 
     let res = surf::post("https://httpbin.org/post")
-        .set_json(&cat)?
+        .body_json(&cat)?
         .await?;
     assert_eq!(res.status(), 200);
     Ok(())

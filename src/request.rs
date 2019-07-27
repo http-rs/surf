@@ -118,7 +118,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Mime
     /// The encoding is set to `application/octet-stream`.
-    pub fn set_body<R>(mut self, reader: Box<R>) -> Self where R: AsyncRead + Unpin + Send + 'static{
+    pub fn body<R>(mut self, reader: Box<R>) -> Self where R: AsyncRead + Unpin + Send + 'static{
         *self.req.as_mut().unwrap().body_mut() = reader.into();
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
@@ -130,7 +130,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Errors
     /// This method will return an error if the provided data could not be serialized to JSON.
-    pub fn set_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
+    pub fn body_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
         Ok(self.set_mime(mime::APPLICATION_JSON))
     }
@@ -142,7 +142,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Errors
     /// This method will return an error if the provided data could not be serialized to JSON.
-    pub fn set_string(mut self, string: String) -> serde_json::Result<Self> {
+    pub fn body_string(mut self, string: String) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
         Ok(self.set_mime(mime::TEXT_PLAIN_UTF_8))
     }
@@ -157,8 +157,20 @@ impl<C: HttpClient> Request<C> {
     /// # Errors
     /// This method will return an error if the file couldn't be read.
     ///
+    /// # Examples
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), surf::Exception> {
+    /// let res = surf::post("https://httpbin.org/post")
+    ///     .body_file("README.md")?
+    ///     .await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    ///
     /// [`mime_guess`]: https://docs.rs/mime_guess
-    pub fn set_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
+    pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
         let mime = mime_guess::guess_mime_type(&path);
         let bytes = fs::read(path)?;
         *self.req.as_mut().unwrap().body_mut() = bytes.into();
@@ -219,7 +231,7 @@ impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
         let (parts, body) = http_request.into_parts();
         let url = format!("{}", parts.uri);
         let req = Self::new(parts.method, url.parse().unwrap());
-        let req = req.set_body(Box::new(Body::from(body)));
+        let req = req.body(Box::new(Body::from(body)));
         Ok(req)
     }
 }
