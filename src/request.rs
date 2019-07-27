@@ -3,7 +3,7 @@ use futures::prelude::*;
 use serde::Serialize;
 
 use super::http_client::hyper::HyperClient;
-use super::http_client::{Body, HttpClient};
+use super::http_client::{self, Body, HttpClient};
 use super::middleware::{Middleware, Next};
 use super::Exception;
 use super::Response;
@@ -17,32 +17,27 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::io;
 
-struct RequestState<C: HttpClient> {
-    method: http::Method,
-    headers: http::HeaderMap,
+struct Inner<C: HttpClient> {
+    req: http_client::Request,
     middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
-    uri: http::Uri,
-    body: Body,
 }
 
-impl<C: HttpClient> fmt::Debug for RequestState<C> {
+impl<C: HttpClient> fmt::Debug for Inner<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RequestState")
-            .field("method", &self.method)
-            .field("uri", &self.uri)
+        f.debug_struct("Inner")
+            .field("req", &self.req)
             .field("middleware", &"[<middleware>]")
-            .field("body", &"<body>")
             .finish()
     }
 }
 
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
-    /// Holds a `http_client::HttpClient` implementation
+    /// Holds a `http_client::HttpClient` implementation.
     client: Option<C>,
-    /// Holds the state of the request
-    req: Option<RequestState<C>>,
-    /// Holds the state of the `impl Future`
+    /// Holds the state of the request.
+    inner: Option<Inner<C>>,
+    /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
 }
 
@@ -59,12 +54,9 @@ impl<C: HttpClient> Request<C> {
         let client = Self {
             fut: None,
             client: Some(client),
-            req: Some(RequestState {
-                body: Body::empty(),
-                headers: http::HeaderMap::new(),
+            inner: Some(Inner {
+                req: http::Request::new(),
                 middleware: Some(vec![]),
-                method,
-                uri,
             }),
         };
 
@@ -93,11 +85,8 @@ impl<C: HttpClient> Request<C> {
         value: impl AsRef<str>,
     ) -> Self {
         let value = value.as_ref().to_owned();
-        self.req
-            .as_mut()
-            .unwrap()
-            .headers
-            .insert(key, value.parse().unwrap());
+        let mut req = self.inner.req.as_mut().unwrap();
+        req.headers_mut().insert(key, value.parse().unwrap());
         self
     }
 
@@ -164,7 +153,7 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-impl<C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
+impl<C: HttpClient> TryInto<http::Request<Body>> for Inner<C> {
     type Error = http::Error;
 
     fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
