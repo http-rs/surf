@@ -159,7 +159,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// [`mime_guess`]: https://docs.rs/mime_guess
     pub fn set_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
-        let mime = mime_guess::guess_mime_type(path);
+        let mime = mime_guess::guess_mime_type(&path);
         let bytes = fs::read(path)?;
         *self.req.as_mut().unwrap().body_mut() = bytes.into();
         Ok(self.set_mime(mime))
