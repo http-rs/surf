@@ -8,7 +8,7 @@ use super::middleware::{Middleware, Next};
 use super::Exception;
 use super::Response;
 
-use std::convert::{TryInto, TryFrom};
+use std::convert::{TryFrom};
 use std::fmt;
 use std::fmt::Debug;
 use std::future::Future;
@@ -17,26 +17,14 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::io;
 
-struct Inner<C: HttpClient> {
-    req: http_client::Request,
-    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
-}
-
-impl<C: HttpClient> fmt::Debug for Inner<C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Inner")
-            .field("req", &self.req)
-            .field("middleware", &"[<middleware>]")
-            .finish()
-    }
-}
-
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     /// Holds a `http_client::HttpClient` implementation.
     client: Option<C>,
     /// Holds the state of the request.
-    inner: Option<Inner<C>>,
+    req: Option<http_client::Request>,
+    /// Holds the inner middleware.
+    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
 }
@@ -51,13 +39,14 @@ impl Request<HyperClient> {
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
     pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
+        let mut req = http_client::Request::new(Body::empty());
+        *req.method_mut() = method;
+        *req.uri_mut() = uri;
         let client = Self {
             fut: None,
             client: Some(client),
-            inner: Some(Inner {
-                req: http::Request::new(),
-                middleware: Some(vec![]),
-            }),
+            req: Some(req),
+            middleware: Some(vec![]),
         };
 
         #[cfg(feature="middleware-logger")]
@@ -68,10 +57,7 @@ impl<C: HttpClient> Request<C> {
 
     /// Push middleware onto the middleware stack.
     pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
-        self.req
-            .as_mut()
-            .unwrap()
-            .middleware
+        self.middleware
             .as_mut()
             .unwrap()
             .push(Arc::new(mw));
@@ -85,27 +71,20 @@ impl<C: HttpClient> Request<C> {
         value: impl AsRef<str>,
     ) -> Self {
         let value = value.as_ref().to_owned();
-        let mut req = self.inner.req.as_mut().unwrap();
-        req.headers_mut().insert(key, value.parse().unwrap());
+        self.req.as_mut().unwrap().headers_mut().insert(key, value.parse().unwrap());
         self
     }
 
     /// Pass an `AsyncRead` stream as the request body.
     pub fn body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self{
-        self.req.as_mut().unwrap().body = reader.into();
+        *self.req.as_mut().unwrap().body_mut() = reader.into();
         self
     }
 
     /// Set JSON as the body.
     pub fn json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
-        self.req.as_mut().unwrap().body = serde_json::to_vec(json)?.into();
-        let content_type = "application/json".parse().unwrap();
-        self.req
-            .as_mut()
-            .unwrap()
-            .headers
-            .insert("content-type", content_type);
-        Ok(self)
+        *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
+        Ok(self.header("Content-Type", "application/json"))
     }
 
     /// Submit the request and get the response body as bytes.
@@ -134,10 +113,9 @@ impl<C: HttpClient> Future for Request<C> {
         if let None = self.fut {
             // We can safely unwrap here because this is the only time we take ownership of the
             // request and middleware stack.
-            let mut req = self.req.take().unwrap();
             let client = self.client.take().unwrap();
-            let middleware = req.middleware.take().unwrap();
-            let req = req.try_into()?;
+            let middleware = self.middleware.take().unwrap();
+            let req = self.req.take().unwrap();
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req, client| {
@@ -153,18 +131,6 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-impl<C: HttpClient> TryInto<http::Request<Body>> for Inner<C> {
-    type Error = http::Error;
-
-    fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
-        let res = http::Request::builder()
-            .method(self.method)
-            .uri(self.uri)
-            .body(self.body)?;
-        Ok(res)
-    }
-}
-
 impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>> for Request<HyperClient> {
     type Error = io::Error;
 
@@ -177,12 +143,10 @@ impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>> for R
     }
 }
 
-impl<C: HttpClient> TryInto<http::Request<Body>> for Request<C> {
-    type Error = http::Error;
-
+impl<C: HttpClient> Into<http::Request<Body>> for Request<C> {
     /// Converts a `surf::Request` to an `http::Request`.
-    fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
-        self.req.unwrap().try_into()
+    fn into(self) -> http::Request<Body> {
+        self.req.unwrap()
     }
 }
 
