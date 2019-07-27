@@ -1,7 +1,9 @@
 use futures::future::BoxFuture;
 use futures::prelude::*;
 use serde::Serialize;
+use http::Method;
 use url::Url;
+use mime::Mime;
 
 use super::http_client::hyper::HyperClient;
 use super::http_client::{self, Body, HttpClient};
@@ -28,26 +30,28 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
+    /// Holds a reference to the Url
+    url: Url,
 }
 
 impl Request<HyperClient> {
     /// Create a new instance.
-    pub fn new(method: http::Method, url: impl AsRef<str>) -> Self {
+    pub fn new(method: http::Method, url: Url) -> Self {
         Self::with_client(method, url, HyperClient::new())
     }
 }
 
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
-    pub fn with_client(method: http::Method, url: impl AsRef<str>, client: C) -> Self {
+    pub fn with_client(method: http::Method, url: Url, client: C) -> Self {
         let mut req = http_client::Request::new(Body::empty());
-        let url: Url = url.as_ref().parse().unwrap();
         *req.method_mut() = method;
         *req.uri_mut() = url.as_str().parse().unwrap();
         let client = Self {
             fut: None,
             client: Some(client),
             req: Some(req),
+            url: url,
             middleware: Some(vec![]),
         };
 
@@ -63,13 +67,13 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
-    /// Get a header.
-    pub fn header(&mut self, key: &'static str) -> Option<&'_ str> {
-        let req = self.req.as_mut().unwrap();
-        req.headers_mut().get(key).map(|h| h.to_str().unwrap())
+    /// Get an HTTP header.
+    pub fn header(&self, key: &'static str) -> Option<&'_ str> {
+        let req = self.req.as_ref().unwrap();
+        req.headers().get(key).map(|h| h.to_str().unwrap())
     }
 
-    /// Insert a header.
+    /// Insert an HTTP header.
     pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
         let value = value.as_ref().to_owned();
         let req = self.req.as_mut().unwrap();
@@ -77,30 +81,56 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
-    // /// Get the uri.
-    // pub fn uri(&mut self) -> Uri {
-    //     let req = self.req.as_mut().unwrap();
-    //     req.headers_mut().get(key).map(|h| h.to_str().unwrap())
-    // }
+    /// Get the request HTTP method.
+    pub fn method(&self) -> &Method {
+        let req = self.req.as_ref().unwrap();
+        req.method()
+    }
 
-    // /// Insert a header.
-    // pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
-    //     let value = value.as_ref().to_owned();
-    //     let req = self.req.as_mut().unwrap();
-    //     req.headers_mut().insert(key, value.parse().unwrap());
-    //     self
-    // }
+    /// Get the request url.
+    pub fn url(&self) -> &Url {
+        &self.url
+    }
+
+    /// Get the request MIME.
+    ///
+    /// Gets the `Content-Type` header and parses it to a `Mime` type.
+    ///
+    /// # Panics
+    /// This method will panic if an invalid MIME type was set as a header.
+    ///
+    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    pub fn mime(&self) -> Option<Mime> {
+        let header = self.header("Content-Type")?;
+        Some(header.parse().unwrap())
+    }
+
+    /// Set the request MIME.
+    ///
+    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    pub fn set_mime(self, mime: Mime) -> Self {
+        self.set_header("Content-Type", format!("{}", mime))
+    }
 
     /// Pass an `AsyncRead` stream as the request body.
-    pub fn set_body(mut self, reader: Box<impl AsyncRead + Unpin + Send + 'static>) -> Self {
+    ///
+    /// # Mime
+    /// The encoding is set to `application/octet-stream`.
+    pub fn set_body<R>(mut self, reader: Box<R>) -> Self where R: AsyncRead + Unpin + Send + 'static{
         *self.req.as_mut().unwrap().body_mut() = reader.into();
-        self
+        self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
     /// Set JSON as the body.
+    ///
+    /// # Mime
+    /// The encoding is set to `application/json`.
+    ///
+    /// # Errors
+    /// This method will return an error if the provided data could not be serialized to JSON.
     pub fn set_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
-        Ok(self.set_header("Content-Type", "application/json"))
+        Ok(self.set_mime(mime::APPLICATION_JSON))
     }
 
     /// Submit the request and get the response body as bytes.
@@ -156,7 +186,7 @@ impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
     fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
         let (parts, body) = http_request.into_parts();
         let url = format!("{}", parts.uri);
-        let req = Self::new(parts.method, url);
+        let req = Self::new(parts.method, url.parse().unwrap());
         let req = req.set_body(Box::new(Body::from(body)));
         Ok(req)
     }

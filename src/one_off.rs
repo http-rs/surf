@@ -12,6 +12,7 @@ use super::Request;
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET
 pub fn get(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::GET, uri)
 }
 
@@ -35,6 +36,7 @@ pub fn get(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
 pub fn head(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::HEAD, uri)
 }
 
@@ -75,6 +77,7 @@ pub fn head(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
 pub fn post(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::POST, uri)
 }
 
@@ -93,6 +96,7 @@ pub fn post(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT
 pub fn put(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PUT, uri)
 }
 
@@ -106,6 +110,7 @@ pub fn put(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE
 pub fn delete(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::DELETE, uri)
 }
 
@@ -128,6 +133,7 @@ pub fn delete(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
 pub fn connect(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::CONNECT, uri)
 }
 
@@ -143,6 +149,7 @@ pub fn connect(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS
 pub fn options(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::OPTIONS, uri)
 }
 
@@ -162,6 +169,7 @@ pub fn options(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE
 pub fn trace(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::TRACE, uri)
 }
 
@@ -187,5 +195,6 @@ pub fn trace(uri: impl AsRef<str>) -> Request<HyperClient> {
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH
 pub fn patch(uri: impl AsRef<str>) -> Request<HyperClient> {
+    let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PATCH, uri)
 }
