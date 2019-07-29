@@ -11,7 +11,9 @@ async fn post_json() -> Result<(), surf::Exception> {
         name: "Chashu".to_string(),
     };
 
-    let res = surf::post("https://httpbin.org/post").json(&cat)?.await?;
+    let res = surf::post("https://httpbin.org/post")
+        .body_json(&cat)?
+        .await?;
     assert_eq!(res.status(), 200);
     Ok(())
 }
@@ -20,7 +22,7 @@ async fn post_json() -> Result<(), surf::Exception> {
 async fn get_json() -> Result<(), surf::Exception> {
     #[derive(serde::Deserialize)]
     struct Ip {
-        ip: String
+        ip: String,
     }
 
     let uri = "https://api.ipify.org?format=json";

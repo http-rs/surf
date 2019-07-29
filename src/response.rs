@@ -1,4 +1,8 @@
 use futures::prelude::*;
+use http::status::StatusCode;
+use http::version::Version;
+use mime::Mime;
+use serde::de::DeserializeOwned;
 
 use std::fmt;
 use std::io::{self, Error};
@@ -20,8 +24,49 @@ impl Response {
     }
 
     /// Get the HTTP status code.
-    pub fn status(&self) -> http::status::StatusCode {
+    pub fn status(&self) -> StatusCode {
         self.response.status()
+    }
+
+    /// Get the HTTP protocol version.
+    pub fn version(&self) -> Version {
+        self.response.version()
+    }
+
+    /// Get a header.
+    pub fn header(&self, key: &'static str) -> Option<&'_ str> {
+        let headers = self.response.headers();
+        headers.get(key).map(|h| h.to_str().unwrap())
+    }
+
+    /// Get all headers.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), surf::Exception> {
+    /// let res = surf::post("https://httpbin.org/get").await?;
+    /// res.headers(|name, value| println!("{}: {}", name, value));
+    /// # Ok(()) }
+    /// ```
+    pub fn headers(&self, visitor: &mut impl FnMut(&str, &str)) {
+        for (name, value) in self.response.headers().iter() {
+            visitor(name.as_str(), value.to_str().unwrap())
+        }
+    }
+
+    /// Get the request MIME.
+    ///
+    /// Gets the `Content-Type` header and parses it to a `Mime` type.
+    ///
+    /// # Panics
+    /// This method will panic if an invalid MIME type was set as a header.
+    ///
+    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    pub fn mime(&self) -> Option<Mime> {
+        let header = self.header("Content-Type")?;
+        Some(header.parse().unwrap())
     }
 
     /// Reads the entire request body into a byte buffer.
@@ -64,7 +109,7 @@ impl Response {
     ///
     /// If the body cannot be interpreted as valid json for the target type `T`,
     /// an `Err` is returned.
-    pub async fn body_json<T: serde::de::DeserializeOwned>(&mut self) -> std::io::Result<T> {
+    pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
         let body_bytes = self.body_bytes().await?;
         Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
     }

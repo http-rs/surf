@@ -1,71 +1,60 @@
 use futures::future::BoxFuture;
 use futures::prelude::*;
 use serde::Serialize;
+use http::Method;
+use url::Url;
+use mime::Mime;
 
 use super::http_client::hyper::HyperClient;
-use super::http_client::{Body, HttpClient};
+use super::http_client::{self, Body, HttpClient};
 use super::middleware::{Middleware, Next};
 use super::Exception;
 use super::Response;
 
-use std::convert::{TryInto, TryFrom};
+use std::convert::TryFrom;
 use std::fmt;
 use std::fmt::Debug;
 use std::future::Future;
+use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::io;
-
-struct RequestState<C: HttpClient> {
-    method: http::Method,
-    headers: http::HeaderMap,
-    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
-    uri: http::Uri,
-    body: Body,
-}
-
-impl<C: HttpClient> fmt::Debug for RequestState<C> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("RequestState")
-            .field("method", &self.method)
-            .field("uri", &self.uri)
-            .field("middleware", &"[<middleware>]")
-            .field("body", &"<body>")
-            .finish()
-    }
-}
+use std::path::Path;
+use std::fs;
 
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
-    /// Holds a `http_client::HttpClient` implementation
+    /// Holds a `http_client::HttpClient` implementation.
     client: Option<C>,
-    /// Holds the state of the request
-    req: Option<RequestState<C>>,
-    /// Holds the state of the `impl Future`
+    /// Holds the state of the request.
+    req: Option<http_client::Request>,
+    /// Holds the inner middleware.
+    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
+    /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
+    /// Holds a reference to the Url
+    url: Url,
 }
 
 impl Request<HyperClient> {
     /// Create a new instance.
-    pub fn new(method: http::Method, uri: http::Uri) -> Self {
-        Self::with_client(method, uri, HyperClient::new())
+    pub fn new(method: http::Method, url: Url) -> Self {
+        Self::with_client(method, url, HyperClient::new())
     }
 }
 
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
-    pub fn with_client(method: http::Method, uri: http::Uri, client: C) -> Self {
+    pub fn with_client(method: http::Method, url: Url, client: C) -> Self {
+        let mut req = http_client::Request::new(Body::empty());
+        *req.method_mut() = method;
+        *req.uri_mut() = url.as_str().parse().unwrap();
         let client = Self {
             fut: None,
             client: Some(client),
-            req: Some(RequestState {
-                body: Body::empty(),
-                headers: http::HeaderMap::new(),
-                middleware: Some(vec![]),
-                method,
-                uri,
-            }),
+            req: Some(req),
+            url: url,
+            middleware: Some(vec![]),
         };
 
         #[cfg(feature="middleware-logger")]
@@ -76,47 +65,116 @@ impl<C: HttpClient> Request<C> {
 
     /// Push middleware onto the middleware stack.
     pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
-        self.req
-            .as_mut()
-            .unwrap()
-            .middleware
-            .as_mut()
-            .unwrap()
-            .push(Arc::new(mw));
+        self.middleware.as_mut().unwrap().push(Arc::new(mw));
         self
     }
 
-    /// Insert a header.
-    pub fn header(
-        mut self,
-        key: impl http::header::IntoHeaderName,
-        value: impl AsRef<str>,
-    ) -> Self {
+    /// Get an HTTP header.
+    pub fn header(&self, key: &'static str) -> Option<&'_ str> {
+        let req = self.req.as_ref().unwrap();
+        req.headers().get(key).map(|h| h.to_str().unwrap())
+    }
+
+    /// Insert an HTTP header.
+    pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
         let value = value.as_ref().to_owned();
-        self.req
-            .as_mut()
-            .unwrap()
-            .headers
-            .insert(key, value.parse().unwrap());
+        let req = self.req.as_mut().unwrap();
+        req.headers_mut().insert(key, value.parse().unwrap());
         self
+    }
+
+    /// Get the request HTTP method.
+    pub fn method(&self) -> &Method {
+        let req = self.req.as_ref().unwrap();
+        req.method()
+    }
+
+    /// Get the request url.
+    pub fn url(&self) -> &Url {
+        &self.url
+    }
+
+    /// Get the request MIME.
+    ///
+    /// Gets the `Content-Type` header and parses it to a `Mime` type.
+    ///
+    /// # Panics
+    /// This method will panic if an invalid MIME type was set as a header.
+    ///
+    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    pub fn mime(&self) -> Option<Mime> {
+        let header = self.header("Content-Type")?;
+        Some(header.parse().unwrap())
+    }
+
+    /// Set the request MIME.
+    ///
+    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    pub fn set_mime(self, mime: Mime) -> Self {
+        self.set_header("Content-Type", format!("{}", mime))
     }
 
     /// Pass an `AsyncRead` stream as the request body.
-    pub fn body<R: AsyncRead + Unpin + Send + 'static>(mut self, reader: Box<R>) -> Self{
-        self.req.as_mut().unwrap().body = reader.into();
-        self
+    ///
+    /// # Mime
+    /// The encoding is set to `application/octet-stream`.
+    pub fn body<R>(mut self, reader: Box<R>) -> Self where R: AsyncRead + Unpin + Send + 'static{
+        *self.req.as_mut().unwrap().body_mut() = reader.into();
+        self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
-    /// Set JSON as the body.
-    pub fn json<T: Serialize>(mut self, json: &T) -> serde_json::Result<Self> {
-        self.req.as_mut().unwrap().body = serde_json::to_vec(json)?.into();
-        let content_type = "application/json".parse().unwrap();
-        self.req
-            .as_mut()
-            .unwrap()
-            .headers
-            .insert("content-type", content_type);
-        Ok(self)
+    /// Set JSON as the request body.
+    ///
+    /// # Mime
+    /// The encoding is set to `application/json`.
+    ///
+    /// # Errors
+    /// This method will return an error if the provided data could not be serialized to JSON.
+    pub fn body_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
+        *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
+        Ok(self.set_mime(mime::APPLICATION_JSON))
+    }
+
+    /// Set a string as the request body.
+    ///
+    /// # Mime
+    /// The encoding is set to `text/plain; charset=utf-8`.
+    ///
+    /// # Errors
+    /// This method will return an error if the provided data could not be serialized to JSON.
+    pub fn body_string(mut self, string: String) -> serde_json::Result<Self> {
+        *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
+        Ok(self.set_mime(mime::TEXT_PLAIN_UTF_8))
+    }
+
+    /// Set a file as the request body.
+    ///
+    /// # Mime
+    /// The encoding is set based on the file extension using [`mime_guess`] if the operation was
+    /// successful. If `path` has no extension, or its extension has no known MIME type mapping,
+    /// then `None` is returned.
+    ///
+    /// # Errors
+    /// This method will return an error if the file couldn't be read.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), surf::Exception> {
+    /// let res = surf::post("https://httpbin.org/post")
+    ///     .body_file("README.md")?
+    ///     .await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    ///
+    /// [`mime_guess`]: https://docs.rs/mime_guess
+    pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
+        let mime = mime_guess::guess_mime_type(&path);
+        let bytes = fs::read(path)?;
+        *self.req.as_mut().unwrap().body_mut() = bytes.into();
+        Ok(self.set_mime(mime))
     }
 
     /// Submit the request and get the response body as bytes.
@@ -145,10 +203,9 @@ impl<C: HttpClient> Future for Request<C> {
         if let None = self.fut {
             // We can safely unwrap here because this is the only time we take ownership of the
             // request and middleware stack.
-            let mut req = self.req.take().unwrap();
             let client = self.client.take().unwrap();
-            let middleware = req.middleware.take().unwrap();
-            let req = req.try_into()?;
+            let middleware = self.middleware.take().unwrap();
+            let req = self.req.take().unwrap();
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req, client| {
@@ -164,36 +221,25 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-impl<C: HttpClient> TryInto<http::Request<Body>> for RequestState<C> {
-    type Error = http::Error;
-
-    fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
-        let res = http::Request::builder()
-            .method(self.method)
-            .uri(self.uri)
-            .body(self.body)?;
-        Ok(res)
-    }
-}
-
-impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>> for Request<HyperClient> {
+impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
+    for Request<HyperClient>
+{
     type Error = io::Error;
 
     /// Converts an `http::Request` to a `surf::Request`.
     fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
         let (parts, body) = http_request.into_parts();
-        let req = Self::new(parts.method, parts.uri);
+        let url = format!("{}", parts.uri);
+        let req = Self::new(parts.method, url.parse().unwrap());
         let req = req.body(Box::new(Body::from(body)));
         Ok(req)
     }
 }
 
-impl<C: HttpClient> TryInto<http::Request<Body>> for Request<C> {
-    type Error = http::Error;
-
+impl<C: HttpClient> Into<http::Request<Body>> for Request<C> {
     /// Converts a `surf::Request` to an `http::Request`.
-    fn try_into(self) -> Result<http::Request<Body>, Self::Error> {
-        self.req.unwrap().try_into()
+    fn into(self) -> http::Request<Body> {
+        self.req.unwrap()
     }
 }
 
