@@ -49,6 +49,10 @@
 //! assert!(ip.len() > 10);
 //! # Ok(()) }
 //! ```
+//!
+//! # Features
+//! By default all features are enabled.
+//! - `middleware-logger` enables logging requests and responses using a middleware.
 
 #![forbid(unsafe_code, future_incompatible, rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]

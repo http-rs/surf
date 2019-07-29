@@ -11,6 +11,10 @@ authors = ["Yoshua Wuyts <yoshuawuyts@gmail.com>"]
 readme = "README.md"
 edition = "2018"
 
+[features]
+default = ["middleware-logger"]
+middleware-logger = []
+
 [dependencies]
 hyper = { version = "0.12.32", default-features = false }
 http = "0.1.17"
@@ -22,6 +26,8 @@ runtime = "0.3.0-alpha.6"
 native-tls = "0.2.2"
 runtime-tokio = "0.3.0-alpha.5"
 runtime-raw = "0.3.0-alpha.4"
+log = { version = "0.4.7", features = ["kv_unstable"] }
 
 [dev-dependencies]
 serde = { version = "1.0.97", features = ["derive"] }
+femme = "1.1.0"
