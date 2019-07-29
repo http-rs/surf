@@ -5,13 +5,11 @@ use http::Method;
 use url::Url;
 use mime::Mime;
 
-use super::http_client::hyper::HyperClient;
 use super::http_client::{self, Body, HttpClient};
 use super::middleware::{Middleware, Next};
 use super::Exception;
 use super::Response;
 
-use std::convert::TryFrom;
 use std::fmt;
 use std::fmt::Debug;
 use std::future::Future;
@@ -21,6 +19,11 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use std::path::Path;
 use std::fs;
+
+#[cfg(feature = "chttp-client")]
+use super::http_client::chttp::ChttpClient;
+#[cfg(feature = "chttp-client")]
+use std::convert::TryFrom;
 
 /// Create an HTTP request.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
@@ -36,10 +39,11 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     url: Url,
 }
 
-impl Request<HyperClient> {
+#[cfg(feature = "chttp-client")]
+impl Request<ChttpClient> {
     /// Create a new instance.
     pub fn new(method: http::Method, url: Url) -> Self {
-        Self::with_client(method, url, HyperClient::new())
+        Self::with_client(method, url, ChttpClient::new())
     }
 }
 
@@ -221,8 +225,9 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
+#[cfg(feature = "chttp-client")]
 impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
-    for Request<HyperClient>
+    for Request<ChttpClient>
 {
     type Error = io::Error;
 

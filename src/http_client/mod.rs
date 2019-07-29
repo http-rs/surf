@@ -8,7 +8,11 @@ use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
+#[cfg(feature = "hyper-client")]
 pub(crate) mod hyper;
+
+#[cfg(feature = "chttp-client")]
+pub(crate) mod chttp;
 
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;
