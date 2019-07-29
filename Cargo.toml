@@ -12,7 +12,7 @@ readme = "README.md"
 edition = "2018"
 
 [features]
-default = ["chttp", "middleware-logger"]
+default = ["chttp-client", "middleware-logger"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
 middleware-logger = []
@@ -40,4 +40,5 @@ runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
 
 [dev-dependencies]
 serde = { version = "1.0.97", features = ["derive"] }
+runtime = "0.3.0-alpha.6"
 femme = "1.1.0"
