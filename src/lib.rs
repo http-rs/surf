@@ -69,9 +69,9 @@ mod response;
 
 pub mod middleware;
 
-pub use url;
 pub use http;
 pub use mime;
+pub use url;
 
 pub use client::Client;
 pub use request::Request;

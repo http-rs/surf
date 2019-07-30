@@ -12,10 +12,12 @@ readme = "README.md"
 edition = "2018"
 
 [features]
-default = ["chttp-client", "middleware-logger"]
+default = ["chttp-client", "middleware-default"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
+middleware-default = ["middleware-logger", "middleware-redirect"]
 middleware-logger = []
+middleware-redirect = []
 
 [dependencies]
 http = "0.1.17"

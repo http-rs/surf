@@ -52,6 +52,7 @@
 pub use crate::http_client::{Body, HttpClient, Request, Response};
 
 pub mod logger;
+pub mod redirect;
 
 use crate::Exception;
 use futures::future::BoxFuture;
