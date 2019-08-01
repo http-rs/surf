@@ -62,6 +62,7 @@ impl Body {
 }
 
 impl AsyncRead for Body {
+    #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -72,12 +73,14 @@ impl AsyncRead for Body {
 }
 
 impl fmt::Debug for Body {
+    #[allow(missing_doc_code_examples)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Body").field("reader", &"<hidden>").finish()
     }
 }
 
 impl From<Vec<u8>> for Body {
+    #[allow(missing_doc_code_examples)]
     #[inline]
     fn from(vec: Vec<u8>) -> Body {
         Self {
@@ -88,6 +91,7 @@ impl From<Vec<u8>> for Body {
 
 impl<R: AsyncRead + Unpin + Send + 'static> From<Box<R>> for Body {
     /// Converts an `AsyncRead` into a Body.
+    #[allow(missing_doc_code_examples)]
     fn from(reader: Box<R>) -> Self {
         Self { reader }
     }

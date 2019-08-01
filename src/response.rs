@@ -204,6 +204,7 @@ impl Response {
 }
 
 impl AsyncRead for Response {
+    #[allow(missing_doc_code_examples)]
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -214,6 +215,7 @@ impl AsyncRead for Response {
 }
 
 impl fmt::Debug for Response {
+    #[allow(missing_doc_code_examples)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
             .field("response", &self.response)

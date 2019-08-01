@@ -1,11 +1,12 @@
 //! Logging middleware.
 //!
 //! # Examples
+//!
 //! ```
 //! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("http://google.com")
+//! let mut res = surf::get("https://google.com")
 //!     .middleware(surf::middleware::logger::new())
 //!     .await?;
 //! dbg!(res.body_string().await?);
@@ -22,11 +23,14 @@ use std::time;
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-/// Log each request's duration
+/// Log each request's duration.
 #[derive(Debug)]
-pub struct Logger;
+pub struct Logger {
+    _priv: (),
+}
 
 impl<C: HttpClient> Middleware<C> for Logger {
+    #[allow(missing_doc_code_examples)]
     fn handle<'a>(
         &'a self,
         req: Request,
@@ -76,8 +80,21 @@ impl<C: HttpClient> Middleware<C> for Logger {
 }
 
 /// Create a new instance.
+///
+/// # Examples
+///
+/// ```
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let mut res = surf::get("https://google.com")
+///     .middleware(surf::middleware::logger::new())
+///     .await?;
+/// dbg!(res.body_string().await?);
+/// # Ok(()) }
+/// ```
 pub fn new() -> Logger {
-    Logger {}
+    Logger { _priv: () }
 }
 
 struct RequestPairs<'a> {
