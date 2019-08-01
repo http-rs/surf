@@ -24,16 +24,51 @@ impl Response {
     }
 
     /// Get the HTTP status code.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let res = surf::get("https://httpbin.org/get").await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
     pub fn status(&self) -> StatusCode {
         self.response.status()
     }
 
     /// Get the HTTP protocol version.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::http::version::Version;
+    ///
+    /// let res = surf::get("https://httpbin.org/get").await?;
+    /// assert_eq!(res.version(), Version::HTTP_11);
+    /// # Ok(()) }
+    /// ```
     pub fn version(&self) -> Version {
         self.response.version()
     }
 
     /// Get a header.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let res = surf::get("https://httpbin.org/get").await?;
+    /// assert!(res.header("Content-Length").is_some());
+    /// # Ok(()) }
+    /// ```
     pub fn header(&self, key: &'static str) -> Option<&'_ str> {
         let headers = self.response.headers();
         headers.get(key).map(|h| h.to_str().unwrap())
@@ -42,6 +77,7 @@ impl Response {
     /// Get all headers.
     ///
     /// # Examples
+    ///
     /// ```no_run
     /// # #![feature(async_await)]
     /// # #[runtime::main]
@@ -60,10 +96,23 @@ impl Response {
     ///
     /// Gets the `Content-Type` header and parses it to a `Mime` type.
     ///
+    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    ///
     /// # Panics
+    ///
     /// This method will panic if an invalid MIME type was set as a header.
     ///
-    /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::mime;
+    /// let res = surf::get("https://httpbin.org/json").await?;
+    /// assert_eq!(res.mime(), Some(mime::APPLICATION_JSON));
+    /// # Ok(()) }
+    /// ```
     pub fn mime(&self) -> Option<Mime> {
         let header = self.header("Content-Type")?;
         Some(header.parse().unwrap())
@@ -78,6 +127,17 @@ impl Response {
     ///
     /// Any I/O error encountered while reading the body is immediately returned
     /// as an `Err`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let mut res = surf::get("https://httpbin.org/get").await?;
+    /// let bytes: Vec<u8> = res.body_bytes().await?;
+    /// # Ok(()) }
+    /// ```
     pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = Vec::with_capacity(1024);
         self.response.body_mut().read_to_end(&mut buf).await?;
@@ -95,6 +155,17 @@ impl Response {
     /// as an `Err`.
     ///
     /// If the body cannot be interpreted as valid UTF-8, an `Err` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let mut res = surf::get("https://httpbin.org/get").await?;
+    /// let string: String = res.body_string().await?;
+    /// # Ok(()) }
+    /// ```
     pub async fn body_string(&mut self) -> Result<String, Exception> {
         let bytes = self.body_bytes().await?;
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
@@ -109,6 +180,23 @@ impl Response {
     ///
     /// If the body cannot be interpreted as valid json for the target type `T`,
     /// an `Err` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Ip {
+    ///     ip: String
+    /// }
+    ///
+    /// let mut res = surf::get("https://api.ipify.org?format=json").await?;
+    /// let Ip { ip } = res.body_json().await?;
+    /// # Ok(()) }
+    /// ```
     pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
         let body_bytes = self.body_bytes().await?;
         Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
