@@ -87,18 +87,58 @@ impl<C: HttpClient> Request<C> {
     }
 
     /// Push middleware onto the middleware stack.
+    ///
+    /// See the [middleware] submodule for more information on middleware.
+    ///
+    /// [middleware]: ../middleware/index.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let res = surf::get("https://httpbin.org/get")
+    ///     .middleware(surf::middleware::logger::new())
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
     pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
         self.middleware.as_mut().unwrap().push(Arc::new(mw));
         self
     }
 
     /// Get an HTTP header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let req = surf::get("https://httpbin.org/get")
+    ///     .set_header("X-Requested-With", "surf");
+    /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
+    /// # Ok(()) }
+    /// ```
     pub fn header(&self, key: &'static str) -> Option<&'_ str> {
         let req = self.req.as_ref().unwrap();
         req.headers().get(key).map(|h| h.to_str().unwrap())
     }
 
-    /// Insert an HTTP header.
+    /// Set an HTTP header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let req = surf::get("https://httpbin.org/get")
+    ///     .set_header("X-Requested-With", "surf");
+    /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
+    /// # Ok(()) }
+    /// ```
     pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
         let value = value.as_ref().to_owned();
         let req = self.req.as_mut().unwrap();
@@ -107,12 +147,36 @@ impl<C: HttpClient> Request<C> {
     }
 
     /// Get the request HTTP method.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::http;
+    /// let req = surf::get("https://httpbin.org/get");
+    /// assert_eq!(req.method(), http::Method::GET);
+    /// # Ok(()) }
+    /// ```
     pub fn method(&self) -> &Method {
         let req = self.req.as_ref().unwrap();
         req.method()
     }
 
     /// Get the request url.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::url::Url;
+    /// let req = surf::get("https://httpbin.org/get");
+    /// assert_eq!(req.url(), &Url::parse("https://httpbin.org/get")?);
+    /// # Ok(()) }
+    /// ```
     pub fn url(&self) -> &Url {
         &self.url
     }
@@ -121,10 +185,27 @@ impl<C: HttpClient> Request<C> {
     ///
     /// Gets the `Content-Type` header and parses it to a `Mime` type.
     ///
-    /// # Panics
-    /// This method will panic if an invalid MIME type was set as a header.
-    ///
     /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if an invalid MIME type was set as a header. Use the [`set_header`]
+    /// method to bypass any checks.
+    ///
+    /// [`set_header`]: #method.set_header
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::mime;
+    /// let req = surf::post("https://httpbin.org/get")
+    ///     .set_mime(mime::TEXT_CSS);
+    /// assert_eq!(req.mime(), Some(mime::TEXT_CSS));
+    /// # Ok(()) }
+    /// ```
     pub fn mime(&self) -> Option<Mime> {
         let header = self.header("Content-Type")?;
         Some(header.parse().unwrap())
@@ -133,6 +214,19 @@ impl<C: HttpClient> Request<C> {
     /// Set the request MIME.
     ///
     /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::mime;
+    /// let req = surf::post("https://httpbin.org/get")
+    ///     .set_mime(mime::TEXT_CSS);
+    /// assert_eq!(req.mime(), Some(mime::TEXT_CSS));
+    /// # Ok(()) }
+    /// ```
     pub fn set_mime(self, mime: Mime) -> Self {
         self.set_header("Content-Type", format!("{}", mime))
     }
@@ -149,31 +243,87 @@ impl<C: HttpClient> Request<C> {
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
-    /// Set JSON as the request body.
+    /// Pass JSON as the request body.
     ///
     /// # Mime
     /// The encoding is set to `application/json`.
     ///
     /// # Errors
     /// This method will return an error if the provided data could not be serialized to JSON.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = serde_json::json!({ "name": "chashu" });
+    /// let res = surf::post(uri).body_json(&data)?.await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
     pub fn body_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
         Ok(self.set_mime(mime::APPLICATION_JSON))
     }
 
-    /// Set a string as the request body.
+    /// Pass a string as the request body.
     ///
     /// # Mime
     /// The encoding is set to `text/plain; charset=utf-8`.
     ///
     /// # Errors
-    /// This method will return an error if the provided data could not be serialized to JSON.
-    pub fn body_string(mut self, string: String) -> serde_json::Result<Self> {
+    ///
+    /// This method will currently never error, but an `io::Result` is returned for consistency
+    /// with the other body methods.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = "hello world".to_string();
+    /// let res = surf::post(uri).body_string(data)?.await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_string(mut self, string: String) -> io::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
         Ok(self.set_mime(mime::TEXT_PLAIN_UTF_8))
     }
 
-    /// Set a file as the request body.
+    /// Pass bytes as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/octet-stream`.
+    ///
+    /// # Errors
+    ///
+    /// This method will currently never error, but an `io::Result` is returned for consistency
+    /// with the other body methods.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = b"hello world";
+    /// let res = surf::post(uri).body_bytes(data)?.await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
+        *self.req.as_mut().unwrap().body_mut() = bytes.as_ref().to_owned().into();
+        Ok(self.set_mime(mime::APPLICATION_OCTET_STREAM))
+    }
+
+    /// Pass a file as the request body.
     ///
     /// # Mime
     /// The encoding is set based on the file extension using [`mime_guess`] if the operation was
