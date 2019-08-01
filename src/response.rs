@@ -47,7 +47,7 @@ impl Response {
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), surf::Exception> {
     /// let res = surf::post("https://httpbin.org/get").await?;
-    /// res.headers(|name, value| println!("{}: {}", name, value));
+    /// res.headers(&mut |name, value| println!("{}: {}", name, value));
     /// # Ok(()) }
     /// ```
     pub fn headers(&self, visitor: &mut impl FnMut(&str, &str)) {

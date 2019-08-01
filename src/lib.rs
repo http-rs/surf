@@ -9,7 +9,8 @@
 //! - Reuses connections through the `Client` interface
 //! - Fully streaming requests and responses
 //! - TLS/SSL enabled by default
-//! - Swappable HTTP backends (`hyper (default)`, `libcurl (wip)`, `fetch (wip)`)
+//! - Swappable HTTP backends
+//! - HTTP/2 on by default
 //!
 //! # Examples
 //! ```no_run
@@ -69,9 +70,9 @@ mod response;
 
 pub mod middleware;
 
-pub use url;
 pub use http;
 pub use mime;
+pub use url;
 
 pub use client::Client;
 pub use request::Request;

@@ -17,7 +17,7 @@ impl ChttpClient {
     /// Create a new instance.
     pub fn new() -> Self {
         Self {
-            client: Arc::new(chttp::HttpClient::new())
+            client: Arc::new(chttp::HttpClient::new()),
         }
     }
 }
@@ -25,7 +25,7 @@ impl ChttpClient {
 impl Clone for ChttpClient {
     fn clone(&self) -> Self {
         Self {
-            client: self.client.clone()
+            client: self.client.clone(),
         }
     }
 }
@@ -49,4 +49,3 @@ impl HttpClient for ChttpClient {
         })
     }
 }
-

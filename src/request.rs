@@ -1,9 +1,9 @@
 use futures::future::BoxFuture;
 use futures::prelude::*;
-use serde::Serialize;
 use http::Method;
-use url::Url;
 use mime::Mime;
+use serde::Serialize;
+use url::Url;
 
 use super::http_client::{self, Body, HttpClient};
 use super::middleware::{Middleware, Next};
@@ -12,13 +12,13 @@ use super::Response;
 
 use std::fmt;
 use std::fmt::Debug;
+use std::fs;
 use std::future::Future;
 use std::io;
+use std::path::Path;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::path::Path;
-use std::fs;
 
 #[cfg(feature = "chttp-client")]
 use super::http_client::chttp::ChttpClient;
@@ -61,7 +61,7 @@ impl<C: HttpClient> Request<C> {
             middleware: Some(vec![]),
         };
 
-        #[cfg(feature="middleware-logger")]
+        #[cfg(feature = "middleware-logger")]
         let client = client.middleware(crate::middleware::logger::new());
 
         client
@@ -122,7 +122,10 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Mime
     /// The encoding is set to `application/octet-stream`.
-    pub fn body<R>(mut self, reader: Box<R>) -> Self where R: AsyncRead + Unpin + Send + 'static{
+    pub fn body<R>(mut self, reader: Box<R>) -> Self
+    where
+        R: AsyncRead + Unpin + Send + 'static,
+    {
         *self.req.as_mut().unwrap().body_mut() = reader.into();
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
