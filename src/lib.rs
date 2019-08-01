@@ -10,7 +10,7 @@
 //! - Fully streaming requests and responses
 //! - TLS/SSL enabled by default
 //! - Swappable HTTP backends
-//! - HTTP/2 on by default
+//! - HTTP/2 enabled by default
 //!
 //! # Examples
 //! ```no_run
@@ -54,8 +54,10 @@
 //! ```
 //!
 //! # Features
-//! By default all features are enabled.
-//! - `middleware-logger` enables logging requests and responses using a middleware.
+//! The following features are available.
+//! - __`chttp-client` (default):__ use `chttp` as the HTTP backend.
+//! - __`hyper-client`:__ use `hyper` as the HTTP backend.
+//! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
 
 #![forbid(unsafe_code, future_incompatible, rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]

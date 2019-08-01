@@ -4,7 +4,7 @@ use crate::Request;
 #[cfg(feature = "chttp-client")]
 use crate::http_client::chttp::ChttpClient;
 
-/// A persistent HTTP client.
+/// An HTTP client, capable of creating new `Request`s.
 ///
 /// # Examples
 ///
@@ -51,6 +51,10 @@ impl<C: HttpClient> Client<C> {
 
     /// Perform an HTTP `GET` request using the `Client` connection.
     ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
     /// # Errors
     ///
     /// Returns errors from the middleware, http backend, and network sockets.
@@ -71,6 +75,10 @@ impl<C: HttpClient> Client<C> {
     }
 
     /// Perform an HTTP `HEAD` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
     ///
     /// # Errors
     ///
@@ -93,6 +101,10 @@ impl<C: HttpClient> Client<C> {
 
     /// Perform an HTTP `POST` request using the `Client` connection.
     ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
     /// # Errors
     ///
     /// Returns errors from the middleware, http backend, and network sockets.
@@ -113,6 +125,10 @@ impl<C: HttpClient> Client<C> {
     }
 
     /// Perform an HTTP `PUT` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
     ///
     /// # Errors
     ///
@@ -135,6 +151,10 @@ impl<C: HttpClient> Client<C> {
 
     /// Perform an HTTP `DELETE` request using the `Client` connection.
     ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
     /// # Errors
     ///
     /// Returns errors from the middleware, http backend, and network sockets.
@@ -155,6 +175,10 @@ impl<C: HttpClient> Client<C> {
     }
 
     /// Perform an HTTP `CONNECT` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
     ///
     /// # Errors
     ///
@@ -177,6 +201,10 @@ impl<C: HttpClient> Client<C> {
 
     /// Perform an HTTP `OPTIONS` request using the `Client` connection.
     ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
     /// # Errors
     ///
     /// Returns errors from the middleware, http backend, and network sockets.
@@ -198,6 +226,10 @@ impl<C: HttpClient> Client<C> {
 
     /// Perform an HTTP `TRACE` request using the `Client` connection.
     ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
     /// # Errors
     ///
     /// Returns errors from the middleware, http backend, and network sockets.
@@ -218,6 +250,10 @@ impl<C: HttpClient> Client<C> {
     }
 
     /// Perform an HTTP `PATCH` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
     ///
     /// # Errors
     ///

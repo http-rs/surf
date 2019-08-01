@@ -25,7 +25,7 @@ use super::http_client::chttp::ChttpClient;
 #[cfg(feature = "chttp-client")]
 use std::convert::TryFrom;
 
-/// Create an HTTP request.
+/// An HTTP request, returns a `Response`.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     /// Holds a `http_client::HttpClient` implementation.
     client: Option<C>,
@@ -42,6 +42,24 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
 #[cfg(feature = "chttp-client")]
 impl Request<ChttpClient> {
     /// Create a new instance.
+    ///
+    /// This method is particularly useful when input URLs might be passed by third parties, and
+    /// you don't want to panic if they're malformed. If URLs are statically encoded, it might be
+    /// easier to use one of the shorthand methods instead.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::{http, url};
+    ///
+    /// let method = http::Method::GET;
+    /// let url = url::Url::parse("https://httpbin.org/get")?;
+    /// let string = surf::Request::new(method, url).recv_string().await?;
+    /// # Ok(()) }
+    /// ```
     pub fn new(method: http::Method, url: Url) -> Self {
         Self::with_client(method, url, ChttpClient::new())
     }
@@ -49,6 +67,7 @@ impl Request<ChttpClient> {
 
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
+    #[allow(missing_doc_code_examples)]
     pub fn with_client(method: http::Method, url: Url, client: C) -> Self {
         let mut req = http_client::Request::new(Body::empty());
         *req.method_mut() = method;

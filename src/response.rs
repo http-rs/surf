@@ -12,7 +12,7 @@ use std::task::{Context, Poll};
 use super::http_client;
 use super::Exception;
 
-/// A response returned by `Request`.
+/// An HTTP response, returned by `Request`.
 pub struct Response {
     response: http_client::Response,
 }
