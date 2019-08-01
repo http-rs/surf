@@ -64,7 +64,6 @@
 
 mod client;
 mod http_client;
-mod one_off;
 mod request;
 mod response;
 
@@ -75,9 +74,13 @@ pub use http;
 pub use mime;
 
 pub use client::Client;
-pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 pub use request::Request;
 pub use response::Response;
+
+#[cfg(feature = "chttp-client")]
+mod one_off;
+#[cfg(feature = "chttp-client")]
+pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
 /// A generic error type.
 pub type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;

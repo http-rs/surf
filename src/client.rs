@@ -1,6 +1,8 @@
-use crate::http_client::hyper::HyperClient;
 use crate::http_client::HttpClient;
 use crate::Request;
+
+#[cfg(feature = "chttp-client")]
+use crate::http_client::chttp::ChttpClient;
 
 /// A persistent HTTP client.
 #[derive(Debug)]
@@ -8,10 +10,11 @@ pub struct Client<C: HttpClient> {
     client: C,
 }
 
-impl Client<HyperClient> {
+#[cfg(feature = "chttp-client")]
+impl Client<ChttpClient> {
     /// Create a new instance.
     pub fn new() -> Self {
-        Self::with_client(HyperClient::new())
+        Self::with_client(ChttpClient::new())
     }
 }
 
