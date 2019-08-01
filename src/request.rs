@@ -234,21 +234,37 @@ impl<C: HttpClient> Request<C> {
     /// Pass an `AsyncRead` stream as the request body.
     ///
     /// # Mime
+    ///
     /// The encoding is set to `application/octet-stream`.
-    pub fn body<R>(mut self, reader: Box<R>) -> Self
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let reader = surf::get("https://httpbin.org/get").await?;
+    /// let uri = "https://httpbin.org/post";
+    /// let res = surf::post(uri).body(reader).await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body<R>(mut self, reader: R) -> Self
     where
         R: AsyncRead + Unpin + Send + 'static,
     {
-        *self.req.as_mut().unwrap().body_mut() = reader.into();
+        *self.req.as_mut().unwrap().body_mut() = Box::new(reader).into();
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
     /// Pass JSON as the request body.
     ///
     /// # Mime
+    ///
     /// The encoding is set to `application/json`.
     ///
     /// # Errors
+    ///
     /// This method will return an error if the provided data could not be serialized to JSON.
     ///
     /// # Examples
@@ -271,12 +287,8 @@ impl<C: HttpClient> Request<C> {
     /// Pass a string as the request body.
     ///
     /// # Mime
+    ///
     /// The encoding is set to `text/plain; charset=utf-8`.
-    ///
-    /// # Errors
-    ///
-    /// This method will currently never error, but an `io::Result` is returned for consistency
-    /// with the other body methods.
     ///
     /// # Examples
     ///
@@ -286,13 +298,13 @@ impl<C: HttpClient> Request<C> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
     /// let data = "hello world".to_string();
-    /// let res = surf::post(uri).body_string(data)?.await?;
+    /// let res = surf::post(uri).body_string(data).await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_string(mut self, string: String) -> io::Result<Self> {
+    pub fn body_string(mut self, string: String) -> Self {
         *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
-        Ok(self.set_mime(mime::TEXT_PLAIN_UTF_8))
+        self.set_mime(mime::TEXT_PLAIN_UTF_8)
     }
 
     /// Pass bytes as the request body.
@@ -314,26 +326,31 @@ impl<C: HttpClient> Request<C> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
     /// let data = b"hello world";
-    /// let res = surf::post(uri).body_bytes(data)?.await?;
+    /// let res = surf::post(uri).body_bytes(data).await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> io::Result<Self> {
+    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> Self {
         *self.req.as_mut().unwrap().body_mut() = bytes.as_ref().to_owned().into();
-        Ok(self.set_mime(mime::APPLICATION_OCTET_STREAM))
+        self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
     /// Pass a file as the request body.
     ///
     /// # Mime
+    ///
     /// The encoding is set based on the file extension using [`mime_guess`] if the operation was
     /// successful. If `path` has no extension, or its extension has no known MIME type mapping,
     /// then `None` is returned.
     ///
+    /// [`mime_guess`]: https://docs.rs/mime_guess
+    ///
     /// # Errors
+    ///
     /// This method will return an error if the file couldn't be read.
     ///
     /// # Examples
+    ///
     /// ```no_run
     /// # #![feature(async_await)]
     /// # #[runtime::main]
@@ -344,8 +361,6 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    ///
-    /// [`mime_guess`]: https://docs.rs/mime_guess
     pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
         let mime = mime_guess::guess_mime_type(&path);
         let bytes = fs::read(path)?;
@@ -354,18 +369,58 @@ impl<C: HttpClient> Request<C> {
     }
 
     /// Submit the request and get the response body as bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let bytes = surf::get("https://httpbin.org/get").recv_bytes().await?;
+    /// assert!(bytes.len() > 0);
+    /// # Ok(()) }
+    /// ```
     pub async fn recv_bytes(self) -> Result<Vec<u8>, Exception> {
         let mut req = self.await?;
         Ok(req.body_bytes().await?)
     }
 
     /// Submit the request and get the response body as a string.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
+    /// assert!(string.len() > 0);
+    /// # Ok(()) }
+    /// ```
     pub async fn recv_string(self) -> Result<String, Exception> {
         let mut req = self.await?;
         Ok(req.body_string().await?)
     }
 
-    /// Submit the request and get the response body as a string.
+    /// Submit the request and decode the response body from json into a struct.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Ip {
+    ///     ip: String
+    /// }
+    ///
+    /// let uri = "https://api.ipify.org?format=json";
+    /// let Ip { ip } = surf::get(uri).recv_json().await?;
+    /// assert!(ip.len() > 10);
+    /// # Ok(()) }
+    /// ```
     pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
         let mut req = self.await?;
         Ok(req.body_json::<T>().await?)
