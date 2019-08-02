@@ -90,6 +90,9 @@ look at some of these issues:
 - [rustasync/http-service](https://github.com/rustasync/http-service)
 - [rustasync/tide](https://github.com/rustasync/tide)
 
+## Thanks
+Thanks to [prasannvl](https://github.com/prasannvl) for donating the crate name.
+
 ## License
 [MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
 

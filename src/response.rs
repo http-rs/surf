@@ -171,7 +171,7 @@ impl Response {
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
     }
 
-    /// Reads and deserialized the entire request body via json.
+    /// Reads and deserialized the entire request body from json.
     ///
     /// # Errors
     ///
@@ -200,6 +200,38 @@ impl Response {
     pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
         let body_bytes = self.body_bytes().await?;
         Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
+    }
+
+    /// Reads and deserialized the entire request body from form encoding.
+    ///
+    /// # Errors
+    ///
+    /// Any I/O error encountered while reading the body is immediately returned
+    /// as an `Err`.
+    ///
+    /// If the body cannot be interpreted as valid json for the target type `T`,
+    /// an `Err` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Body {
+    ///     apples: u32
+    /// }
+    ///
+    /// let mut res = surf::get("https://api.example.com/v1/response").await?;
+    /// let Body { apples } = res.body_form().await?;
+    /// # Ok(()) }
+    /// ```
+    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Exception> {
+        use std::io::ErrorKind;
+        let string = self.body_string().await?;
+        Ok(serde_urlencoded::from_str(&string).map_err(|_| Error::from(ErrorKind::InvalidData))?)
     }
 }
 

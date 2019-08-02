@@ -108,6 +108,56 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Get the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let req = surf::get("https://httpbin.org/get?page=2");
+    /// let Index { page } = req.query()?;
+    /// assert_eq!(page, 2);
+    /// # Ok(()) }
+    /// ```
+    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Exception> {
+        use std::io::{Error, ErrorKind};
+        let query = self.url.query().ok_or(Error::from(ErrorKind::InvalidData))?;
+        Ok(serde_urlencoded::from_str(query)?)
+    }
+
+    /// Set the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let query = Index { page: 2 };
+    /// let req = surf::get("https://httpbin.org/get").set_query(&query)?;
+    /// assert_eq!(req.url().query(), Some("page=2"));
+    /// # Ok(()) }
+    /// ```
+    pub fn set_query(mut self, query: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+        let query = serde_urlencoded::to_string(query)?;
+        self.url.set_query(Some(&query));
+        Ok(self)
+    }
+
     /// Get an HTTP header.
     ///
     /// # Examples
@@ -313,11 +363,6 @@ impl<C: HttpClient> Request<C> {
     ///
     /// The encoding is set to `application/octet-stream`.
     ///
-    /// # Errors
-    ///
-    /// This method will currently never error, but an `io::Result` is returned for consistency
-    /// with the other body methods.
-    ///
     /// # Examples
     ///
     /// ```no_run
@@ -366,6 +411,41 @@ impl<C: HttpClient> Request<C> {
         let bytes = fs::read(path)?;
         *self.req.as_mut().unwrap().body_mut() = bytes.into();
         Ok(self.set_mime(mime))
+    }
+
+    /// Pass a form as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/x-www-form-urlencoded`.
+    ///
+    /// # Errors
+    ///
+    /// An error will be returned if the encoding failed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Body {
+    ///     apples: u32
+    /// }
+    ///
+    /// let res = surf::post("https://httpbin.org/post")
+    ///     .body_form(&Body { apples: 7 })?
+    ///     .await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_form(mut self, form: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+        let query = serde_urlencoded::to_string(form)?;
+        self = self.body_string(query);
+        self = self.set_mime(mime::APPLICATION_WWW_FORM_URLENCODED);
+        Ok(self)
     }
 
     /// Submit the request and get the response body as bytes.
@@ -424,6 +504,37 @@ impl<C: HttpClient> Request<C> {
     pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
         let mut req = self.await?;
         Ok(req.body_json::<T>().await?)
+    }
+
+    /// Submit the request and decode the response body from form encoding into a struct.
+    ///
+    /// # Errors
+    ///
+    /// Any I/O error encountered while reading the body is immediately returned
+    /// as an `Err`.
+    ///
+    /// If the body cannot be interpreted as valid json for the target type `T`,
+    /// an `Err` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Body {
+    ///     apples: u32
+    /// }
+    ///
+    /// let url = "https://api.example.com/v1/response";
+    /// let Body { apples } = surf::get(url).recv_form().await?;
+    /// # Ok(()) }
+    /// ```
+    pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+        let mut req = self.await?;
+        Ok(req.body_form::<T>().await?)
     }
 }
 
