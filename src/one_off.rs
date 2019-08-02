@@ -11,6 +11,24 @@ use super::Request;
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::get("https://httpbin.org/get").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn get(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::GET, uri)
@@ -35,6 +53,24 @@ pub fn get(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::head("https://httpbin.org/head").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn head(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::HEAD, uri)
@@ -76,6 +112,24 @@ pub fn head(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::post("https://httpbin.org/post").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn post(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::POST, uri)
@@ -95,6 +149,24 @@ pub fn post(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PUT
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::put("https://httpbin.org/put").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn put(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PUT, uri)
@@ -109,6 +181,24 @@ pub fn put(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/DELETE
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::delete("https://httpbin.org/delete").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn delete(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::DELETE, uri)
@@ -132,6 +222,24 @@ pub fn delete(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/CONNECT
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::connect("https://httpbin.org/connect").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn connect(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::CONNECT, uri)
@@ -148,6 +256,24 @@ pub fn connect(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::options("https://httpbin.org/options").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn options(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::OPTIONS, uri)
@@ -168,6 +294,24 @@ pub fn options(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/TRACE
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::trace("https://httpbin.org/trace").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn trace(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::TRACE, uri)
@@ -194,6 +338,24 @@ pub fn trace(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// [Read more on MDN]
 ///
 /// [Read more on MDN]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH
+///
+/// # Panics
+///
+/// This will panic if a malformed URL is passed.
+///
+/// # Errors
+///
+/// Returns errors from the middleware, http backend, and network sockets.
+///
+/// # Examples
+///
+/// ```no_run
+/// # #![feature(async_await)]
+/// # #[runtime::main]
+/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// let string = surf::patch("https://httpbin.org/patch").recv_string().await?;
+/// # Ok(()) }
+/// ```
 pub fn patch(uri: impl AsRef<str>) -> Request<ChttpClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PATCH, uri)
