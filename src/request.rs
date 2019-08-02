@@ -363,11 +363,6 @@ impl<C: HttpClient> Request<C> {
     ///
     /// The encoding is set to `application/octet-stream`.
     ///
-    /// # Errors
-    ///
-    /// This method will currently never error, but an `io::Result` is returned for consistency
-    /// with the other body methods.
-    ///
     /// # Examples
     ///
     /// ```no_run
@@ -416,6 +411,41 @@ impl<C: HttpClient> Request<C> {
         let bytes = fs::read(path)?;
         *self.req.as_mut().unwrap().body_mut() = bytes.into();
         Ok(self.set_mime(mime))
+    }
+
+    /// Pass a form as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/x-www-form-urlencoded`.
+    ///
+    /// # Errors
+    ///
+    /// An error will be returned if the encoding failed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Body {
+    ///     apples: u32
+    /// }
+    ///
+    /// let res = surf::post("https://httpbin.org/post")
+    ///     .body_form(&Body { apples: 7 })?
+    ///     .await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_form(mut self, form: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+        let query = serde_urlencoded::to_string(form)?;
+        self = self.body_string(query);
+        self = self.set_mime(mime::APPLICATION_WWW_FORM_URLENCODED);
+        Ok(self)
     }
 
     /// Submit the request and get the response body as bytes.
