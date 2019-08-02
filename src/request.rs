@@ -123,7 +123,7 @@ impl<C: HttpClient> Request<C> {
     /// }
     ///
     /// let req = surf::get("https://httpbin.org/get?page=2");
-    /// let Index { page } = req.query().unwrap();
+    /// let Index { page } = req.query()?;
     /// assert_eq!(page, 2);
     /// # Ok(()) }
     /// ```
@@ -147,11 +147,9 @@ impl<C: HttpClient> Request<C> {
     ///     page: u32
     /// }
     ///
-    /// let req = surf::get("https://httpbin.org/get")
-    ///     .set_query(Index { page: 2 });
-    ///
-    /// let Index { page } = req.query().unwrap();
-    /// assert_eq!(page, 2);
+    /// let query = Index { page: 2 };
+    /// let req = surf::get("https://httpbin.org/get").set_query(&query)?;
+    /// assert_eq!(req.url().query(), Some("page=2"));
     /// # Ok(()) }
     /// ```
     pub fn set_query(mut self, query: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
