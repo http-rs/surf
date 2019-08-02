@@ -505,6 +505,37 @@ impl<C: HttpClient> Request<C> {
         let mut req = self.await?;
         Ok(req.body_json::<T>().await?)
     }
+
+    /// Submit the request and decode the response body from form encoding into a struct.
+    ///
+    /// # Errors
+    ///
+    /// Any I/O error encountered while reading the body is immediately returned
+    /// as an `Err`.
+    ///
+    /// If the body cannot be interpreted as valid json for the target type `T`,
+    /// an `Err` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Body {
+    ///     apples: u32
+    /// }
+    ///
+    /// let url = "https://api.example.com/v1/response";
+    /// let Body { apples } = surf::get(url).recv_form().await?;
+    /// # Ok(()) }
+    /// ```
+    pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+        let mut req = self.await?;
+        Ok(req.body_form::<T>().await?)
+    }
 }
 
 impl<C: HttpClient> Future for Request<C> {
