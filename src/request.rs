@@ -108,6 +108,58 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Get the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let req = surf::get("https://httpbin.org/get?page=2");
+    /// let Index { page } = req.query().unwrap();
+    /// assert_eq!(page, 2);
+    /// # Ok(()) }
+    /// ```
+    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Exception> {
+        use std::io::{Error, ErrorKind};
+        let query = self.url.query().ok_or(Error::from(ErrorKind::InvalidData))?;
+        Ok(serde_urlencoded::from_str(query)?)
+    }
+
+    /// Set the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #![feature(async_await)]
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let req = surf::get("https://httpbin.org/get")
+    ///     .set_query(Index { page: 2 });
+    ///
+    /// let Index { page } = req.query().unwrap();
+    /// assert_eq!(page, 2);
+    /// # Ok(()) }
+    /// ```
+    pub fn set_query(mut self, query: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+        let query = serde_urlencoded::to_string(query)?;
+        self.url.set_query(Some(&query));
+        Ok(self)
+    }
+
     /// Get an HTTP header.
     ///
     /// # Examples
