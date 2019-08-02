@@ -53,6 +53,17 @@
 //! # Ok(()) }
 //! ```
 //!
+//! And even creating streaming proxies is no trouble at all.
+//!
+//! ```no_run
+//! # #![feature(async_await)]
+//! # #[runtime::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! let reader = surf::get("https://img.fyi/q6YvNqP").await?;
+//! let res = surf::post("https://box.rs/upload").body(reader).await?;
+//! # Ok(()) }
+//! ```
+//!
 //! # Features
 //! The following features are available.
 //! - __`chttp-client` (default):__ use `chttp` as the HTTP backend.

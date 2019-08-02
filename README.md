@@ -50,8 +50,6 @@
   <sub>Built with 🌊 by <a href="https://github.com/rustasync">The Rust Async Ecosystem WG</a>
 </div>
 
-## About
-
 Surf is the Rust HTTP client we've always wanted. It's completely modular, and
 built directly for `async/await`. Whether it's a quick script, or a
 cross-platform SDK, Surf will make it work.
@@ -61,12 +59,63 @@ cross-platform SDK, Surf will make it work.
 - Reuses connections through the `Client` interface
 - Fully streaming requests and responses
 - TLS/SSL enabled by default
-- Swappable HTTP backends (`hyper (default)`, `libcurl (wip)`, `fetch (wip)`)
+- Swappable HTTP backends
+- HTTP/2 enabled by default
 
 ## Examples
-```rust,no_run
+
+```rust
+# #![feature(async_await)]
+# #[runtime::main]
+# async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 let mut res = surf::get("https://google.com").await?;
 dbg!(res.body_string().await?);
+# Ok(()) }
+```
+
+It's also possible to skip the intermediate `Response`, and access the response
+type directly.
+
+```rust
+# #![feature(async_await)]
+# #[runtime::main]
+# async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+dbg!(surf::get("https://google.com").recv_string().await?);
+# Ok(()) }
+```
+
+Both sending and receiving JSON is real easy too.
+
+```rust
+# #![feature(async_await)]
+# use serde::{Deserialize, Serialize};
+# #[runtime::main]
+# async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+#[derive(Deserialize, Serialize)]
+struct Ip {
+    ip: String
+}
+
+let uri = "https://httpbin.org/post";
+let data = &Ip { ip: "129.0.0.1".into() };
+let res = surf::post(uri).body_json(data)?.await?;
+assert_eq!(res.status(), 200);
+
+let uri = "https://api.ipify.org?format=json";
+let Ip { ip } = surf::get(uri).recv_json().await?;
+assert!(ip.len() > 10);
+# Ok(()) }
+```
+
+And even creating streaming proxies is no trouble at all.
+
+```rust
+# #![feature(async_await)]
+# #[runtime::main]
+# async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+let reader = surf::get("https://img.fyi/q6YvNqP").await?;
+let res = surf::post("https://box.rs/upload").body(reader).await?;
+# Ok(()) }
 ```
 
 ## Installation
