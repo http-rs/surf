@@ -39,7 +39,7 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     url: Url,
 }
 
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 impl Request<NativeClient> {
     /// Create a new instance.
     ///
@@ -563,7 +563,7 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
     for Request<NativeClient>
 {

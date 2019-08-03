@@ -17,7 +17,7 @@ pub(crate) mod chttp;
 #[cfg(all(feature = "wasm-client", target_arch = "wasm32"))]
 pub(crate) mod wasm;
 
-#[cfg(all(feature = "wasm-client", feature = "chttp-client"))]
+#[cfg(feature = "native-client")]
 pub(crate) mod native;
 
 /// An HTTP Request type with a streaming body.

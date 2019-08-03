@@ -91,9 +91,9 @@ pub use client::Client;
 pub use request::Request;
 pub use response::Response;
 
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 mod one_off;
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
 /// A generic error type.

@@ -23,7 +23,7 @@ pub struct Client<C: HttpClient> {
     client: C,
 }
 
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 impl Client<NativeClient> {
     /// Create a new instance.
     ///

@@ -15,7 +15,7 @@ edition = "2018"
 # crate-type = ["cdylib", "rlib"]
 
 [features]
-default = ["chttp-client", "wasm-client", "native-client", "middleware-logger"]
+default = ["native-client", "middleware-logger"]
 native-client = ["chttp-client", "wasm-client"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
