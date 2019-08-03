@@ -1,6 +1,8 @@
 use super::{HttpClient, Request, Response};
 
 use futures::future::BoxFuture;
+use wasm_bindgen::prelude::*;
+use web_sys::window;
 
 // use std::sync::Arc;
 
@@ -26,8 +28,12 @@ impl Clone for WasmClient {
 impl HttpClient for WasmClient {
     type Error = std::io::Error;
 
-    fn send(&self, _req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
+    fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         Box::pin(async move {
+            let url = format!("{}", req.uri());
+            let request = web_sys::Request::new_with_str(&url).unwrap();
+            let res = window().unwrap().fetch_with_request(&request);
+            dbg!(res);
             unimplemented!();
         })
     }

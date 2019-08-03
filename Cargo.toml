@@ -19,7 +19,7 @@ default = ["native-client", "middleware-logger"]
 native-client = ["chttp-client", "wasm-client"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
-wasm-client = ["web-sys"]
+wasm-client = ["web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
 
 [dependencies]
@@ -48,6 +48,8 @@ runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
 # wasm-client
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3.25", features = ["Request", "Window"], optional = true }
+wasm-bindgen = { version = "0.2.48", optional = true }
+wasm-bindgen-futures = { version = "0.3.25", optional = true }
 
 [dev-dependencies]
 femme = "1.1.0"
