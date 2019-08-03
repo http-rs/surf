@@ -56,8 +56,10 @@ impl Body {
     }
 
     /// Create a new instance from a reader.
-    pub fn from_reader(reader: Box<dyn AsyncRead + Unpin + Send + 'static>) -> Self {
-        Self { reader }
+    pub fn from_reader(reader: impl AsyncRead + Unpin + Send + 'static) -> Self {
+        Self {
+            reader: Box::new(reader),
+        }
     }
 }
 

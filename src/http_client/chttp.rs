@@ -43,7 +43,7 @@ impl HttpClient for ChttpClient {
             let res = client.send_async(req).await?;
 
             let (parts, body) = res.into_parts();
-            let body = Body::from_reader(Box::new(body));
+            let body = Body::from_reader(body);
             let res = http::Response::from_parts(parts, body);
             Ok(res)
         })
