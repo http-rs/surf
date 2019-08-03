@@ -19,14 +19,15 @@ wasm-client = ["web-sys"]
 middleware-logger = []
 
 [dependencies]
-http = "0.1.17"
 futures-preview = { version = "0.3.0-alpha.17", features = ["compat", "io-compat"] }
+http = "0.1.17"
+log = { version = "0.4.7", features = ["kv_unstable"] }
+mime = "0.3.13"
+mime_guess = "2.0.0-alpha.6"
 serde = "1.0.97"
 serde_json = "1.0.40"
-log = { version = "0.4.7", features = ["kv_unstable"] }
+serde_urlencoded = "0.6.1"
 url = "2.0.0"
-mime_guess = "2.0.0-alpha.6"
-mime = "0.3.13"
 
 # chttp-client
 chttp = { version = "0.5.3", optional = true }
@@ -34,17 +35,16 @@ chttp = { version = "0.5.3", optional = true }
 # hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
 hyper-tls = { version = "0.3.2", optional = true }
-runtime = { version = "0.3.0-alpha.6", optional = true }
 native-tls = { version = "0.2.2", optional = true }
+runtime = { version = "0.3.0-alpha.6", optional = true }
 runtime-raw = { version = "0.3.0-alpha.4", optional = true }
 runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
-serde_urlencoded = "0.6.1"
 
 # wasm-client
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3.25", features = ["Request", "Window"], optional = true }
 
 [dev-dependencies]
-serde = { version = "1.0.97", features = ["derive"] }
-runtime = "0.3.0-alpha.6"
 femme = "1.1.0"
+runtime = "0.3.0-alpha.6"
+serde = { version = "1.0.97", features = ["derive"] }
