@@ -20,9 +20,9 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-#[cfg(feature = "chttp-client")]
-use super::http_client::chttp::ChttpClient;
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
+use super::http_client::native::NativeClient;
+#[cfg(feature = "native-client")]
 use std::convert::TryFrom;
 
 /// An HTTP request, returns a `Response`.
@@ -40,7 +40,7 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
 }
 
 #[cfg(feature = "chttp-client")]
-impl Request<ChttpClient> {
+impl Request<NativeClient> {
     /// Create a new instance.
     ///
     /// This method is particularly useful when input URLs might be passed by third parties, and
@@ -61,7 +61,7 @@ impl Request<ChttpClient> {
     /// # Ok(()) }
     /// ```
     pub fn new(method: http::Method, url: Url) -> Self {
-        Self::with_client(method, url, ChttpClient::new())
+        Self::with_client(method, url, NativeClient::new())
     }
 }
 
@@ -565,7 +565,7 @@ impl<C: HttpClient> Future for Request<C> {
 
 #[cfg(feature = "chttp-client")]
 impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
-    for Request<ChttpClient>
+    for Request<NativeClient>
 {
     type Error = io::Error;
 

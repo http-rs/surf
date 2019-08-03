@@ -24,13 +24,12 @@ impl Clone for WasmClient {
 }
 
 impl HttpClient for WasmClient {
-    type Error = chttp::Error;
+    type Error = std::io::Error;
 
     fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         let client = self.client.clone();
         Box::pin(async move {
-            let res = client.send_async(req).await?;
-            Ok(res)
+            unimplemented!();
         })
     }
 }

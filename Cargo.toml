@@ -11,8 +11,12 @@ authors = ["Yoshua Wuyts <yoshuawuyts@gmail.com>"]
 readme = "README.md"
 edition = "2018"
 
+# [target.'cfg(target_arch = "wasm32")'.lib]
+# crate-type = ["cdylib", "rlib"]
+
 [features]
-default = ["chttp-client", "wasm-client", "middleware-logger"]
+default = ["chttp-client", "wasm-client", "native-client", "middleware-logger"]
+native-client = ["chttp-client", "wasm-client"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
 wasm-client = ["web-sys"]
@@ -30,6 +34,7 @@ serde_urlencoded = "0.6.1"
 url = "2.0.0"
 
 # chttp-client
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chttp = { version = "0.5.3", optional = true }
 
 # hyper-client

@@ -14,8 +14,11 @@ pub(crate) mod hyper;
 #[cfg(all(feature = "chttp-client", not(target_arch = "wasm32")))]
 pub(crate) mod chttp;
 
-#[cfg(all(feature = "wasm-client", feature = "wasm-bindgen", target_arch = "wasm32"))]
+#[cfg(all(feature = "wasm-client", target_arch = "wasm32"))]
 pub(crate) mod wasm;
+
+#[cfg(all(feature = "wasm-client", feature = "chttp-client"))]
+pub(crate) mod native;
 
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;
