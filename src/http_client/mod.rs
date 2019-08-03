@@ -14,6 +14,9 @@ pub(crate) mod hyper;
 #[cfg(feature = "chttp-client")]
 pub(crate) mod chttp;
 
+#[cfg(feature = "wasm-client")]
+pub(crate) mod wasm;
+
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;
 

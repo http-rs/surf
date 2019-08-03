@@ -15,6 +15,7 @@ edition = "2018"
 default = ["chttp-client", "middleware-logger"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
+wsam-client = ["web-sys"]
 middleware-logger = []
 
 [dependencies]
@@ -27,10 +28,10 @@ url = "2.0.0"
 mime_guess = "2.0.0-alpha.6"
 mime = "0.3.13"
 
-# Chttp
+# chttp-client
 chttp = { version = "0.5.3", optional = true }
 
-# Hyper deps
+# hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
 hyper-tls = { version = "0.3.2", optional = true }
 runtime = { version = "0.3.0-alpha.6", optional = true }
@@ -38,6 +39,9 @@ native-tls = { version = "0.2.2", optional = true }
 runtime-raw = { version = "0.3.0-alpha.4", optional = true }
 runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
 serde_urlencoded = "0.6.1"
+
+# wasm-client
+web-sys = { version = "0.3.25", features = ["Request", "Window"], optional = true }
 
 [dev-dependencies]
 serde = { version = "1.0.97", features = ["derive"] }
