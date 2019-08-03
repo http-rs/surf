@@ -4,10 +4,7 @@ use futures::future::BoxFuture;
 
 use std::sync::Arc;
 
-/// Curl HTTP Client.
-///
-/// ## Performance
-/// Libcurl is not thread safe, which means unfortunatley we cannot reuse connections or multiplex.
+/// Curl-based HTTP Client.
 #[derive(Debug)]
 pub struct ChttpClient {
     client: Arc<chttp::HttpClient>,

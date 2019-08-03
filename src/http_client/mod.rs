@@ -8,13 +8,13 @@ use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-#[cfg(feature = "hyper-client")]
+#[cfg(all(feature = "hyper-client", not(target_arch = "wasm32")))]
 pub(crate) mod hyper;
 
-#[cfg(feature = "chttp-client")]
+#[cfg(all(feature = "chttp-client", not(target_arch = "wasm32")))]
 pub(crate) mod chttp;
 
-#[cfg(feature = "wasm-client")]
+#[cfg(all(feature = "wasm-client", feature = "wasm-bindgen", target_arch = "wasm32"))]
 pub(crate) mod wasm;
 
 /// An HTTP Request type with a streaming body.

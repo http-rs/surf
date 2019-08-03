@@ -12,10 +12,10 @@ readme = "README.md"
 edition = "2018"
 
 [features]
-default = ["chttp-client", "middleware-logger"]
+default = ["chttp-client", "wasm-client", "middleware-logger"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
-wsam-client = ["web-sys"]
+wasm-client = ["web-sys"]
 middleware-logger = []
 
 [dependencies]
@@ -41,6 +41,7 @@ runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
 serde_urlencoded = "0.6.1"
 
 # wasm-client
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys = { version = "0.3.25", features = ["Request", "Window"], optional = true }
 
 [dev-dependencies]
