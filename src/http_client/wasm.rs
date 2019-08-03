@@ -1,8 +1,8 @@
-use super::{Body, HttpClient, Request, Response};
+use super::{HttpClient, Request, Response};
 
 use futures::future::BoxFuture;
 
-use std::sync::Arc;
+// use std::sync::Arc;
 
 /// WebAssembly HTTP Client.
 #[derive(Debug)]
@@ -26,8 +26,7 @@ impl Clone for WasmClient {
 impl HttpClient for WasmClient {
     type Error = std::io::Error;
 
-    fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
-        let client = self.client.clone();
+    fn send(&self, _req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         Box::pin(async move {
             unimplemented!();
         })
