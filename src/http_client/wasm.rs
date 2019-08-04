@@ -1,10 +1,8 @@
-use super::{HttpClient, Request, Response};
+use super::{Body, HttpClient, Request, Response};
 
 use futures::future::BoxFuture;
-use wasm_bindgen::prelude::*;
+// use wasm_bindgen::prelude::*;
 use web_sys::window;
-
-// use std::sync::Arc;
 
 /// WebAssembly HTTP Client.
 #[derive(Debug)]
@@ -32,9 +30,10 @@ impl HttpClient for WasmClient {
         Box::pin(async move {
             let url = format!("{}", req.uri());
             let request = web_sys::Request::new_with_str(&url).unwrap();
-            let res = window().unwrap().fetch_with_request(&request);
+            let window = window().expect("A global window object could not be found");
+            let res = window.fetch_with_request(&request);
             dbg!(res);
-            unimplemented!();
+            Ok(Response::new(Body::empty()))
         })
     }
 }

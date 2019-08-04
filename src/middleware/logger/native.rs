@@ -1,18 +1,3 @@
-//! Logging middleware.
-//!
-//! # Examples
-//!
-//! ```
-//! # #![feature(async_await)]
-//! # #[runtime::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("https://google.com")
-//!     .middleware(surf::middleware::logger::new())
-//!     .await?;
-//! dbg!(res.body_string().await?);
-//! # Ok(()) }
-//! ```
-
 use crate::http_client::HttpClient;
 use crate::middleware::{Middleware, Next, Request, Response};
 
@@ -27,6 +12,13 @@ static COUNTER: AtomicUsize = AtomicUsize::new(0);
 #[derive(Debug)]
 pub struct Logger {
     _priv: (),
+}
+
+impl Logger {
+    /// Create a new instance.
+    pub fn new() -> Self{
+        Logger {_priv: ()}
+    }
 }
 
 impl<C: HttpClient> Middleware<C> for Logger {
@@ -77,24 +69,6 @@ impl<C: HttpClient> Middleware<C> for Logger {
             Ok(res)
         })
     }
-}
-
-/// Create a new instance.
-///
-/// # Examples
-///
-/// ```
-/// # #![feature(async_await)]
-/// # #[runtime::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-/// let mut res = surf::get("https://google.com")
-///     .middleware(surf::middleware::logger::new())
-///     .await?;
-/// dbg!(res.body_string().await?);
-/// # Ok(()) }
-/// ```
-pub fn new() -> Logger {
-    Logger { _priv: () }
 }
 
 struct RequestPairs<'a> {
