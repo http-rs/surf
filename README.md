@@ -124,8 +124,11 @@ $ cargo add surf
 ```
 
 ## Safety
-This crate uses ``#![deny(unsafe_code)]`` to ensure everything is implemented in
-100% Safe Rust.
+This crate makes use of a single instance of `unsafe` in order to make the WASM
+backend work despite the `Send` bounds. This is safe because WASM targets
+currently have no access to threads. Once they do we'll be able to drop this
+implementation, and use a parked thread instead and move to full multi-threading
+in the process too.
 
 ## Contributing
 Want to join us? Check out our ["Contributing" guide][contributing] and take a

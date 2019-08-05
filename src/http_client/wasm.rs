@@ -36,10 +36,13 @@ impl HttpClient for WasmClient {
         let fut = Box::pin(async move {
             let url = format!("{}", req.uri());
             let request = web_sys::Request::new_with_str(&url).unwrap();
+
             let window = window().expect("A global window object could not be found");
             let promise = window.fetch_with_request(&request);
+
             let res = JsFuture::from(promise).await.unwrap();
             debug_assert!(res.is_instance_of::<web_sys::Response>());
+
             let res: web_sys::Response = res.dyn_into().unwrap();
             Ok(Response::new(Body::empty()))
         });
@@ -61,6 +64,9 @@ impl Future for InnerFuture {
     type Output = Result<Response, io::Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        // This is safe because we're only using this future as a pass-through for the inner
+        // future, in order to implement `Send`. If it's safe to poll the inner future, it's safe
+        // to proxy it too.
         unsafe { Pin::new_unchecked(&mut self.fut).poll(cx) }
     }
 }
