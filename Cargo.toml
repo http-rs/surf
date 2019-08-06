@@ -11,9 +11,6 @@ authors = ["Yoshua Wuyts <yoshuawuyts@gmail.com>"]
 readme = "README.md"
 edition = "2018"
 
-# [target.'cfg(target_arch = "wasm32")'.lib]
-# crate-type = ["cdylib", "rlib"]
-
 [features]
 default = ["native-client", "middleware-logger"]
 native-client = ["chttp-client", "wasm-client"]
@@ -48,9 +45,26 @@ runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
 # wasm-client
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3.25", optional = true }
-web-sys = { version = "0.3.25", features = ["Headers", "Request", "Response", "Window"], optional = true }
 wasm-bindgen = { version = "0.2.48", optional = true }
 wasm-bindgen-futures = { version = "0.3.25", features = ["futures_0_3"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3.25"
+optional = true
+features = [
+    "AbortSignal",
+    "Headers",
+    "ObserverCallback",
+    "ReferrerPolicy",
+    "Request",
+    "RequestCache",
+    "RequestCredentials",
+    "RequestInit",
+    "RequestMode",
+    "RequestRedirect",
+    "Response",
+    "Window",
+]
 
 [dev-dependencies]
 femme = "1.1.0"

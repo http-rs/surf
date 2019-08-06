@@ -39,7 +39,9 @@ impl HttpClient for WasmClient {
             let url = format!("{}", req.uri());
 
             // Do a request
-            let request = web_sys::Request::new_with_str(&url).unwrap();
+            let mut init = web_sys::RequestInit::new();
+            init.method(req.method().as_str());
+            let request = web_sys::Request::new_with_str_and_init(&url, &init).unwrap();
             let promise = window.fetch_with_request(&request);
             let resp = JsFuture::from(promise).await.unwrap();
             debug_assert!(resp.is_instance_of::<web_sys::Response>());
