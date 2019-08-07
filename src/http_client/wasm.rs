@@ -72,7 +72,7 @@ impl Future for InnerFuture {
 }
 
 mod fetch {
-    use js_sys::{Array, ArrayBuffer, Uint8Array};
+    use js_sys::{Array, ArrayBuffer, Uint8Array, Reflect};
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::futures_0_3::JsFuture;
     use web_sys::window;
@@ -187,11 +187,15 @@ mod fetch {
 
         fn next(&mut self) -> Option<Self::Item> {
             let pair = self.iter.next()?;
+
             let array: Array = pair.unwrap().into();
             let vals = array.values();
-            let key = vals.next().unwrap().to_string().into();
-            let value = vals.next().unwrap().to_string().into();
-            Some((key, value))
+
+            let prop = String::from("value").into();
+            let key = Reflect::get(&vals.next().unwrap(), &prop).unwrap();
+            let value = Reflect::get(&vals.next().unwrap(), &prop).unwrap();
+
+            Some((key.as_string().to_owned().unwrap(), value.as_string().to_owned().unwrap()))
         }
     }
 }
