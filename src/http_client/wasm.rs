@@ -2,10 +2,6 @@ use super::{Body, HttpClient, Request, Response};
 
 use futures::future::BoxFuture;
 use futures::prelude::*;
-use js_sys::{Array, ArrayBuffer, Uint8Array};
-use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::futures_0_3::JsFuture;
-use web_sys::window;
 
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -43,14 +39,10 @@ impl HttpClient for WasmClient {
             let mut response = Response::new(Body::from(body));
             *response.status_mut() = http::StatusCode::from_u16(res.status()).unwrap();
 
-            // let headers = js_sys::try_iter(&res.headers()).unwrap().flatten();
-            // for pair in headers {
-            //     let array: Array = pair.unwrap().into();
-            //     let vals = array.values();
-            //     let key = vals.next().unwrap();
-            //     let value = vals.next().unwrap();
-            //     web_sys::console::log_2(&key, &value);
-            // }
+            for (name, value) in res.headers() {
+                let name: http::header::HeaderName = name.parse().unwrap();
+                response.headers_mut().insert(name, value.parse().unwrap());
+            }
 
             Ok(response)
         });
@@ -80,15 +72,13 @@ impl Future for InnerFuture {
 }
 
 mod fetch {
-    use futures::future::BoxFuture;
-    use futures::prelude::*;
     use js_sys::{Array, ArrayBuffer, Uint8Array};
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::futures_0_3::JsFuture;
     use web_sys::window;
     use web_sys::RequestInit;
 
-    use std::iter::Iterator;
+    use std::iter::{Iterator, IntoIterator};
     use std::io;
 
     /// Create a new fetch request.
@@ -133,7 +123,7 @@ mod fetch {
             let mut body: Vec<u8> = vec![0; slice.length() as usize];
             slice.copy_to(&mut body);
 
-            Ok(Response { res, body: Some(body) })
+            Ok(Response::new(res, body))
         }
     }
 
@@ -152,12 +142,10 @@ mod fetch {
         }
 
         /// Access the HTTP headers.
-        pub(crate) fn headers(&self) -> &Headers<'_> {
-            // &Headers {
-            //     res: self,
-            //     iter: js_sys::try_iter(&self.res.headers()).unwrap().unwrap().flatten(),
-            // }
-            unimplemented!();
+        pub(crate) fn headers(&self) -> Headers {
+            Headers {
+                headers: self.res.headers()
+            }
         }
 
         /// Get the request body as a byte vector.
@@ -174,22 +162,36 @@ mod fetch {
     }
 
     /// HTTP Headers.
-    pub(crate) struct Headers<'a> {
-        res: &'a Response,
-        iter: (),
+    pub(crate) struct Headers {
+        headers: web_sys::Headers,
     }
 
-    impl Iterator for Headers<'_> {
+    impl IntoIterator for Headers {
+        type Item = (String, String);
+        type IntoIter = HeadersIter;
+
+        fn into_iter(self) -> Self::IntoIter {
+            HeadersIter {
+                iter: js_sys::try_iter(&self.headers).unwrap().unwrap(),
+            }
+        }
+    }
+
+    /// HTTP Headers Iterator.
+    pub(crate) struct HeadersIter {
+        iter: js_sys::IntoIter,
+    }
+
+    impl Iterator for HeadersIter {
         type Item = (String, String);
 
         fn next(&mut self) -> Option<Self::Item> {
-            // let pair = self.iter.next()?;
-            // let array: Array = pair.unwrap().into();
-            // let vals = array.values();
-            // let key = vals.next().unwrap();
-            // let value = vals.next().unwrap();
-            // Some((key, value))
-            unimplemented!();
+            let pair = self.iter.next()?;
+            let array: Array = pair.unwrap().into();
+            let vals = array.values();
+            let key = vals.next().unwrap().to_string().into();
+            let value = vals.next().unwrap().to_string().into();
+            Some((key, value))
         }
     }
 }
