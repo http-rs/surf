@@ -1,8 +1,8 @@
 use crate::http_client::HttpClient;
 use crate::Request;
 
-#[cfg(feature = "chttp-client")]
-use crate::http_client::chttp::ChttpClient;
+#[cfg(feature = "native-client")]
+use super::http_client::native::NativeClient;
 
 /// An HTTP client, capable of creating new `Request`s.
 ///
@@ -23,8 +23,8 @@ pub struct Client<C: HttpClient> {
     client: C,
 }
 
-#[cfg(feature = "chttp-client")]
-impl Client<ChttpClient> {
+#[cfg(feature = "native-client")]
+impl Client<NativeClient> {
     /// Create a new instance.
     ///
     /// # Examples
@@ -37,7 +37,7 @@ impl Client<ChttpClient> {
     /// # Ok(()) }
     /// ```
     pub fn new() -> Self {
-        Self::with_client(ChttpClient::new())
+        Self::with_client(NativeClient::new())
     }
 }
 

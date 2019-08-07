@@ -1,32 +1,21 @@
-//! Logging middleware.
-//!
-//! # Examples
-//!
-//! ```
-//! # #![feature(async_await)]
-//! # #[runtime::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("https://google.com")
-//!     .middleware(surf::middleware::logger::new())
-//!     .await?;
-//! dbg!(res.body_string().await?);
-//! # Ok(()) }
-//! ```
-
 use crate::http_client::HttpClient;
 use crate::middleware::{Middleware, Next, Request, Response};
 
 use futures::future::BoxFuture;
-use std::fmt::Arguments;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time;
 
-static COUNTER: AtomicUsize = AtomicUsize::new(0);
+use std::fmt::Arguments;
 
 /// Log each request's duration.
 #[derive(Debug)]
 pub struct Logger {
     _priv: (),
+}
+
+impl Logger {
+    /// Create a new instance.
+    pub fn new() -> Self{
+        Logger {_priv: ()}
+    }
 }
 
 impl<C: HttpClient> Middleware<C> for Logger {
@@ -38,15 +27,12 @@ impl<C: HttpClient> Middleware<C> for Logger {
         next: Next<'a, C>,
     ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
         Box::pin(async move {
-            let start_time = time::Instant::now();
             let uri = format!("{}", req.uri());
             let method = format!("{}", req.method());
-            let id = COUNTER.fetch_add(1, Ordering::SeqCst);
             print(
                 log::Level::Info,
                 format_args!("sending request"),
                 RequestPairs {
-                    id,
                     uri: &uri,
                     method: &method,
                 },
@@ -55,7 +41,6 @@ impl<C: HttpClient> Middleware<C> for Logger {
             let res = next.run(req, client).await?;
 
             let status = res.status();
-            let elapsed = start_time.elapsed();
             let level = if status.is_server_error() {
                 log::Level::Error
             } else if status.is_client_error() {
@@ -68,37 +53,15 @@ impl<C: HttpClient> Middleware<C> for Logger {
                 level,
                 format_args!("request completed"),
                 ResponsePairs {
-                    id,
-                    elapsed: &format!("{:?}", elapsed),
                     status: status.as_u16(),
                 },
             );
-
             Ok(res)
         })
     }
 }
 
-/// Create a new instance.
-///
-/// # Examples
-///
-/// ```
-/// # #![feature(async_await)]
-/// # #[runtime::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-/// let mut res = surf::get("https://google.com")
-///     .middleware(surf::middleware::logger::new())
-///     .await?;
-/// dbg!(res.body_string().await?);
-/// # Ok(()) }
-/// ```
-pub fn new() -> Logger {
-    Logger { _priv: () }
-}
-
 struct RequestPairs<'a> {
-    id: usize,
     method: &'a str,
     uri: &'a str,
 }
@@ -107,30 +70,26 @@ impl<'a> log::kv::Source for RequestPairs<'a> {
         &'kvs self,
         visitor: &mut dyn log::kv::Visitor<'kvs>,
     ) -> Result<(), log::kv::Error> {
-        visitor.visit_pair("req.id".into(), self.id.into())?;
         visitor.visit_pair("req.method".into(), self.method.into())?;
         visitor.visit_pair("req.uri".into(), self.uri.into())?;
         Ok(())
     }
 }
 
-struct ResponsePairs<'a> {
-    id: usize,
+struct ResponsePairs {
     status: u16,
-    elapsed: &'a str,
 }
 
-impl<'a> log::kv::Source for ResponsePairs<'a> {
+impl log::kv::Source for ResponsePairs {
     fn visit<'kvs>(
         &'kvs self,
         visitor: &mut dyn log::kv::Visitor<'kvs>,
     ) -> Result<(), log::kv::Error> {
-        visitor.visit_pair("req.id".into(), self.id.into())?;
         visitor.visit_pair("req.status".into(), self.status.into())?;
-        visitor.visit_pair("elapsed".into(), self.elapsed.into())?;
         Ok(())
     }
 }
+
 
 fn print(level: log::Level, msg: Arguments<'_>, key_values: impl log::kv::Source) {
     if level <= log::STATIC_MAX_LEVEL && level <= log::max_level() {

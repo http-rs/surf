@@ -12,34 +12,61 @@ readme = "README.md"
 edition = "2018"
 
 [features]
-default = ["chttp-client", "middleware-logger"]
+default = ["native-client", "middleware-logger"]
+native-client = ["chttp-client", "wasm-client"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 chttp-client = ["chttp"]
+wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
 
 [dependencies]
-http = "0.1.17"
 futures-preview = { version = "0.3.0-alpha.17", features = ["compat", "io-compat"] }
+http = "0.1.17"
+log = { version = "0.4.7", features = ["kv_unstable"] }
+mime = "0.3.13"
+mime_guess = "2.0.0-alpha.6"
 serde = "1.0.97"
 serde_json = "1.0.40"
-log = { version = "0.4.7", features = ["kv_unstable"] }
+serde_urlencoded = "0.6.1"
 url = "2.0.0"
-mime_guess = "2.0.0-alpha.6"
-mime = "0.3.13"
 
-# Chttp
+# chttp-client
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 chttp = { version = "0.5.3", optional = true }
 
-# Hyper deps
+# hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
 hyper-tls = { version = "0.3.2", optional = true }
-runtime = { version = "0.3.0-alpha.6", optional = true }
 native-tls = { version = "0.2.2", optional = true }
+runtime = { version = "0.3.0-alpha.6", optional = true }
 runtime-raw = { version = "0.3.0-alpha.4", optional = true }
 runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
-serde_urlencoded = "0.6.1"
+
+# wasm-client
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { version = "0.3.25", optional = true }
+wasm-bindgen = { version = "0.2.48", optional = true }
+wasm-bindgen-futures = { version = "0.3.25", features = ["futures_0_3"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3.25"
+optional = true
+features = [
+    "AbortSignal",
+    "Headers",
+    "ObserverCallback",
+    "ReferrerPolicy",
+    "Request",
+    "RequestCache",
+    "RequestCredentials",
+    "RequestInit",
+    "RequestMode",
+    "RequestRedirect",
+    "Response",
+    "Window",
+]
 
 [dev-dependencies]
-serde = { version = "1.0.97", features = ["derive"] }
-runtime = "0.3.0-alpha.6"
 femme = "1.1.0"
+runtime = "0.3.0-alpha.6"
+serde = { version = "1.0.97", features = ["derive"] }

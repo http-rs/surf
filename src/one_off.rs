@@ -1,4 +1,6 @@
-use super::http_client::chttp::ChttpClient;
+#[cfg(feature = "native-client")]
+use super::http_client::native::NativeClient;
+
 use super::Request;
 
 /// Perform a one-off `GET` request.
@@ -29,7 +31,7 @@ use super::Request;
 /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn get(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn get(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::GET, uri)
 }
@@ -71,7 +73,7 @@ pub fn get(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::head("https://httpbin.org/head").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn head(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::HEAD, uri)
 }
@@ -130,7 +132,7 @@ pub fn head(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::post("https://httpbin.org/post").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn post(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn post(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::POST, uri)
 }
@@ -167,7 +169,7 @@ pub fn post(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::put("https://httpbin.org/put").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn put(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn put(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PUT, uri)
 }
@@ -199,7 +201,7 @@ pub fn put(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::delete("https://httpbin.org/delete").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn delete(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn delete(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::DELETE, uri)
 }
@@ -240,7 +242,7 @@ pub fn delete(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::connect("https://httpbin.org/connect").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn connect(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn connect(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::CONNECT, uri)
 }
@@ -274,7 +276,7 @@ pub fn connect(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::options("https://httpbin.org/options").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn options(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn options(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::OPTIONS, uri)
 }
@@ -312,7 +314,7 @@ pub fn options(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::trace("https://httpbin.org/trace").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn trace(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn trace(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::TRACE, uri)
 }
@@ -356,7 +358,7 @@ pub fn trace(uri: impl AsRef<str>) -> Request<ChttpClient> {
 /// let string = surf::patch("https://httpbin.org/patch").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn patch(uri: impl AsRef<str>) -> Request<ChttpClient> {
+pub fn patch(uri: impl AsRef<str>) -> Request<NativeClient> {
     let uri = uri.as_ref().to_owned().parse().unwrap();
     Request::new(http::Method::PATCH, uri)
 }

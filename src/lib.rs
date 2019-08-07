@@ -70,7 +70,7 @@
 //! - __`hyper-client`:__ use `hyper` as the HTTP backend.
 //! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
 
-#![forbid(unsafe_code, future_incompatible, rust_2018_idioms)]
+#![forbid(future_incompatible, rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)]
 #![cfg_attr(test, deny(warnings))]
@@ -91,9 +91,9 @@ pub use client::Client;
 pub use request::Request;
 pub use response::Response;
 
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 mod one_off;
-#[cfg(feature = "chttp-client")]
+#[cfg(feature = "native-client")]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
 /// A generic error type.

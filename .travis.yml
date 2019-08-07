@@ -4,10 +4,12 @@ rust:
 
 before_script: |
   rustup component add rustfmt-preview &&
-  rustup component add clippy-preview
+  rustup component add clippy-preview &&
+  rustup target add wasm32-unknown-unknown
 script: |
   cargo fmt -- --check &&
   cargo clippy -- -D clippy &&
   cargo build --verbose &&
+  cargo check --target wasm32-unknown-unknown &&
   cargo test  --verbose
 cache: cargo
