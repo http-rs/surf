@@ -66,9 +66,11 @@
 //!
 //! # Features
 //! The following features are available.
-//! - __`chttp-client` (default):__ use `chttp` as the HTTP backend.
-//! - __`hyper-client`:__ use `hyper` as the HTTP backend.
+//! - __`native-client` (default):__ use `curl` on the server and `window.fetch` in the browser.
 //! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
+//! - __`curl-client`:__ use `curl` (through `isahc`) as the HTTP backend.
+//! - __`hyper-client`:__ use `hyper` as the HTTP backend.
+//! - __`wasm-client`:__ use `window.fetch` as the HTTP backend.
 
 #![forbid(future_incompatible, rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]

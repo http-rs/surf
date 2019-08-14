@@ -68,6 +68,8 @@ impl Request<NativeClient> {
 
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
+    // TODO(yw): hidden from docs until we make the traits public.
+    #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
     pub fn with_client(method: http::Method, url: Url, client: C) -> Self {
         let mut req = http_client::Request::new(Body::empty());
