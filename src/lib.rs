@@ -72,7 +72,8 @@
 
 #![forbid(future_incompatible, rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]
-#![warn(missing_docs, missing_doc_code_examples, unreachable_pub)]
+#![warn(missing_docs, unreachable_pub)]
+// #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)] TODO(yw): re-enable me
 #![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
