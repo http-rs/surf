@@ -43,6 +43,8 @@ impl Client<NativeClient> {
 
 impl<C: HttpClient> Client<C> {
     /// Create a new instance with an `http_client::HttpClient` instance.
+    // TODO(yw): hidden from docs until we make the traits public.
+    #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
     pub fn with_client(client: C) -> Self {
         let client = client;

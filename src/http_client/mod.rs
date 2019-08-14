@@ -11,7 +11,7 @@ use std::task::{Context, Poll};
 #[cfg(all(feature = "hyper-client", not(target_arch = "wasm32")))]
 pub(crate) mod hyper;
 
-#[cfg(all(feature = "chttp-client", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "curl-client", not(target_arch = "wasm32")))]
 pub(crate) mod chttp;
 
 #[cfg(all(feature = "wasm-client", target_arch = "wasm32"))]

@@ -5,10 +5,11 @@ use mime::Mime;
 use serde::Serialize;
 use url::Url;
 
-use super::http_client::{self, Body, HttpClient};
-use super::middleware::{Middleware, Next};
-use super::Exception;
-use super::Response;
+use crate::headers::Headers;
+use crate::http_client::{self, Body, HttpClient};
+use crate::middleware::{Middleware, Next};
+use crate::Exception;
+use crate::Response;
 
 use std::fmt;
 use std::fmt::Debug;
@@ -67,6 +68,8 @@ impl Request<NativeClient> {
 
 impl<C: HttpClient> Request<C> {
     /// Create a new instance with an `HttpClient` instance.
+    // TODO(yw): hidden from docs until we make the traits public.
+    #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
     pub fn with_client(method: http::Method, url: Url, client: C) -> Self {
         let mut req = http_client::Request::new(Body::empty());
@@ -194,6 +197,26 @@ impl<C: HttpClient> Request<C> {
         let req = self.req.as_mut().unwrap();
         req.headers_mut().insert(key, value.parse().unwrap());
         self
+    }
+
+    /// Get all headers.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), surf::Exception> {
+    /// let mut req = surf::get("https://httpbin.org/get")
+    ///     .set_header("X-Requested-With", "surf");
+    ///
+    /// for (name, value) in req.headers() {
+    ///     println!("{}: {}", name, value);
+    /// }
+    /// # Ok(()) }
+    /// ```
+    pub fn headers<'a>(&'a mut self) -> Headers<'a> {
+        Headers::new(self.req.as_mut().unwrap().headers_mut())
     }
 
     /// Get the request HTTP method.
