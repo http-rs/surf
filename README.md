@@ -143,7 +143,9 @@ look at some of these issues:
 - [rustasync/tide](https://github.com/rustasync/tide)
 
 ## Thanks
-Thanks to [prasannvl](https://github.com/prasannvl) for donating the crate name.
+Special thanks to [prasannvl](https://github.com/prasannvl) for donating the
+crate name, and [sagebind](https://github.com/sagebind) for creating an easy to
+use `async` curl client that made this crate possible.
 
 ## License
 [MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
