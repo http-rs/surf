@@ -9,6 +9,11 @@ pub struct Headers<'a> {
 }
 
 impl<'a> Headers<'a> {
+    /// Create a new instance.
+    pub(crate) fn new(headers: &'a mut http::HeaderMap) -> Self {
+        Self { headers }
+    }
+
     /// Get a header.
     pub fn get(&self, key: &'static str) -> Option<&'_ str> {
         self.headers.get(key).map(|h| h.to_str().unwrap())

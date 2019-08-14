@@ -9,8 +9,9 @@ use std::io::{self, Error};
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-use super::http_client;
-use super::Exception;
+use crate::headers::Headers;
+use crate::http_client;
+use crate::Exception;
 
 /// An HTTP response, returned by `Request`.
 pub struct Response {
@@ -82,14 +83,14 @@ impl Response {
     /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), surf::Exception> {
-    /// let res = surf::post("https://httpbin.org/get").await?;
-    /// res.headers(&mut |name, value| println!("{}: {}", name, value));
+    /// let mut res = surf::post("https://httpbin.org/get").await?;
+    /// for (name, value) in res.headers() {
+    ///     println!("{}: {}", name, value);
+    /// }
     /// # Ok(()) }
     /// ```
-    pub fn headers(&self, visitor: &mut impl FnMut(&str, &str)) {
-        for (name, value) in self.response.headers().iter() {
-            visitor(name.as_str(), value.to_str().unwrap())
-        }
+    pub fn headers<'a>(&'a mut self) -> Headers<'a> {
+        Headers::new(self.response.headers_mut())
     }
 
     /// Get the request MIME.
