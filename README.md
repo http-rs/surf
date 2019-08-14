@@ -145,7 +145,7 @@ look at some of these issues:
 ## Thanks
 Special thanks to [prasannvl](https://github.com/prasannvl) for donating the
 crate name, and [sagebind](https://github.com/sagebind) for creating an easy to
-use `async` curl client that made this crate possible.
+use `async` curl client that saved us countless hours.
 
 ## License
 [MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
