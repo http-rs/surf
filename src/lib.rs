@@ -81,6 +81,7 @@ mod http_client;
 mod request;
 mod response;
 
+pub mod headers;
 pub mod middleware;
 
 pub use http;
