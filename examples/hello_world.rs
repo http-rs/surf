@@ -5,7 +5,7 @@ type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
 async fn main() -> Result<(), Exception> {
     femme::start(log::LevelFilter::Info)?;
 
-    let uri = "https://google.com";
+    let uri = "https://httpbin.org/get";
     let string = surf::get(uri).recv_string().await?;
     println!("{}", string);
 

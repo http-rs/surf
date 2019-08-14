@@ -17,7 +17,7 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("https://google.com").await?;
+//! let mut res = surf::get("https://httpbin.org/get").await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
 //! ```
@@ -27,7 +27,7 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! dbg!(surf::get("https://google.com").recv_string().await?);
+//! dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
 //! # Ok(()) }
 //! ```
 //!

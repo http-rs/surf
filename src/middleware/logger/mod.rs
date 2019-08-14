@@ -6,7 +6,7 @@
 //! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("https://google.com")
+//! let mut res = surf::get("https://httpbin.org/get")
 //!     .middleware(surf::middleware::logger::new())
 //!     .await?;
 //! dbg!(res.body_string().await?);
@@ -33,7 +33,7 @@ use native::Logger;
 /// # #![feature(async_await)]
 /// # #[runtime::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-/// let mut res = surf::get("https://google.com")
+/// let mut res = surf::get("https://httpbin.org/get")
 ///     .middleware(surf::middleware::logger::new())
 ///     .await?;
 /// dbg!(res.body_string().await?);
