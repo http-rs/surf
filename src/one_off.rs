@@ -1,6 +1,9 @@
 #[cfg(feature = "native-client")]
 use super::http_client::native::NativeClient;
 
+#[cfg(feature = "hyper-client")]
+use super::http_client::hyper::HyperClient as NativeClient;
+
 use super::Request;
 
 /// Perform a one-off `GET` request.

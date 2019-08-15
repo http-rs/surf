@@ -21,9 +21,11 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
+#[cfg(feature = "hyper-client")]
+use super::http_client::hyper::HyperClient;
 #[cfg(feature = "native-client")]
 use super::http_client::native::NativeClient;
-#[cfg(feature = "native-client")]
+#[cfg(any(feature = "hyper-client", feature = "native-client"))]
 use std::convert::TryFrom;
 
 /// An HTTP request, returns a `Response`.
@@ -63,6 +65,32 @@ impl Request<NativeClient> {
     /// ```
     pub fn new(method: http::Method, url: Url) -> Self {
         Self::with_client(method, url, NativeClient::new())
+    }
+}
+
+#[cfg(feature = "hyper-client")]
+impl Request<HyperClient> {
+    /// Create a new instance.
+    ///
+    /// This method is particularly useful when input URLs might be passed by third parties, and
+    /// you don't want to panic if they're malformed. If URLs are statically encoded, it might be
+    /// easier to use one of the shorthand methods instead.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// use surf::{http, url};
+    ///
+    /// let method = http::Method::GET;
+    /// let url = url::Url::parse("https://httpbin.org/get")?;
+    /// let string = surf::Request::new(method, url).recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn new(method: http::Method, url: Url) -> Self {
+        Self::with_client(method, url, HyperClient::new())
     }
 }
 
@@ -589,6 +617,22 @@ impl<C: HttpClient> Future for Request<C> {
 #[cfg(feature = "native-client")]
 impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
     for Request<NativeClient>
+{
+    type Error = io::Error;
+
+    /// Converts an `http::Request` to a `surf::Request`.
+    fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
+        let (parts, body) = http_request.into_parts();
+        let url = format!("{}", parts.uri);
+        let req = Self::new(parts.method, url.parse().unwrap());
+        let req = req.body(Box::new(Body::from(body)));
+        Ok(req)
+    }
+}
+
+#[cfg(feature = "hyper-client")]
+impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
+    for Request<HyperClient>
 {
     type Error = io::Error;
 

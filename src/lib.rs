@@ -95,9 +95,9 @@ pub use client::Client;
 pub use request::Request;
 pub use response::Response;
 
-#[cfg(feature = "native-client")]
+#[cfg(any(feature = "native-client", feature = "hyper-client"))]
 mod one_off;
-#[cfg(feature = "native-client")]
+#[cfg(any(feature = "native-client", feature = "hyper-client"))]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
 /// A generic error type.

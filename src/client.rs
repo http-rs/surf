@@ -1,6 +1,8 @@
 use crate::http_client::HttpClient;
 use crate::Request;
 
+#[cfg(feature = "hyper-client")]
+use super::http_client::hyper::HyperClient;
 #[cfg(feature = "native-client")]
 use super::http_client::native::NativeClient;
 
@@ -38,6 +40,24 @@ impl Client<NativeClient> {
     /// ```
     pub fn new() -> Self {
         Self::with_client(NativeClient::new())
+    }
+}
+
+#[cfg(feature = "hyper-client")]
+impl Client<HyperClient> {
+    /// Create a new instance.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #![feature(async_await)]
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::Client::new();
+    /// # Ok(()) }
+    /// ```
+    pub fn new() -> Self {
+        Self::with_client(HyperClient::new())
     }
 }
 
