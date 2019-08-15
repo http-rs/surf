@@ -79,7 +79,7 @@ impl<C: HttpClient> Request<C> {
             fut: None,
             client: Some(client),
             req: Some(req),
-            url: url,
+            url,
             middleware: Some(vec![]),
         };
 
@@ -135,7 +135,7 @@ impl<C: HttpClient> Request<C> {
         let query = self
             .url
             .query()
-            .ok_or(Error::from(ErrorKind::InvalidData))?;
+            .ok_or_else(|| Error::from(ErrorKind::InvalidData))?;
         Ok(serde_urlencoded::from_str(query)?)
     }
 
@@ -574,7 +574,7 @@ impl<C: HttpClient> Future for Request<C> {
     type Output = Result<Response, Exception>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if let None = self.fut {
+        if self.fut.is_none() {
             // We can safely unwrap here because this is the only time we take ownership of the
             // request and middleware stack.
             let client = self.client.take().unwrap();

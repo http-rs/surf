@@ -9,7 +9,7 @@ use std::time;
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 /// Log each request's duration.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Logger {
     _priv: (),
 }

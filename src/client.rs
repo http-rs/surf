@@ -18,7 +18,7 @@ use super::http_client::native::NativeClient;
 /// let (str1, str2) = futures::future::try_join(req1, req2).await?;
 /// # Ok(()) }
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Client<C: HttpClient> {
     client: C,
 }
