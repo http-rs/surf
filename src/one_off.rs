@@ -91,7 +91,7 @@ pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// A POST request is typically sent via an HTML form and results in a change on the server. In
 /// this case, the content type is selected by putting the adequate string in the enctype attribute
-/// of the <form> element or the formenctype attribute of the <input> or <button> elements:
+/// of the `<form>` element or the formenctype attribute of the `<input>` or `<button>` elements:
 ///
 /// ```txt
 /// application/x-www-form-urlencoded: the keys and values are encoded in key-value tuples separated by '&', with a '=' between the key and the value. Non-alphanumeric characters in both keys and values are percent encoded: this is the reason why this type is not suitable to use with binary data (use multipart/form-data instead)
