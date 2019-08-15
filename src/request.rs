@@ -221,7 +221,7 @@ impl<C: HttpClient> Request<C> {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn headers<'a>(&'a mut self) -> Headers<'a> {
+    pub fn headers(&mut self) -> Headers<'_> {
         Headers::new(self.req.as_mut().unwrap().headers_mut())
     }
 
@@ -436,7 +436,7 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
-        let mime = mime_guess::guess_mime_type(&path);
+        let mime = mime_guess::from_path(&path).first_or_octet_stream();
         let bytes = fs::read(path)?;
         *self.req.as_mut().unwrap().body_mut() = bytes.into();
         Ok(self.set_mime(mime))

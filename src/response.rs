@@ -89,7 +89,7 @@ impl Response {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn headers<'a>(&'a mut self) -> Headers<'a> {
+    pub fn headers(&mut self) -> Headers<'_> {
         Headers::new(self.response.headers_mut())
     }
 
