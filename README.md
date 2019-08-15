@@ -50,6 +50,8 @@
   <sub>Built with 🌊 by <a href="https://github.com/rustasync">The Rust Async Ecosystem WG</a>
 </div>
 
+<br/>
+
 Surf is the Rust HTTP client we've always wanted. It's completely modular, and
 built directly for `async/await`. Whether it's a quick script, or a
 cross-platform SDK, Surf will make it work.
