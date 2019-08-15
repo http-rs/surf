@@ -143,7 +143,7 @@ look at some of these issues:
 - [rustasync/tide](https://github.com/rustasync/tide)
 
 ## Thanks
-Special thanks to [prasannvl](https://github.com/prasannvl) for donating the
+Special thanks to [prasannavl](https://github.com/prasannavl) for donating the
 crate name, and [sagebind](https://github.com/sagebind) for creating an easy to
 use `async` curl client that saved us countless hours.
 
