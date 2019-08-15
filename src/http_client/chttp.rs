@@ -5,7 +5,7 @@ use futures::future::BoxFuture;
 use std::sync::Arc;
 
 /// Curl-based HTTP Client.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ChttpClient {
     client: Arc<chttp::HttpClient>,
 }

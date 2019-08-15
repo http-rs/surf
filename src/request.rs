@@ -79,7 +79,7 @@ impl<C: HttpClient> Request<C> {
             fut: None,
             client: Some(client),
             req: Some(req),
-            url: url,
+            url,
             middleware: Some(vec![]),
         };
 
@@ -132,7 +132,10 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Exception> {
         use std::io::{Error, ErrorKind};
-        let query = self.url.query().ok_or(Error::from(ErrorKind::InvalidData))?;
+        let query = self
+            .url
+            .query()
+            .ok_or_else(|| Error::from(ErrorKind::InvalidData))?;
         Ok(serde_urlencoded::from_str(query)?)
     }
 
@@ -155,7 +158,10 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(req.url().query(), Some("page=2"));
     /// # Ok(()) }
     /// ```
-    pub fn set_query(mut self, query: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+    pub fn set_query(
+        mut self,
+        query: &impl Serialize,
+    ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(query)?;
         self.url.set_query(Some(&query));
         Ok(self)
@@ -215,7 +221,7 @@ impl<C: HttpClient> Request<C> {
     /// }
     /// # Ok(()) }
     /// ```
-    pub fn headers<'a>(&'a mut self) -> Headers<'a> {
+    pub fn headers(&mut self) -> Headers<'_> {
         Headers::new(self.req.as_mut().unwrap().headers_mut())
     }
 
@@ -430,7 +436,7 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
-        let mime = mime_guess::guess_mime_type(&path);
+        let mime = mime_guess::from_path(&path).first_or_octet_stream();
         let bytes = fs::read(path)?;
         *self.req.as_mut().unwrap().body_mut() = bytes.into();
         Ok(self.set_mime(mime))
@@ -464,7 +470,10 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_form(mut self, form: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+    pub fn body_form(
+        mut self,
+        form: &impl Serialize,
+    ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(form)?;
         self = self.body_string(query);
         self = self.set_mime(mime::APPLICATION_WWW_FORM_URLENCODED);
@@ -565,7 +574,7 @@ impl<C: HttpClient> Future for Request<C> {
     type Output = Result<Response, Exception>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        if let None = self.fut {
+        if self.fut.is_none() {
             // We can safely unwrap here because this is the only time we take ownership of the
             // request and middleware stack.
             let client = self.client.take().unwrap();
