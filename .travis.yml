@@ -1,6 +1,6 @@
 language: rust
 rust:
-  - stable
+  - nightly
 
 before_script: |
   rustup component add rustfmt-preview &&
@@ -8,7 +8,7 @@ before_script: |
   rustup target add wasm32-unknown-unknown
 script: |
   cargo fmt -- --check &&
-  cargo clippy -- -D clippy &&
+  cargo clippy -- -D clippy::all &&
   cargo build --verbose &&
   cargo check --target wasm32-unknown-unknown &&
   cargo test  --verbose
