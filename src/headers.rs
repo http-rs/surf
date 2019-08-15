@@ -49,8 +49,8 @@ impl<'a> Iterator for Iter<'a> {
     type Item = (&'a str, &'a str);
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|(key, value)| {
-            (key.as_str(), value.to_str().unwrap())
-        })
+        self.0
+            .next()
+            .map(|(key, value)| (key.as_str(), value.to_str().unwrap()))
     }
 }

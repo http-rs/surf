@@ -3,9 +3,9 @@ use super::{Body, HttpClient, Request, Response};
 use futures::future::BoxFuture;
 use futures::prelude::*;
 
+use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
-use std::io;
 
 /// WebAssembly HTTP Client.
 #[derive(Debug)]
@@ -72,14 +72,14 @@ impl Future for InnerFuture {
 }
 
 mod fetch {
-    use js_sys::{Array, ArrayBuffer, Uint8Array, Reflect};
+    use js_sys::{Array, ArrayBuffer, Reflect, Uint8Array};
     use wasm_bindgen::JsCast;
     use wasm_bindgen_futures::futures_0_3::JsFuture;
     use web_sys::window;
     use web_sys::RequestInit;
 
-    use std::iter::{Iterator, IntoIterator};
     use std::io;
+    use std::iter::{IntoIterator, Iterator};
 
     /// Create a new fetch request.
     pub(crate) fn new(method: impl AsRef<str>, url: impl AsRef<str>) -> Request {
@@ -144,7 +144,7 @@ mod fetch {
         /// Access the HTTP headers.
         pub(crate) fn headers(&self) -> Headers {
             Headers {
-                headers: self.res.headers()
+                headers: self.res.headers(),
             }
         }
 
@@ -195,7 +195,10 @@ mod fetch {
             let key = Reflect::get(&vals.next().unwrap(), &prop).unwrap();
             let value = Reflect::get(&vals.next().unwrap(), &prop).unwrap();
 
-            Some((key.as_string().to_owned().unwrap(), value.as_string().to_owned().unwrap()))
+            Some((
+                key.as_string().to_owned().unwrap(),
+                value.as_string().to_owned().unwrap(),
+            ))
         }
     }
 }

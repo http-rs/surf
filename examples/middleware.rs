@@ -1,7 +1,7 @@
 #![feature(async_await)]
 
-use surf::middleware::{Middleware, Request, Response, Next, HttpClient};
 use futures::future::BoxFuture;
+use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
 struct Printer;
 

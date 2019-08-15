@@ -132,7 +132,10 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Exception> {
         use std::io::{Error, ErrorKind};
-        let query = self.url.query().ok_or(Error::from(ErrorKind::InvalidData))?;
+        let query = self
+            .url
+            .query()
+            .ok_or(Error::from(ErrorKind::InvalidData))?;
         Ok(serde_urlencoded::from_str(query)?)
     }
 
@@ -155,7 +158,10 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(req.url().query(), Some("page=2"));
     /// # Ok(()) }
     /// ```
-    pub fn set_query(mut self, query: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+    pub fn set_query(
+        mut self,
+        query: &impl Serialize,
+    ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(query)?;
         self.url.set_query(Some(&query));
         Ok(self)
@@ -464,7 +470,10 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_form(mut self, form: &impl Serialize) -> Result<Self, serde_urlencoded::ser::Error> {
+    pub fn body_form(
+        mut self,
+        form: &impl Serialize,
+    ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(form)?;
         self = self.body_string(query);
         self = self.set_mime(mime::APPLICATION_WWW_FORM_URLENCODED);

@@ -13,8 +13,8 @@ pub struct Logger {
 
 impl Logger {
     /// Create a new instance.
-    pub fn new() -> Self{
-        Logger {_priv: ()}
+    pub fn new() -> Self {
+        Logger { _priv: () }
     }
 }
 
@@ -89,7 +89,6 @@ impl log::kv::Source for ResponsePairs {
         Ok(())
     }
 }
-
 
 fn print(level: log::Level, msg: Arguments<'_>, key_values: impl log::kv::Source) {
     if level <= log::STATIC_MAX_LEVEL && level <= log::max_level() {

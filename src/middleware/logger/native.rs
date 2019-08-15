@@ -16,8 +16,8 @@ pub struct Logger {
 
 impl Logger {
     /// Create a new instance.
-    pub fn new() -> Self{
-        Logger {_priv: ()}
+    pub fn new() -> Self {
+        Logger { _priv: () }
     }
 }
 
