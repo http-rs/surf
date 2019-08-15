@@ -52,9 +52,9 @@
 
 <br/>
 
-Surf is the Rust HTTP client we've always wanted. It's completely modular, and
-built directly for `async/await`. Whether it's a quick script, or a
-cross-platform SDK, Surf will make it work.
+Surf is a friendly HTTP client built for casual Rustaceans and veterans alike.
+It's completely modular, and built directly for `async/await`. Whether it's a
+quick script, or a cross-platform SDK, Surf will make it work.
 
 - Multi-platform out of the box
 - Extensible through a powerful middleware system
