@@ -26,7 +26,11 @@ pub type Request = http::Request<Body>;
 /// An HTTP Response type with a streaming body.
 pub type Response = http::Response<Body>;
 
-/// An abstract HTTP client.
+/// __\[unstable\]__ An abstract HTTP client.
+///
+/// __note that this is only exposed for use in middleware. Building new backing clients is not
+/// recommended yet. Once it is we'll likely publish a new `http-client` crate, and re-export this
+/// trait from there together with all existing HTTP client implementations.__
 ///
 /// ## Spawning new request from middleware
 /// When threading the trait through a layer of middleware, the middleware must be able to perform
