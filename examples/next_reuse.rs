@@ -21,7 +21,9 @@ impl<C: HttpClient> Middleware<C> for Doubler {
             *new_req.headers_mut() = req.headers().clone();
             Box::pin(async move {
                 let mut buf = Vec::new();
-                let (res1, res2) = futures::future::join(next.run(req, client.clone()), next.run(new_req, client)).await;
+                let (res1, res2) =
+                    futures::future::join(next.run(req, client.clone()), next.run(new_req, client))
+                        .await;
 
                 let res = res1?;
                 let mut body = res.into_body();
