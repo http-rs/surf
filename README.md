@@ -9,7 +9,7 @@
 
 <div align="center">
   <!-- Crates version -->
-  <a href="https://crates.io/crates/tide">
+  <a href="https://crates.io/crates/surf">
     <img src="https://img.shields.io/crates/v/surf.svg?style=flat-square"
     alt="Crates.io version" />
   </a>
