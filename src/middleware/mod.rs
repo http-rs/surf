@@ -96,6 +96,17 @@ pub struct Next<'a, C: HttpClient> {
              + Sync),
 }
 
+impl<C: HttpClient> Clone for Next<'_, C> {
+    fn clone(&self) -> Self {
+        Self {
+            next_middleware: self.next_middleware,
+            endpoint: self.endpoint,
+        }
+    }
+}
+
+impl<C: HttpClient> Copy for Next<'_, C> {}
+
 impl<'a, C: HttpClient> Next<'a, C> {
     /// Create a new instance
     pub fn new(
