@@ -6,7 +6,13 @@ use futures::future::FutureObj;
 use futures::prelude::*;
 use futures::task::SpawnError;
 use hyper::client::connect as hyper_connect;
+#[cfg(feature = "hyper-tls")]
 use hyper_tls::HttpsConnector;
+#[cfg(feature = "hyper-rustls")]
+use hyper_rustls::HttpsConnector;
+#[cfg(feature = "hyper-rustls")]
+use rustls::ClientConfig;
+#[cfg(feature = "hyper-tls")]
 use native_tls::TlsConnector;
 use runtime::net::TcpStream;
 use runtime_raw::Runtime;
@@ -27,11 +33,7 @@ pub struct HyperClient {
 impl HyperClient {
     /// Create a new instance.
     pub(crate) fn new() -> Self {
-        // Create a TLS decoder, TCP stream, and combine them into a `Connector` to be passed to
-        // Hyper.
-        let tcp_connector = RuntimeTcpConnector::new();
-        let tls_connector = TlsConnector::new().unwrap();
-        let https = HttpsConnector::from((tcp_connector, tls_connector));
+        let https = Self::build_https_connector();
 
         // Create the Hyper client with the `Connector`, and make sure we use `runtime-tokio` to
         // spawn futures. Unfortunately, if futures are spawned onto `runtime-native`, we get weird
@@ -44,6 +46,24 @@ impl HyperClient {
         Self {
             client: Arc::new(client),
         }
+    }
+
+    #[cfg(feature = "hyper-tls")]
+    fn build_https_connector() -> HttpsConnector<RuntimeTcpConnector> {
+        // Create a TLS decoder, TCP stream, and combine them into a `Connector` to be passed to
+        // Hyper.
+        let tcp_connector = RuntimeTcpConnector::new();
+        let tls_connector = TlsConnector::new().unwrap();
+        HttpsConnector::from((tcp_connector, tls_connector))
+    }
+
+    #[cfg(feature = "hyper-rustls")]
+    pub(crate) fn build_https_connector() -> HttpsConnector<RuntimeTcpConnector> {
+        // Create a TLS configuration, TCP stream, and combine them into a `Connector` to be passed
+        // to Hyper.
+        let tcp_connector = RuntimeTcpConnector::new();
+        let client_config = ClientConfig::new();
+        HttpsConnector::from((tcp_connector, client_config))
     }
 }
 

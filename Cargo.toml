@@ -37,7 +37,9 @@ isahc = { version = "0.7", optional = true, default-features = false, features =
 # hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
 hyper-tls = { version = "0.3.2", optional = true }
+hyper-rustls = { version = "0.17.0", optional = true }
 native-tls = { version = "0.2.2", optional = true }
+rustls = { version = "0.16.0", optional = true }
 runtime = { version = "0.3.0-alpha.6", optional = true }
 runtime-raw = { version = "0.3.0-alpha.4", optional = true }
 runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
