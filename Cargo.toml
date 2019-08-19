@@ -15,7 +15,7 @@ edition = "2018"
 default = ["native-client", "middleware-logger"]
 native-client = ["curl-client", "wasm-client"]
 hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
-curl-client = ["chttp"]
+curl-client = ["isahc"]
 wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
 
@@ -30,9 +30,9 @@ serde_json = "1.0.40"
 serde_urlencoded = "0.6.1"
 url = "2.0.0"
 
-# chttp-client
+# isahc-client
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-chttp = { version = "0.5.3", optional = true }
+isahc = { version = "0.6", optional = true }
 
 # hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
