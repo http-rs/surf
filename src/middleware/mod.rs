@@ -2,7 +2,6 @@
 //!
 //! # Examples
 //! ```
-//! # #![feature(async_await)]
 //! use futures::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::time;
@@ -32,7 +31,6 @@
 //! implementations.
 //!
 //! ```
-//! # #![feature(async_await)]
 //! use futures::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::time;

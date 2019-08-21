@@ -14,7 +14,6 @@
 //!
 //! # Examples
 //! ```no_run
-//! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let mut res = surf::get("https://httpbin.org/get").await?;
@@ -24,7 +23,6 @@
 //!
 //! It's also possible to skip the intermediate `Response`, and access the response type directly.
 //! ```no_run
-//! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
@@ -33,7 +31,6 @@
 //!
 //! Both sending and receiving JSON is real easy too.
 //! ```no_run
-//! # #![feature(async_await)]
 //! # use serde::{Deserialize, Serialize};
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -56,7 +53,6 @@
 //! And even creating streaming proxies is no trouble at all.
 //!
 //! ```no_run
-//! # #![feature(async_await)]
 //! # #[runtime::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let reader = surf::get("https://img.fyi/q6YvNqP").await?;
@@ -77,7 +73,6 @@
 #![warn(missing_docs, unreachable_pub)]
 // #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)] TODO(yw): re-enable me
 #![cfg_attr(test, deny(warnings))]
-#![feature(async_await)]
 
 mod client;
 mod http_client;

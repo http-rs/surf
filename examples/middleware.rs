@@ -1,5 +1,3 @@
-#![feature(async_await)]
-
 use futures::future::BoxFuture;
 use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
