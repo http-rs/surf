@@ -162,6 +162,6 @@ use `async` curl client that saved us countless hours.
 [8]: https://docs.rs/surf
 
 [releases]: https://github.com/rustasync/surf/releases
-[contributing]: https://github.com/rustasync/surf/blob/master.github/CONTRIBUTING.md
+[contributing]: https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md
 [good-first-issue]: https://github.com/rustasync/surf/labels/good%20first%20issue
 [help-wanted]: https://github.com/rustasync/surf/labels/help%20wanted
