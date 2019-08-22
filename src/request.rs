@@ -51,7 +51,6 @@ impl Request<NativeClient> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::{http, url};
@@ -98,7 +97,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get")
@@ -116,7 +114,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -144,7 +141,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -172,7 +168,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
@@ -190,7 +185,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
@@ -210,7 +204,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), surf::Exception> {
     /// let mut req = surf::get("https://httpbin.org/get")
@@ -230,7 +223,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::http;
@@ -248,7 +240,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::url::Url;
@@ -276,7 +267,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
@@ -297,7 +287,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
@@ -319,7 +308,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let reader = surf::get("https://httpbin.org/get").await?;
@@ -349,7 +337,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
@@ -372,7 +359,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
@@ -395,7 +381,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
@@ -426,7 +411,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), surf::Exception> {
     /// let res = surf::post("https://httpbin.org/post")
@@ -455,7 +439,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -485,7 +468,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let bytes = surf::get("https://httpbin.org/get").recv_bytes().await?;
@@ -502,7 +484,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
@@ -519,7 +500,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -551,7 +531,6 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {

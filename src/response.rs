@@ -29,7 +29,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get").await?;
@@ -45,7 +44,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::http::version::Version;
@@ -63,7 +61,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get").await?;
@@ -80,7 +77,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), surf::Exception> {
     /// let mut res = surf::post("https://httpbin.org/get").await?;
@@ -106,7 +102,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
@@ -132,7 +127,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
@@ -160,7 +154,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
@@ -185,7 +178,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -216,7 +208,6 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # use serde::{Deserialize, Serialize};
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
