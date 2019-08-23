@@ -12,7 +12,7 @@ use std::task::{Context, Poll};
 pub(crate) mod hyper;
 
 #[cfg(all(feature = "curl-client", not(target_arch = "wasm32")))]
-pub(crate) mod chttp;
+pub(crate) mod isahc;
 
 #[cfg(all(feature = "wasm-client", target_arch = "wasm32"))]
 pub(crate) mod wasm;
