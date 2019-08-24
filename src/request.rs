@@ -152,6 +152,7 @@ impl<C: HttpClient> Request<C> {
     /// let query = Index { page: 2 };
     /// let req = surf::get("https://httpbin.org/get").set_query(&query)?;
     /// assert_eq!(req.url().query(), Some("page=2"));
+    /// assert_eq!(format!("{}", req.request().unwrap().uri()), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
     pub fn set_query(
@@ -160,6 +161,11 @@ impl<C: HttpClient> Request<C> {
     ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(query)?;
         self.url.set_query(Some(&query));
+
+        let req = self.req.as_mut().unwrap();
+        let uri = req.uri_mut();
+        *uri = self.url.clone().into_string().parse().unwrap();
+
         Ok(self)
     }
 
@@ -546,6 +552,11 @@ impl<C: HttpClient> Request<C> {
     pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
         let mut req = self.await?;
         Ok(req.body_form::<T>().await?)
+    }
+
+    /// Get a HTTP request
+    pub fn request(&self) -> Option<&http_client::Request> {
+        self.req.as_ref()
     }
 }
 
