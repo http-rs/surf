@@ -9,7 +9,6 @@ use super::http_client::native::NativeClient;
 /// # Examples
 ///
 /// ```no_run
-/// # #![feature(async_await)]
 /// # #[runtime::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 /// let client = surf::Client::new();
@@ -30,7 +29,6 @@ impl Client<NativeClient> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -64,7 +62,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -89,7 +86,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -114,7 +110,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -139,7 +134,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -164,7 +158,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -189,7 +182,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -214,7 +206,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -239,7 +230,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
@@ -264,7 +254,6 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #![feature(async_await)]
     /// # #[runtime::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();

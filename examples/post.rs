@@ -1,5 +1,3 @@
-#![feature(async_await)]
-
 #[runtime::main]
 async fn main() -> Result<(), surf::Exception> {
     femme::start(log::LevelFilter::Info)?;

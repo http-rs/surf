@@ -1,4 +1,3 @@
-#![feature(async_await)]
 type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 #[runtime::main]

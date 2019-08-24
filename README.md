@@ -67,7 +67,6 @@ quick script, or a cross-platform SDK, Surf will make it work.
 ## Examples
 
 ```rust
-# #![feature(async_await)]
 # #[runtime::main]
 # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 let mut res = surf::get("https://httpbin.org/get").await?;
@@ -79,7 +78,6 @@ It's also possible to skip the intermediate `Response`, and access the response
 type directly.
 
 ```rust
-# #![feature(async_await)]
 # #[runtime::main]
 # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
@@ -89,7 +87,6 @@ dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
 Both sending and receiving JSON is real easy too.
 
 ```rust
-# #![feature(async_await)]
 # use serde::{Deserialize, Serialize};
 # #[runtime::main]
 # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -112,7 +109,6 @@ assert!(ip.len() > 10);
 And even creating streaming proxies is no trouble at all.
 
 ```rust
-# #![feature(async_await)]
 # #[runtime::main]
 # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 let reader = surf::get("https://img.fyi/q6YvNqP").await?;

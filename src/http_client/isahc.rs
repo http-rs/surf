@@ -5,21 +5,27 @@ use futures::future::BoxFuture;
 use std::sync::Arc;
 
 /// Curl-based HTTP Client.
-#[derive(Debug, Default)]
-pub struct ChttpClient {
-    client: Arc<chttp::HttpClient>,
+#[derive(Debug)]
+pub struct IsahcClient {
+    client: Arc<isahc::HttpClient>,
 }
 
-impl ChttpClient {
+impl Default for IsahcClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl IsahcClient {
     /// Create a new instance.
     pub fn new() -> Self {
         Self {
-            client: Arc::new(chttp::HttpClient::new()),
+            client: Arc::new(isahc::HttpClient::new().unwrap()),
         }
     }
 }
 
-impl Clone for ChttpClient {
+impl Clone for IsahcClient {
     fn clone(&self) -> Self {
         Self {
             client: self.client.clone(),
@@ -27,15 +33,15 @@ impl Clone for ChttpClient {
     }
 }
 
-impl HttpClient for ChttpClient {
-    type Error = chttp::Error;
+impl HttpClient for IsahcClient {
+    type Error = isahc::Error;
 
     fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         let client = self.client.clone();
         Box::pin(async move {
             let (parts, body) = req.into_parts();
-            let body = chttp::Body::reader(body);
-            let req: http::Request<chttp::Body> = http::Request::from_parts(parts, body);
+            let body = isahc::Body::reader(body);
+            let req: http::Request<isahc::Body> = http::Request::from_parts(parts, body);
 
             let res = client.send_async(req).await?;
 

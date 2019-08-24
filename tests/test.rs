@@ -1,5 +1,3 @@
-#![feature(async_await)]
-
 #[runtime::test]
 async fn post_json() -> Result<(), surf::Exception> {
     #[derive(serde::Deserialize, serde::Serialize)]
