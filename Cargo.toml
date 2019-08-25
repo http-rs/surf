@@ -38,9 +38,9 @@ isahc = { version = "0.7", optional = true }
 hyper = { version = "0.12.32", optional = true, default-features = false }
 hyper-tls = { version = "0.3.2", optional = true }
 native-tls = { version = "0.2.2", optional = true }
-runtime = { version = "0.3.0-alpha.6", optional = true }
-runtime-raw = { version = "0.3.0-alpha.4", optional = true }
-runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
+runtime = { version = "0.3.0-alpha.7", optional = true }
+runtime-raw = { version = "0.3.0-alpha.5", optional = true }
+runtime-tokio = { version = "0.3.0-alpha.6", optional = true }
 
 # wasm-client
 [target.'cfg(target_arch = "wasm32")'.dependencies]
