@@ -19,11 +19,21 @@ impl<'a> Headers<'a> {
         self.headers.get(key).map(|h| h.to_str().unwrap())
     }
 
+    /// Get a typed header.
+    pub fn typed_get<H: headers::Header>(&self) -> Result<Option<H>, headers::Error> {
+        headers::HeaderMapExt::typed_try_get(self.headers)
+    }
+
     /// Set a header.
     pub fn insert(&mut self, key: &'static str, value: impl AsRef<str>) -> Option<String> {
         let value = value.as_ref().to_owned();
         let res = self.headers.insert(key, value.parse().unwrap());
         res.as_ref().map(|h| h.to_str().unwrap().to_owned())
+    }
+
+    /// Set a typed header.
+    pub fn typed_insert<H: headers::Header>(&mut self, header: H) {
+        headers::HeaderMapExt::typed_insert(self.headers, header)
     }
 
     /// Iterate over all headers.
