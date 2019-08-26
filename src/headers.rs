@@ -30,6 +30,11 @@ impl<'a> Headers<'a> {
     pub fn iter(&self) -> Iter<'_> {
         Iter(self.headers.iter())
     }
+
+    /// Get the underlying `http::HeaderMap`.
+    pub fn header_map(&mut self) -> &mut http::HeaderMap {
+        self.headers
+    }
 }
 
 impl<'a> IntoIterator for Headers<'a> {
