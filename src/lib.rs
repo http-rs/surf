@@ -76,7 +76,7 @@
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, unreachable_pub)]
 // #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)] TODO(yw): re-enable me
-#![cfg_attr(test, deny(warnings))]
+//#![cfg_attr(test, deny(warnings))]
 #![feature(async_await)]
 
 mod client;
@@ -94,6 +94,7 @@ pub use url;
 pub use client::Client;
 pub use request::Request;
 pub use response::Response;
+pub use http_client::Body;
 
 #[cfg(feature = "native-client")]
 mod one_off;

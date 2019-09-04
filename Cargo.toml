@@ -20,6 +20,9 @@ wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
 
 [dependencies]
+async-compression = {version = "0.1.0-alpha.1"}
+bytes = "0.4.12"
+accept-encoding = "0.2.0-alpha.2"
 futures-preview = { version = "0.3.0-alpha.17", features = ["compat", "io-compat"] }
 http = "0.1.17"
 log = { version = "0.4.7", features = ["kv_unstable"] }
@@ -68,5 +71,8 @@ features = [
 
 [dev-dependencies]
 femme = "1.1.0"
+flate2 = "1.0.11"
+brotli2 = "0.3.2"
+libzstd = { version = "0.4", package = "zstd", default-features = false }
 runtime = "0.3.0-alpha.6"
 serde = { version = "1.0.97", features = ["derive"] }

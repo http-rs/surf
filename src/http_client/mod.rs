@@ -7,6 +7,8 @@ use std::fmt::{self, Debug};
 use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
+use futures::{Stream};
+use bytes::Bytes;
 
 #[cfg(all(feature = "hyper-client", not(target_arch = "wasm32")))]
 pub(crate) mod hyper;
@@ -72,6 +74,27 @@ impl Body {
         }
     }
 }
+
+impl Stream for Body {
+    type Item = io::Result<Bytes>;
+
+    fn poll_next(self: Pin<&mut Self>,
+                  cx: &mut Context<'_>,) -> Poll<Option<Self::Item>> {
+        let mut buf = [0;1];
+        match self.poll_read(cx, &mut buf) {
+            Poll::Ready(Ok(n)) => {
+                if n == 0 {
+                    Poll::Ready(None)
+                } else {
+                    Poll::Ready(Some(Ok(Bytes::from(&buf[..]))))
+                }
+            },
+            Poll::Pending => Poll::Pending,
+            Poll::Ready(Err(e)) => Poll::Ready(Some(Err(e)))
+        }
+    }
+}
+
 
 impl AsyncRead for Body {
     #[allow(missing_doc_code_examples)]
