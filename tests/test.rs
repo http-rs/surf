@@ -1,10 +1,9 @@
 #![feature(async_await)]
 
 mod utils;
-use utils::StubClient;
 use accept_encoding::Encoding;
 use surf::middleware::compression::Compression;
-
+use utils::StubClient;
 
 #[runtime::test]
 async fn post_json() -> Result<(), surf::Exception> {
@@ -45,10 +44,17 @@ async fn decode_response() -> Result<(), surf::Exception> {
             enim ac, tempus tellus. Vestibulum ac porta felis. Aenean fringilla posuere felis, in blandit enim tristique ut. Sed elementum iaculis
             enim eu commodo.
         "#);
-    let encodings = vec![Encoding::Gzip, Encoding::Brotli, Encoding::Deflate, Encoding::Identity, Encoding::Zstd];
+    let encodings = vec![
+        Encoding::Gzip,
+        Encoding::Brotli,
+        Encoding::Deflate,
+        Encoding::Identity,
+        Encoding::Zstd,
+    ];
     for encoding in encodings {
         let client = surf::Client::with_client(StubClient(encoding));
-        let uncompressed = client.get("http://tmp.net")
+        let uncompressed = client
+            .get("http://tmp.net")
             .middleware(Compression::new())
             .recv_string()
             .await?;

@@ -1,20 +1,15 @@
 #![feature(async_await)]
 
-use futures::future::BoxFuture;
-use std::io::Read;
+use accept_encoding::Encoding;
 use bytes::Bytes;
-use std::fmt;
+use futures::future::BoxFuture;
 use http::{
     header::{ACCEPT_ENCODING, CONTENT_ENCODING},
-    StatusCode,
-    HeaderValue
+    HeaderValue, StatusCode,
 };
-use surf::{
-    middleware::HttpClient,
-    Body
-};
-use accept_encoding::Encoding;
-
+use std::fmt;
+use std::io::Read;
+use surf::{middleware::HttpClient, Body};
 
 #[derive(Clone, Debug)]
 pub struct StubClient(pub Encoding);
@@ -38,10 +33,8 @@ impl std::error::Error for StubClientError {}
 impl HttpClient for StubClient {
     type Error = StubClientError;
 
-    fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>>{
-
+    fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         assert!(req.headers().contains_key(http::header::ACCEPT_ENCODING));
-
 
         let response= String::from(r#"
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam rutrum et risus sed egestas. Maecenas dapibus enim a posuere
@@ -57,10 +50,10 @@ impl HttpClient for StubClient {
             Encoding::Identity => Response::new(Body::from(Vec::from(response.as_bytes()))),
         };
         *response.status_mut() = StatusCode::OK;
-        response.headers_mut().insert(http::header::CONTENT_ENCODING, self.0.to_header_value());
-        Box::pin( async move  {
-            Ok(response)
-        })
+        response
+            .headers_mut()
+            .insert(http::header::CONTENT_ENCODING, self.0.to_header_value());
+        Box::pin(async move { Ok(response) })
     }
 }
 

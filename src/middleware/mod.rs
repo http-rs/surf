@@ -51,8 +51,8 @@
 #[doc(inline)]
 pub use crate::http_client::{Body, HttpClient, Request, Response};
 
-pub mod logger;
 pub mod compression;
+pub mod logger;
 
 use crate::Exception;
 use futures::future::BoxFuture;

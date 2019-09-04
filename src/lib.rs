@@ -92,9 +92,9 @@ pub use mime;
 pub use url;
 
 pub use client::Client;
+pub use http_client::Body;
 pub use request::Request;
 pub use response::Response;
-pub use http_client::Body;
 
 #[cfg(feature = "native-client")]
 mod one_off;
