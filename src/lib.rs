@@ -75,11 +75,11 @@
 #![cfg_attr(test, deny(warnings))]
 
 mod client;
-mod http_client;
 mod request;
 mod response;
 
 pub mod headers;
+pub mod http_client;
 pub mod middleware;
 
 pub use http;

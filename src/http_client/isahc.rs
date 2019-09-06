@@ -10,15 +10,9 @@ pub struct IsahcClient {
     client: Arc<isahc::HttpClient>,
 }
 
-impl Default for IsahcClient {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl IsahcClient {
     /// Create a new instance.
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             client: Arc::new(isahc::HttpClient::new().unwrap()),
         }

@@ -9,16 +9,16 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 #[cfg(all(feature = "hyper-client", not(target_arch = "wasm32")))]
-pub(crate) mod hyper;
+pub mod hyper;
 
 #[cfg(all(feature = "curl-client", not(target_arch = "wasm32")))]
-pub(crate) mod isahc;
+pub mod isahc;
 
 #[cfg(all(feature = "wasm-client", target_arch = "wasm32"))]
-pub(crate) mod wasm;
+pub mod wasm;
 
 #[cfg(feature = "native-client")]
-pub(crate) mod native;
+pub mod native;
 
 /// An HTTP Request type with a streaming body.
 pub type Request = http::Request<Body>;

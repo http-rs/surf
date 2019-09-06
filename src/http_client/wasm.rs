@@ -15,7 +15,7 @@ pub struct WasmClient {
 
 impl WasmClient {
     /// Create a new instance.
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self { _priv: () }
     }
 }
