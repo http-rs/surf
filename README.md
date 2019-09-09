@@ -14,8 +14,8 @@
     alt="Crates.io version" />
   </a>
   <!-- Build Status -->
-  <a href="https://travis-ci.org/rustasync/surf">
-    <img src="https://img.shields.io/travis/rustasync/surf.svg?style=flat-square"
+  <a href="https://travis-ci.com/rustasync/surf">
+    <img src="https://travis-ci.com/rustasync/surf.svg?branch=master"
       alt="Build Status" />
   </a>
   <!-- Downloads -->
