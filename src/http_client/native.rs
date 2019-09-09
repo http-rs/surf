@@ -1,3 +1,5 @@
+//! HTTP Client adapter for architecture-native libraries.
+
 #[cfg(all(feature = "curl-client", not(target_arch = "wasm32")))]
 pub use super::isahc::IsahcClient as NativeClient;
 

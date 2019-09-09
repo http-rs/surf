@@ -1,3 +1,5 @@
+//! HTTP Client adapter for WASM.
+
 use super::{Body, HttpClient, Request, Response};
 
 use futures::future::BoxFuture;
