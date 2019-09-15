@@ -2,6 +2,11 @@ language: rust
 rust:
   - nightly
 
+cache:
+  directories:
+    - $HOME/.cargo
+    - $HOME/.rustup
+
 matrix:
   include:
     - name: cargo fmt
@@ -23,5 +28,3 @@ matrix:
     - name: cargo test
       script:
         - cargo test --verbose
-
-cache: cargo
