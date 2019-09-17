@@ -14,8 +14,8 @@
     alt="Crates.io version" />
   </a>
   <!-- Build Status -->
-  <a href="https://travis-ci.org/rustasync/surf">
-    <img src="https://img.shields.io/travis/rustasync/surf.svg?style=flat-square"
+  <a href="https://travis-ci.com/rustasync/surf">
+    <img src="https://travis-ci.com/rustasync/surf.svg?branch=master"
       alt="Build Status" />
   </a>
   <!-- Downloads -->
@@ -71,7 +71,7 @@ quick script, or a cross-platform SDK, Surf will make it work.
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let mut res = surf::get("https://httpbin.org/get").await?;
     dbg!(res.body_string().await?);
-    Ok(()) 
+    Ok(())
 }
 ```
 
@@ -82,7 +82,7 @@ type directly.
 #[runtime::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
-    Ok(()) 
+    Ok(())
 }
 ```
 
@@ -121,11 +121,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>
 ```
 
 ## Installation
+
 ```sh
 $ cargo add surf
 ```
 
 ## Safety
+
 This crate makes use of a single instance of `unsafe` in order to make the WASM
 backend work despite the `Send` bounds. This is safe because WASM targets
 currently have no access to threads. Once they do we'll be able to drop this
@@ -133,6 +135,7 @@ implementation, and use a parked thread instead and move to full multi-threading
 in the process too.
 
 ## Contributing
+
 Want to join us? Check out our ["Contributing" guide][contributing] and take a
 look at some of these issues:
 
@@ -140,16 +143,19 @@ look at some of these issues:
 - [Issues labeled "help wanted"][help-wanted]
 
 ## See Also
+
 - [rustasync/http-client](https://github.com/rustasync/http-client)
 - [rustasync/http-service](https://github.com/rustasync/http-service)
 - [rustasync/tide](https://github.com/rustasync/tide)
 
 ## Thanks
+
 Special thanks to [prasannavl](https://github.com/prasannavl) for donating the
 crate name, and [sagebind](https://github.com/sagebind) for creating an easy to
 use `async` curl client that saved us countless hours.
 
 ## License
+
 [MIT](./LICENSE-MIT) OR [Apache-2.0](./LICENSE-APACHE)
 
 [1]: https://img.shields.io/crates/v/surf.svg?style=flat-square
@@ -160,7 +166,6 @@ use `async` curl client that saved us countless hours.
 [6]: https://crates.io/crates/surf
 [7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
 [8]: https://docs.rs/surf
-
 [releases]: https://github.com/rustasync/surf/releases
 [contributing]: https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md
 [good-first-issue]: https://github.com/rustasync/surf/labels/good%20first%20issue
