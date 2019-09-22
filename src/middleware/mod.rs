@@ -50,7 +50,7 @@
 
 #[doc(inline)]
 pub use crate::http_client::{Body, HttpClient, Request, Response};
-
+#[cfg(feature = "async-compression")]
 pub mod compression;
 pub mod logger;
 

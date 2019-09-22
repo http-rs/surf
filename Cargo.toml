@@ -18,10 +18,10 @@ hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
 curl-client = ["chttp"]
 wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
+middleware-compression = ["async-compression"]
 
 [dependencies]
-async-compression = {version = "0.1.0-alpha.1"}
-bytes = "0.4.12"
+async-compression = { git = "https://github.com/Nemo157/async-compression-rs", branch = "0.17-override", feature="bufread", optional = true}
 accept-encoding = "0.2.0-alpha.2"
 futures-preview = { version = "0.3.0-alpha.17", features = ["compat", "io-compat"] }
 http = "0.1.17"
@@ -35,7 +35,7 @@ url = "2.0.0"
 
 # chttp-client
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-chttp = { version = "0.5.3", optional = true }
+chttp = { version = "0.5.5", optional = true }
 
 # hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
@@ -76,3 +76,4 @@ brotli2 = "0.3.2"
 libzstd = { version = "0.4", package = "zstd", default-features = false }
 runtime = "0.3.0-alpha.6"
 serde = { version = "1.0.97", features = ["derive"] }
+bytes = "0.4.12"

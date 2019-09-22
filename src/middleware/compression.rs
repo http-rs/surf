@@ -3,14 +3,12 @@ use crate::{
     middleware::{Body, Middleware, Next, Request, Response},
 };
 pub use accept_encoding::Encoding;
-use async_compression::stream::{BrotliDecoder, DeflateDecoder, GzipDecoder, ZstdDecoder};
-use bytes::Bytes;
-use futures::{future::BoxFuture, stream::StreamExt, Stream};
+use async_compression::bufread::{BrotliDecoder, DeflateDecoder, GzipDecoder, ZstdDecoder};
+use futures::{future::BoxFuture, io::BufReader};
 use http::{
     header::CONTENT_ENCODING,
     header::{HeaderValue, ACCEPT_ENCODING},
 };
-use std::io;
 
 static SUPPORTED_ENCODINGS: &str = "gzip, br, deflate, zstd";
 
@@ -41,17 +39,6 @@ impl Compression {
         }
     }
 
-    async fn decoded_stream_to_body<S>(mut decoded_stream: S) -> Body
-    where
-        S: Stream<Item = io::Result<Bytes>> + Unpin,
-    {
-        let mut decoded_content: Vec<Vec<u8>> = Vec::new();
-        while let Some(bytes) = decoded_stream.next().await {
-            decoded_content.push(bytes.unwrap().into_iter().collect::<Vec<u8>>());
-        }
-        Body::from(decoded_content.into_iter().flatten().collect::<Vec<u8>>())
-    }
-
     async fn decode(&self, req: &mut Response) {
         let encodings = if let Some(hval) = req.headers().get(CONTENT_ENCODING.as_str()) {
             let hval = match hval.to_str() {
@@ -74,23 +61,23 @@ impl Compression {
             match encoding {
                 Encoding::Gzip => {
                     let body = std::mem::replace(req.body_mut(), Body::empty());
-                    let decoded_stream = GzipDecoder::new(body);
-                    *req.body_mut() = Compression::decoded_stream_to_body(decoded_stream).await;
+                    let async_decoder = GzipDecoder::new(BufReader::new(body));
+                    *req.body_mut() = Body::from_reader(async_decoder);
                 }
                 Encoding::Deflate => {
                     let body = std::mem::replace(req.body_mut(), Body::empty());
-                    let decoded_stream = DeflateDecoder::new(body);
-                    *req.body_mut() = Compression::decoded_stream_to_body(decoded_stream).await;
+                    let async_decoder = DeflateDecoder::new(BufReader::new(body));
+                    *req.body_mut() = Body::from_reader(async_decoder);
                 }
                 Encoding::Brotli => {
                     let body = std::mem::replace(req.body_mut(), Body::empty());
-                    let decoded_stream = BrotliDecoder::new(body);
-                    *req.body_mut() = Compression::decoded_stream_to_body(decoded_stream).await;
+                    let async_decoder = BrotliDecoder::new(BufReader::new(body));
+                    *req.body_mut() = Body::from_reader(async_decoder);
                 }
                 Encoding::Zstd => {
                     let body = std::mem::replace(req.body_mut(), Body::empty());
-                    let decoded_stream = ZstdDecoder::new(body);
-                    *req.body_mut() = Compression::decoded_stream_to_body(decoded_stream).await;
+                    let async_decoder = ZstdDecoder::new(BufReader::new(body));
+                    *req.body_mut() = Body::from_reader(async_decoder);
                 }
                 Encoding::Identity => (),
             }

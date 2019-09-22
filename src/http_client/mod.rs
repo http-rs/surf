@@ -2,8 +2,6 @@
 use futures::future::BoxFuture;
 use futures::io::AsyncRead;
 
-use bytes::Bytes;
-use futures::Stream;
 use std::error::Error;
 use std::fmt::{self, Debug};
 use std::io;
@@ -71,25 +69,6 @@ impl Body {
     pub fn from_reader(reader: impl AsyncRead + Unpin + Send + 'static) -> Self {
         Self {
             reader: Box::new(reader),
-        }
-    }
-}
-
-impl Stream for Body {
-    type Item = io::Result<Bytes>;
-
-    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let mut buf = [0; 1];
-        match self.poll_read(cx, &mut buf) {
-            Poll::Ready(Ok(n)) => {
-                if n == 0 {
-                    Poll::Ready(None)
-                } else {
-                    Poll::Ready(Some(Ok(Bytes::from(&buf[..]))))
-                }
-            }
-            Poll::Pending => Poll::Pending,
-            Poll::Ready(Err(e)) => Poll::Ready(Some(Err(e))),
         }
     }
 }

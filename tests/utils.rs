@@ -1,7 +1,6 @@
 #![feature(async_await)]
 
 use accept_encoding::Encoding;
-use bytes::Bytes;
 use futures::future::BoxFuture;
 use http::{
     header::{ACCEPT_ENCODING, CONTENT_ENCODING},
@@ -12,7 +11,7 @@ use std::io::Read;
 use surf::{middleware::HttpClient, Body};
 
 #[derive(Clone, Debug)]
-pub struct StubClient(pub Encoding);
+pub struct StubClient(pub Vec<Encoding>);
 #[derive(Clone, Debug)]
 pub struct StubClientError;
 
@@ -36,23 +35,29 @@ impl HttpClient for StubClient {
     fn send(&self, req: Request) -> BoxFuture<'static, Result<Response, Self::Error>> {
         assert!(req.headers().contains_key(http::header::ACCEPT_ENCODING));
 
-        let response= String::from(r#"
+        let mut response_body:Vec<u8> = String::from(r#"
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam rutrum et risus sed egestas. Maecenas dapibus enim a posuere
             semper. Cras venenatis et turpis quis aliquam. Suspendisse eget risus in libero tristique consectetur. Ut ut risus cursus, scelerisque
             enim ac, tempus tellus. Vestibulum ac porta felis. Aenean fringilla posuere felis, in blandit enim tristique ut. Sed elementum iaculis
             enim eu commodo.
-        "#);
-        let mut response = match self.0 {
-            Encoding::Gzip => Response::new(Body::from(gzip_compress(response.as_bytes()))),
-            Encoding::Deflate => Response::new(Body::from(deflate_compress(response.as_bytes()))),
-            Encoding::Brotli => Response::new(Body::from(brotli_compress(response.as_bytes()))),
-            Encoding::Zstd => Response::new(Body::from(zstd_compress(response.as_bytes()))),
-            Encoding::Identity => Response::new(Body::from(Vec::from(response.as_bytes()))),
-        };
+        "#).into();
+        for encoding in &self.0 {
+            response_body = match encoding {
+                Encoding::Gzip => gzip_compress(&response_body),
+                Encoding::Deflate => deflate_compress(&response_body),
+                Encoding::Brotli => brotli_compress(&response_body),
+                Encoding::Zstd => zstd_compress(&response_body),
+                Encoding::Identity => response_body,
+            };
+        }
+        let mut response = Response::new(response_body.into());
         *response.status_mut() = StatusCode::OK;
-        response
-            .headers_mut()
-            .insert(http::header::CONTENT_ENCODING, self.0.to_header_value());
+
+        for encoding in &self.0 {
+            response
+                .headers_mut()
+                .insert(http::header::CONTENT_ENCODING, encoding.to_header_value());
+        }
         Box::pin(async move { Ok(response) })
     }
 }

@@ -51,8 +51,8 @@ async fn decode_response() -> Result<(), surf::Exception> {
         Encoding::Identity,
         Encoding::Zstd,
     ];
-    for encoding in encodings {
-        let client = surf::Client::with_client(StubClient(encoding));
+    for encoding in &encodings {
+        let client = surf::Client::with_client(StubClient(vec![encoding.clone()]));
         let uncompressed = client
             .get("http://tmp.net")
             .middleware(Compression::new())
@@ -60,5 +60,12 @@ async fn decode_response() -> Result<(), surf::Exception> {
             .await?;
         assert_eq!(content, uncompressed);
     }
+    let client = surf::Client::with_client(StubClient(encodings));
+    let uncompressed = client
+        .get("http://tmp.net")
+        .middleware(Compression::new())
+        .recv_string()
+        .await?;
+    assert_eq!(content, uncompressed);
     Ok(())
 }
