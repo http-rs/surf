@@ -11,6 +11,7 @@
 //! - TLS/SSL enabled by default
 //! - Swappable HTTP backends
 //! - HTTP/2 enabled by default
+//! - Compression
 //!
 //! # Examples
 //! ```no_run
@@ -63,11 +64,22 @@
 //! let res = surf::post("https://box.rs/upload").body(reader).await?;
 //! # Ok(()) }
 //! ```
+//! If you want to be able to handle compressed responses there is a middleware to use out of the box.
+//!
+//! ```no_run
+//! # #![feature(async_await)]
+//! # #[runtime::main]
+//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! dbg!(surf::get("https://httpbin.org/get").middleware(surf::middleware::compression::new()).recv_string().await?);
+//! # Ok(()) }
+//! ```
+//!
 //!
 //! # Features
 //! The following features are available.
 //! - __`native-client` (default):__ use `curl` on the server and `window.fetch` in the browser.
 //! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
+//! - __`middleware-compression`:__ enables compression of the server responses and automatically decompresses the response using a middleware.
 //! - __`curl-client`:__ use `curl` (through `isahc`) as the HTTP backend.
 //! - __`hyper-client`:__ use `hyper` as the HTTP backend.
 //! - __`wasm-client`:__ use `window.fetch` as the HTTP backend.

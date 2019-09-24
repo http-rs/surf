@@ -2,7 +2,7 @@ use crate::{
     http_client::HttpClient,
     middleware::{Body, Middleware, Next, Request, Response},
 };
-pub use accept_encoding::Encoding;
+use accept_encoding::Encoding;
 use async_compression::bufread::{BrotliDecoder, DeflateDecoder, GzipDecoder, ZstdDecoder};
 use futures::{future::BoxFuture, io::BufReader};
 use http::{
@@ -12,18 +12,10 @@ use http::{
 
 static SUPPORTED_ENCODINGS: &str = "gzip, br, deflate, zstd";
 
-pub fn new() -> Compression {
-    Compression::new()
-}
-
-/// Middleware for automatically handling incoming response compression.
-///
-/// This middleware currently supports HTTP compression using `gzip`, `deflate`, `br`, and `zstd`.
 #[derive(Debug)]
 pub struct Compression;
 
 impl Compression {
-    /// Creates the Compression middleware.
     pub fn new() -> Self {
         Self {}
     }
@@ -52,7 +44,7 @@ impl Compression {
                 .rev() // apply decodings in reverse order
                 .map(Compression::parse_encoding)
                 .collect::<Result<Vec<Encoding>, ()>>()
-                .unwrap() //?
+                .unwrap()
         } else {
             return;
         };

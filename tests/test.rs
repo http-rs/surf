@@ -2,7 +2,7 @@
 
 mod utils;
 use accept_encoding::Encoding;
-use surf::middleware::compression::Compression;
+use surf::middleware::compression;
 use utils::StubClient;
 
 #[runtime::test]
@@ -51,19 +51,21 @@ async fn decode_response() -> Result<(), surf::Exception> {
         Encoding::Identity,
         Encoding::Zstd,
     ];
+    // test all individual encodings
     for encoding in &encodings {
         let client = surf::Client::with_client(StubClient(vec![encoding.clone()]));
         let uncompressed = client
             .get("http://tmp.net")
-            .middleware(Compression::new())
+            .middleware(compression::new())
             .recv_string()
             .await?;
         assert_eq!(content, uncompressed);
     }
+    // test "onion layered" encoding
     let client = surf::Client::with_client(StubClient(encodings));
     let uncompressed = client
         .get("http://tmp.net")
-        .middleware(Compression::new())
+        .middleware(compression::new())
         .recv_string()
         .await?;
     assert_eq!(content, uncompressed);

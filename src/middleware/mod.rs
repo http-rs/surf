@@ -69,7 +69,7 @@ pub trait Middleware<C: HttpClient>: 'static + Send + Sync {
     ) -> BoxFuture<'a, Result<Response, Exception>>;
 }
 
-// This allows functions to work as middleware too.
+/// This allows functions to work as middleware too.
 impl<F, C: HttpClient> Middleware<C> for F
 where
     F: Send

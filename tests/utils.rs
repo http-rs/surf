@@ -2,10 +2,7 @@
 
 use accept_encoding::Encoding;
 use futures::future::BoxFuture;
-use http::{
-    header::{ACCEPT_ENCODING, CONTENT_ENCODING},
-    HeaderValue, StatusCode,
-};
+use http::{header::CONTENT_ENCODING, StatusCode};
 use std::fmt;
 use std::io::Read;
 use surf::{middleware::HttpClient, Body};
@@ -52,12 +49,22 @@ impl HttpClient for StubClient {
         }
         let mut response = Response::new(response_body.into());
         *response.status_mut() = StatusCode::OK;
+        // This parses all encodings and appends them to a list separated by ","
+        let mut header_value = self
+            .0
+            .iter()
+            .map(|e| String::from(e.to_header_value().to_str().unwrap()))
+            .fold(String::new(), |mut line, enc| {
+                line.push_str(&enc);
+                line.push_str(",");
+                line
+            });
+        // pop the final ","
+        header_value.pop();
 
-        for encoding in &self.0 {
-            response
-                .headers_mut()
-                .insert(http::header::CONTENT_ENCODING, encoding.to_header_value());
-        }
+        response
+            .headers_mut()
+            .insert(CONTENT_ENCODING, header_value.parse().unwrap());
         Box::pin(async move { Ok(response) })
     }
 }
