@@ -16,7 +16,7 @@
 //! # Ok(()) }
 //! ```
 mod compression;
-
+mod compression_error;
 use compression::Compression;
 
 /// Adds the compression middleware to the request.
