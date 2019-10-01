@@ -20,7 +20,7 @@ wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
 
 [dependencies]
-futures-preview = { version = "0.3.0-alpha.18", features = ["compat", "io-compat"] }
+futures-preview = { version = "0.3.0-alpha.19", features = ["compat", "io-compat"] }
 http = "0.1.17"
 log = { version = "0.4.7", features = ["kv_unstable"] }
 mime = "0.3.13"
