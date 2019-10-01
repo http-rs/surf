@@ -21,13 +21,13 @@ impl Logger {
     }
 }
 
-impl<C: HttpClient> Middleware<C> for Logger {
+impl Middleware for Logger {
     #[allow(missing_doc_code_examples)]
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: C,
-        next: Next<'a, C>,
+        client: Box<dyn HttpClient>,
+        next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {
             let start_time = time::Instant::now();

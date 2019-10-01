@@ -4,12 +4,12 @@ use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
 struct Printer;
 
-impl<C: HttpClient> Middleware<C> for Printer {
+impl Middleware for Printer {
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: C,
-        next: Next<'a, C>,
+        client: Box<dyn HttpClient>,
+        next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {
             println!("sending a request!");

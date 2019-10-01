@@ -5,12 +5,12 @@ use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
 
 struct Doubler;
 
-impl<C: HttpClient> Middleware<C> for Doubler {
+impl Middleware for Doubler {
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: C,
-        next: Next<'a, C>,
+        client: Box<dyn HttpClient>,
+        next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         if req.method().is_safe() {
             Box::pin(async move {
