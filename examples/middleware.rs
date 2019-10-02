@@ -1,5 +1,6 @@
 use async_std::task;
 use futures::future::BoxFuture;
+use std::sync::Arc;
 use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
 struct Printer;
@@ -8,7 +9,7 @@ impl Middleware for Printer {
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: Box<dyn HttpClient>,
+        client: Arc<dyn HttpClient>,
         next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {

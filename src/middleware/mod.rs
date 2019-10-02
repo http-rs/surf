@@ -6,6 +6,7 @@
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::error::Error;
 //! use std::time;
+//! use std::sync::Arc;
 //!
 //! /// Log each request's duration
 //! #[derive(Debug)]
@@ -15,7 +16,7 @@
 //!     fn handle<'a>(
 //!         &'a self,
 //!         req: Request,
-//!         client: Box<dyn HttpClient>,
+//!         client: Arc<dyn HttpClient>,
 //!         next: Next<'a>,
 //!     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
 //!         Box::pin(async move {
@@ -35,8 +36,9 @@
 //! use futures::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::time;
+//! use std::sync::Arc;
 //!
-//! fn logger<'a>(req: Request, client: Box<dyn HttpClient>, next: Next<'a>) -> BoxFuture<'a, Result<Response, http_types::Error>> {
+//! fn logger<'a>(req: Request, client: Arc<dyn HttpClient>, next: Next<'a>) -> BoxFuture<'a, Result<Response, http_types::Error>> {
 //!     Box::pin(async move {
 //!         println!("sending request to {}", req.url());
 //!         let now = time::Instant::now();
@@ -47,6 +49,8 @@
 //! }
 //! ```
 
+use std::sync::Arc;
+
 #[doc(inline)]
 pub use http_client::{Body, HttpClient, Request, Response};
 
@@ -54,7 +58,6 @@ pub mod logger;
 
 use futures::future::BoxFuture;
 use http_types::Error;
-use std::sync::Arc;
 
 /// Middleware that wraps around remaining middleware chain.
 pub trait Middleware: 'static + Send + Sync {
@@ -62,7 +65,7 @@ pub trait Middleware: 'static + Send + Sync {
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: Box<dyn HttpClient>,
+        client: Arc<dyn HttpClient>,
         next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, Error>>;
 }
@@ -73,12 +76,12 @@ where
     F: Send
         + Sync
         + 'static
-        + for<'a> Fn(Request, Box<dyn HttpClient>, Next<'a>) -> BoxFuture<'a, Result<Response, Error>>,
+        + for<'a> Fn(Request, Arc<dyn HttpClient>, Next<'a>) -> BoxFuture<'a, Result<Response, Error>>,
 {
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: Box<dyn HttpClient>,
+        client: Arc<dyn HttpClient>,
         next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, Error>> {
         (self)(req, client, next)
@@ -89,7 +92,7 @@ where
 #[allow(missing_debug_implementations)]
 pub struct Next<'a> {
     next_middleware: &'a [Arc<dyn Middleware>],
-    endpoint: &'a (dyn (Fn(Request, Box<dyn HttpClient>) -> BoxFuture<'static, Result<Response, Error>>)
+    endpoint: &'a (dyn (Fn(Request, Arc<dyn HttpClient>) -> BoxFuture<'static, Result<Response, Error>>)
              + 'static
              + Send
              + Sync),
@@ -110,7 +113,7 @@ impl<'a> Next<'a> {
     /// Create a new instance
     pub fn new(
         next: &'a [Arc<dyn Middleware>],
-        endpoint: &'a (dyn (Fn(Request, Box<dyn HttpClient>) -> BoxFuture<'static, Result<Response, Error>>)
+        endpoint: &'a (dyn (Fn(Request, Arc<dyn HttpClient>) -> BoxFuture<'static, Result<Response, Error>>)
                  + 'static
                  + Send
                  + Sync),
@@ -125,7 +128,7 @@ impl<'a> Next<'a> {
     pub fn run(
         mut self,
         req: Request,
-        client: Box<dyn HttpClient>,
+        client: Arc<dyn HttpClient>,
     ) -> BoxFuture<'a, Result<Response, Error>> {
         if let Some((current, next)) = self.next_middleware.split_first() {
             self.next_middleware = next;
