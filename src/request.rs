@@ -469,6 +469,28 @@ impl<C: HttpClient> Request<C> {
         Ok(self)
     }
 
+    /// Read body in String
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = "hello".to_string();
+    /// let mut req = surf::post(uri).body_string(data);
+    ///
+    /// assert_eq!(req.read_body_to_bytes().await?, "hello".as_bytes());
+    /// # Ok(()) }
+    /// ```
+    pub async fn read_body_to_bytes(&mut self) -> Result<Vec<u8>, Exception> {
+        let req = self.request_mut().unwrap();
+
+        let mut body = Vec::new();
+        req.body_mut().read_to_end(&mut body).await?;
+
+        Ok(body)
+    }
+
     /// Submit the request and get the response body as bytes.
     ///
     /// # Examples
