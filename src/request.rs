@@ -157,7 +157,7 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn set_query(
         mut self,
-        query: &impl Serialize,
+        query: &(impl Serialize + ?Sized),
     ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(query)?;
         self.url.set_query(Some(&query));
@@ -351,7 +351,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
+    pub fn body_json(mut self, json: &(impl Serialize + ?Sized)) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
         Ok(self.set_mime(mime::APPLICATION_JSON))
     }
@@ -461,7 +461,7 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn body_form(
         mut self,
-        form: &impl Serialize,
+        form: &(impl Serialize + ?Sized),
     ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(form)?;
         self = self.body_string(query);
