@@ -558,6 +558,11 @@ impl<C: HttpClient> Request<C> {
     pub fn request(&self) -> Option<&http_client::Request> {
         self.req.as_ref()
     }
+
+    /// Get a mutable HTTP request
+    pub fn request_mut(&mut self) -> Option<&mut http_client::Request> {
+        self.req.as_mut()
+    }
 }
 
 impl<C: HttpClient> Future for Request<C> {
