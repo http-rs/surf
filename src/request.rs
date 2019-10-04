@@ -3,6 +3,7 @@ use futures::prelude::*;
 use http::Method;
 use mime::Mime;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use url::Url;
 
 use crate::headers::Headers;
@@ -513,6 +514,30 @@ impl<C: HttpClient> Request<C> {
 
         Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
     }
+
+    /// Read body in json
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[runtime::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = serde_json::json!({ "name": "chashu" });
+    /// let mut req = surf::post(uri).body_json(&data)?;
+    /// let json: serde_json::value::Value = req.read_body_to_json().await?;
+    ///
+    /// assert_eq!(json, data);
+    /// # Ok(()) }
+    /// ```
+    pub async fn read_body_to_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
+        let req = self.request_mut().unwrap();
+
+        let mut bytes = Vec::new();
+        req.body_mut().read_to_end(&mut bytes).await?;
+
+        Ok(serde_json::from_slice(&bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
+    }
+
     /// Submit the request and get the response body as bytes.
     ///
     /// # Examples
