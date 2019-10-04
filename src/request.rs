@@ -529,13 +529,13 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(json, data);
     /// # Ok(()) }
     /// ```
-    pub async fn read_body_to_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
+    pub async fn read_body_to_json<T: DeserializeOwned>(&mut self) -> Result<T, Exception> {
         let req = self.request_mut().unwrap();
 
         let mut bytes = Vec::new();
         req.body_mut().read_to_end(&mut bytes).await?;
 
-        Ok(serde_json::from_slice(&bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
+        Ok(serde_json::from_slice(&bytes)?)
     }
 
     /// Submit the request and get the response body as bytes.
