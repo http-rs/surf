@@ -2,8 +2,8 @@ use futures::future::BoxFuture;
 use futures::prelude::*;
 use http::Method;
 use mime::Mime;
-use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use url::Url;
 
 use crate::headers::Headers;
@@ -491,7 +491,6 @@ impl<C: HttpClient> Request<C> {
 
         Ok(body)
     }
-
 
     /// Read body in String
     /// # Examples
