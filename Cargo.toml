@@ -67,6 +67,7 @@ features = [
 ]
 
 [dev-dependencies]
+async-std = "0.99.10"
 femme = "1.1.0"
 runtime = "0.3.0-alpha.6"
 serde = { version = "1.0.97", features = ["derive"] }

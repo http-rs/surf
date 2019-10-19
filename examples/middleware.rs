@@ -19,11 +19,15 @@ impl<C: HttpClient> Middleware<C> for Printer {
     }
 }
 
-#[runtime::main]
-async fn main() -> Result<(), surf::Exception> {
-    femme::start(log::LevelFilter::Info)?;
-    surf::get("https://httpbin.org/get")
-        .middleware(Printer {})
-        .await?;
-    Ok(())
+use async_std::task;
+
+fn main() {
+    femme::start(log::LevelFilter::Info);
+
+    task::block_on(async {
+        surf::get("https://httpbin.org/get")
+            .middleware(Printer {})
+            .await.unwrap();
+    });
+    ()
 }

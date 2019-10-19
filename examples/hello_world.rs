@@ -1,12 +1,12 @@
-type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
+use async_std::task;
 
-#[runtime::main]
-async fn main() -> Result<(), Exception> {
-    femme::start(log::LevelFilter::Info)?;
+fn main()  {
+    femme::start(log::LevelFilter::Info);
 
-    let uri = "https://httpbin.org/get";
-    let string = surf::get(uri).recv_string().await?;
-    println!("{}", string);
-
-    Ok(())
+    task::block_on(async {
+        let uri = "https://httpbin.org/get";
+        let string = surf::get(uri).recv_string().await;
+        println!("{}", string.unwrap());
+    });
+    ()
 }
