@@ -28,6 +28,5 @@ fn main() {
         surf::get("https://httpbin.org/get")
             .middleware(Printer {})
             .await.unwrap();
-    });
-    ()
+    })
 }
