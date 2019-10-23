@@ -1,4 +1,5 @@
-use async_std;
+use async_std::task;
+use dialoguer::{Input, PasswordInput};
 use directories::BaseDirs;
 use mkdirp::mkdirp;
 use serde::{Deserialize, Serialize};
@@ -23,8 +24,10 @@ impl Sdk {
     /// # Example
     /// ```
     /// let sdk = Sdk::login(async || {
-    ///     let username = Input::new("Username").interact()?;
-    ///     let password = PasswordInput::new("Password").interact()?;
+    ///     let username = Input::<String>::new().with_prompt("Your name").interact()?;
+    ///     let password = PasswordInput::new().with_prompt("New Password")
+    ///                 .with_confirmation("Confirm password", "Passwords mismatching")
+    ///                     .interact()?;
     ///     Ok((username, password))
     /// }).await?;
     ///
@@ -104,4 +107,19 @@ impl Sdk {
         async_std::fs::write(file, buf.as_bytes()).await?;
         Ok(())
     }
+}
+
+fn main() {
+    task::block_on(async {
+        Sdk::login(|| {
+            let username = Input::<String>::new().with_prompt("Your name").interact().unwrap();
+            let password = PasswordInput::new()
+                .with_prompt("New Password")
+                .with_confirmation("Confirm password", "Passwords mismatching")
+                .interact().unwrap();
+            (username, password)
+        })
+        .await
+        .unwrap();
+    })
 }
