@@ -5,7 +5,7 @@ use mime::Mime;
 use serde::de::DeserializeOwned;
 
 use std::fmt;
-use std::io::{self, Error};
+use std::io;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -162,7 +162,7 @@ impl Response {
     /// ```
     pub async fn body_string(&mut self) -> Result<String, Exception> {
         let bytes = self.body_bytes().await?;
-        Ok(String::from_utf8(bytes).map_err(|_| io::Error::from(io::ErrorKind::InvalidData))?)
+        Ok(String::from_utf8(bytes).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
     }
 
     /// Reads and deserialized the entire request body from json.
@@ -192,7 +192,7 @@ impl Response {
     /// ```
     pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
         let body_bytes = self.body_bytes().await?;
-        Ok(serde_json::from_slice(&body_bytes).map_err(|_| std::io::ErrorKind::InvalidData)?)
+        Ok(serde_json::from_slice(&body_bytes).map_err(io::Error::from)?)
     }
 
     /// Reads and deserialized the entire request body from form encoding.
@@ -221,9 +221,9 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Exception> {
-        use std::io::ErrorKind;
         let string = self.body_string().await?;
-        Ok(serde_urlencoded::from_str(&string).map_err(|_| Error::from(ErrorKind::InvalidData))?)
+        Ok(serde_urlencoded::from_str(&string)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
     }
 }
 
@@ -233,7 +233,7 @@ impl AsyncRead for Response {
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
-    ) -> Poll<Result<usize, Error>> {
+    ) -> Poll<Result<usize, io::Error>> {
         Pin::new(&mut self.response.body_mut()).poll_read(cx, buf)
     }
 }
