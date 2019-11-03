@@ -13,11 +13,6 @@
     <img src="https://img.shields.io/crates/v/surf.svg?style=flat-square"
     alt="Crates.io version" />
   </a>
-  <!-- Build Status -->
-  <a href="https://travis-ci.com/rustasync/surf">
-    <img src="https://travis-ci.com/rustasync/surf.svg?branch=master"
-      alt="Build Status" />
-  </a>
   <!-- Downloads -->
   <a href="https://crates.io/crates/surf">
     <img src="https://img.shields.io/crates/d/surf.svg?style=flat-square"
