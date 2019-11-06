@@ -2,7 +2,7 @@
 name = "surf"
 version = "1.0.2"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/rustasync/surf"
+repository = "https://github.com/http-rs/surf"
 documentation = "https://docs.rs/surf"
 description = "HTTP client framework."
 keywords = ["http", "client", "framework", "request"]
