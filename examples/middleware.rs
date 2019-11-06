@@ -1,5 +1,5 @@
-use futures::future::BoxFuture;
 use async_std::task;
+use futures::future::BoxFuture;
 use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
 struct Printer;
