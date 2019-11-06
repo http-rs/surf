@@ -31,7 +31,7 @@
       API Docs
     </a>
     <span> | </span>
-    <a href="https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md">
+    <a href="https://github.com/http-rs/surf/blob/master/.github/CONTRIBUTING.md">
       Contributing
     </a>
     <span> | </span>
@@ -42,7 +42,7 @@
 </div>
 
 <div align="center">
-  <sub>Built with 🌊 by <a href="https://github.com/rustasync">The Rust Async Ecosystem WG</a>
+  <sub>Built with 🌊 by <a href="https://github.com/http-rs">The http-rs team</a>
 </div>
 
 <br/>
@@ -139,9 +139,9 @@ look at some of these issues:
 
 ## See Also
 
-- [rustasync/http-client](https://github.com/rustasync/http-client)
-- [rustasync/http-service](https://github.com/rustasync/http-service)
-- [rustasync/tide](https://github.com/rustasync/tide)
+- [http-rs/http-client](https://github.com/http-rs/http-client)
+- [http-rs/http-service](https://github.com/http-rs/http-service)
+- [http-rs/tide](https://github.com/http-rs/tide)
 
 ## Thanks
 
@@ -155,13 +155,13 @@ use `async` curl client that saved us countless hours.
 
 [1]: https://img.shields.io/crates/v/surf.svg?style=flat-square
 [2]: https://crates.io/crates/surf
-[3]: https://img.shields.io/travis/rustasync/surf/master.svg?style=flat-square
-[4]: https://travis-ci.org/rustasync/surf
+[3]: https://img.shields.io/travis/http-rs/surf/master.svg?style=flat-square
+[4]: https://travis-ci.org/http-rs/surf
 [5]: https://img.shields.io/crates/d/surf.svg?style=flat-square
 [6]: https://crates.io/crates/surf
 [7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
 [8]: https://docs.rs/surf
-[releases]: https://github.com/rustasync/surf/releases
-[contributing]: https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md
-[good-first-issue]: https://github.com/rustasync/surf/labels/good%20first%20issue
-[help-wanted]: https://github.com/rustasync/surf/labels/help%20wanted
+[releases]: https://github.com/http-rs/surf/releases
+[contributing]: https://github.com/http-rs/surf/blob/master/.github/CONTRIBUTING.md
+[good-first-issue]: https://github.com/http-rs/surf/labels/good%20first%20issue
+[help-wanted]: https://github.com/http-rs/surf/labels/help%20wanted
