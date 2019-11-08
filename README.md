@@ -139,7 +139,6 @@ look at some of these issues:
 
 ## See Also
 
-- [http-rs/http-client](https://github.com/http-rs/http-client)
 - [http-rs/http-service](https://github.com/http-rs/http-service)
 - [http-rs/tide](https://github.com/http-rs/tide)
 
