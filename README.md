@@ -133,10 +133,10 @@ Install OpenSSL -
 - Ubuntu - ``` sudo apt install libssl-dev ```
 - Fedora - ``` sudo dnf install openssl-devel ```
 
-Make sure your rust is upto date using: 
+Make sure your rust is up to date using: 
 ``` rustup update ```
 
-With [cargo add](https://github.com/async-rs/async-std/#installation) installed :
+With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
 ```sh
 $ cargo add surf
 ```
