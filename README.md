@@ -130,8 +130,8 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 ## Installation
 
 Install OpenSSL - 
-In Ubuntu - ``` sudo apt install libssl-dev ```
-In Fedora - ``` sudo dnf install openssl-devel ```
+- [Ubuntu] - ``` sudo apt install libssl-dev ```
+- [Fedora] - ``` sudo dnf install openssl-devel ```
 
 Make sure your rust is upto date using: 
 ``` rustup update ```
