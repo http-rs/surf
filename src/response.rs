@@ -252,6 +252,11 @@ impl fmt::Debug for Response {
     }
 }
 
+/// An error occurred while decoding a response body to a string.
+///
+/// The error carries the encoding that was used to attempt to decode the body, and the raw byte
+/// contents of the body. This can be used to treat un-decodable bodies specially or to implement a
+/// fallback parsing strategy.
 #[derive(Debug, Clone)]
 pub struct DecodeError {
     /// The name of the encoding that was used to try to decode the input.
@@ -270,11 +275,16 @@ impl fmt::Display for DecodeError {
 impl std::error::Error for DecodeError {}
 
 /// Decode a response body as utf-8.
+///
+/// # Errors
+///
+/// If the body cannot be decoded as utf-8, this function returns an `std::io::Error` of kind
+/// `std::io::ErrorKind::InvalidData`, carrying a `DecodeError` struct.
 #[cfg(not(feature = "encoding"))]
-fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(bytes: Vec<u8>, _content_encoding: Option<&str>) -> Result<String, Exception> {
     Ok(String::from_utf8(bytes).map_err(|_| {
         let err = DecodeError {
-            encoding: "UTF-8",
+            encoding: "UTF-8".to_string(),
             data: bytes,
         };
         io::Error::new(io::ErrorKind::InvalidData, err)
@@ -282,6 +292,14 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 }
 
 /// Decode a response body as the given content type.
+///
+/// If the input bytes are valid utf-8, this does not make a copy.
+///
+/// # Errors
+///
+/// If an unsupported encoding is requested, or the body does not conform to the requested
+/// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
+/// carrying a `DecodeError` struct.
 #[cfg(all(feature = "encoding", not(arch = "wasm32")))]
 fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
     use encoding_rs::Encoding;
@@ -317,6 +335,12 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 /// Decode a response body as the given content type.
 ///
 /// This always makes a copy. (It could be optimized to avoid the copy if the encoding is utf-8.)
+///
+/// # Errors
+///
+/// If an unsupported encoding is requested, or the body does not conform to the requested
+/// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
+/// carrying a `DecodeError` struct.
 #[cfg(all(feature = "encoding", arch = "wasm32"))]
 fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
     use web_sys::TextDecoder;
@@ -331,4 +355,45 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
         };
         Err(io::Error::new(io::ErrorKind::InvalidData, err))?
     }))
+}
+
+#[cfg(test)]
+mod decode_tests {
+    use super::decode_body;
+
+    #[test]
+    fn utf8() {
+        let input = "Rød grød med fløde";
+        assert_eq!(
+            decode_body(input.as_bytes().to_vec(), Some("utf-8")).unwrap(),
+            input,
+            "Parses utf-8"
+        );
+    }
+
+    #[test]
+    fn default_utf8() {
+        let input = "Rød grød med fløde";
+        assert_eq!(
+            decode_body(input.as_bytes().to_vec(), None).unwrap(),
+            input,
+            "Defaults to utf-8"
+        );
+    }
+
+    #[test]
+    fn euc_kr() {
+        let input = vec![
+            0xb3, 0xbb, 0x20, 0xc7, 0xb0, 0xc0, 0xb8, 0xb7, 0xce, 0x20, 0xb5, 0xb9, 0xbe, 0xc6,
+            0xbf, 0xc0, 0xb6, 0xf3, 0x2c, 0x20, 0xb3, 0xbb, 0x20, 0xbe, 0xc8, 0xbf, 0xa1, 0xbc,
+            0xad, 0x20, 0xc0, 0xe1, 0xb5, 0xe9, 0xb0, 0xc5, 0xb6, 0xf3,
+        ];
+
+        let result = decode_body(input, Some("euc-kr"));
+        if cfg!(feature = "encoding") {
+            assert_eq!(result.unwrap(), "내 품으로 돌아오라, 내 안에서 잠들거라");
+        } else {
+            assert!(result.is_err(), "Only utf-8 is supported");
+        }
+    }
 }
