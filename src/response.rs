@@ -162,7 +162,12 @@ impl Response {
     /// ```
     pub async fn body_string(&mut self) -> Result<String, Exception> {
         let bytes = self.body_bytes().await?;
-        Ok(String::from_utf8(bytes).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
+        let mime = self.mime();
+        let claimed_encoding = mime
+            .as_ref()
+            .and_then(|mime| mime.get_param("charset"))
+            .map(|name| name.as_str());
+        decode_body(bytes, claimed_encoding)
     }
 
     /// Reads and deserialized the entire request body from json.
@@ -245,4 +250,85 @@ impl fmt::Debug for Response {
             .field("response", &self.response)
             .finish()
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct DecodeError {
+    /// The name of the encoding that was used to try to decode the input.
+    pub encoding: String,
+    /// The input data as bytes.
+    pub data: Vec<u8>,
+}
+
+impl fmt::Display for DecodeError {
+    #[allow(missing_doc_code_examples)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "could not decode body as {}", &self.encoding)
+    }
+}
+
+impl std::error::Error for DecodeError {}
+
+/// Decode a response body as utf-8.
+#[cfg(not(feature = "encoding"))]
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+    Ok(String::from_utf8(bytes).map_err(|_| {
+        let err = DecodeError {
+            encoding: "UTF-8",
+            data: bytes,
+        };
+        io::Error::new(io::ErrorKind::InvalidData, err)
+    })?)
+}
+
+/// Decode a response body as the given content type.
+#[cfg(all(feature = "encoding", not(arch = "wasm32")))]
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+    use encoding_rs::Encoding;
+    use std::borrow::Cow;
+
+    let content_encoding = content_encoding.unwrap_or("utf-8");
+    if let Some(encoding) = Encoding::for_label(content_encoding.as_bytes()) {
+        let (decoded, encoding_used, failed) = encoding.decode(&bytes);
+        if failed {
+            let err = DecodeError {
+                encoding: encoding_used.name().into(),
+                data: bytes,
+            };
+            Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+        } else {
+            Ok(match decoded {
+                // If encoding_rs returned a `Cow::Borrowed`, the bytes are guaranteed to be valid
+                // UTF-8, by virtue of being UTF-8 or being in the subset of ASCII that is the same
+                // in UTF-8.
+                Cow::Borrowed(_) => unsafe { String::from_utf8_unchecked(bytes) },
+                Cow::Owned(string) => string,
+            })
+        }
+    } else {
+        let err = DecodeError {
+            encoding: content_encoding.to_string(),
+            data: bytes,
+        };
+        Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+    }
+}
+
+/// Decode a response body as the given content type.
+///
+/// This always makes a copy. (It could be optimized to avoid the copy if the encoding is utf-8.)
+#[cfg(all(feature = "encoding", arch = "wasm32"))]
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+    use web_sys::TextDecoder;
+
+    let content_encoding = content_encoding.unwrap_or("utf-8");
+    let decoder = TextDecoder::new(content_encoding)?;
+
+    Ok(decoder.decode_with_u8_array(&bytes).map_err(|_| {
+        let err = DecodeError {
+            encoding: content_encoding.to_string(),
+            data: bytes,
+        };
+        Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+    }))
 }

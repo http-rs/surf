@@ -88,7 +88,7 @@ pub use url;
 
 pub use client::Client;
 pub use request::Request;
-pub use response::Response;
+pub use response::{DecodeError, Response};
 
 #[cfg(feature = "native-client")]
 mod one_off;
