@@ -282,10 +282,10 @@ impl std::error::Error for DecodeError {}
 /// `std::io::ErrorKind::InvalidData`, carrying a `DecodeError` struct.
 #[cfg(not(feature = "encoding"))]
 fn decode_body(bytes: Vec<u8>, _content_encoding: Option<&str>) -> Result<String, Exception> {
-    Ok(String::from_utf8(bytes).map_err(|_| {
+    Ok(String::from_utf8(bytes).map_err(|err| {
         let err = DecodeError {
             encoding: "UTF-8".to_string(),
-            data: bytes,
+            data: err.into_bytes(),
         };
         io::Error::new(io::ErrorKind::InvalidData, err)
     })?)
