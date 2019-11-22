@@ -257,12 +257,26 @@ impl fmt::Debug for Response {
 /// The error carries the encoding that was used to attempt to decode the body, and the raw byte
 /// contents of the body. This can be used to treat un-decodable bodies specially or to implement a
 /// fallback parsing strategy.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct DecodeError {
     /// The name of the encoding that was used to try to decode the input.
     pub encoding: String,
     /// The input data as bytes.
     pub data: Vec<u8>,
+}
+
+// Override debug output so you don't get each individual byte in `data` printed out separately,
+// because it can be many megabytes large. The actual content is not that interesting anyways
+// and can be accessed manually if it is required.
+impl fmt::Debug for DecodeError {
+    #[allow(missing_doc_code_examples)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DecodeError")
+            .field("encoding", &self.encoding)
+            // Perhaps we can output the first N bytes of the response in the future
+            .field("data", &format!("{} bytes", self.data.len()))
+            .finish()
+    }
 }
 
 impl fmt::Display for DecodeError {
