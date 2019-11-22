@@ -274,6 +274,14 @@ impl fmt::Display for DecodeError {
 
 impl std::error::Error for DecodeError {}
 
+/// Check if an encoding label refers to the UTF-8 encoding.
+#[allow(dead_code)]
+fn is_utf8_encoding(encoding_label: &str) -> bool {
+    encoding_label.eq_ignore_ascii_case("utf-8")
+        || encoding_label.eq_ignore_ascii_case("utf8")
+        || encoding_label.eq_ignore_ascii_case("unicode-1-1-utf-8")
+}
+
 /// Decode a response body as utf-8.
 ///
 /// # Errors
@@ -281,14 +289,22 @@ impl std::error::Error for DecodeError {}
 /// If the body cannot be decoded as utf-8, this function returns an `std::io::Error` of kind
 /// `std::io::ErrorKind::InvalidData`, carrying a `DecodeError` struct.
 #[cfg(not(feature = "encoding"))]
-fn decode_body(bytes: Vec<u8>, _content_encoding: Option<&str>) -> Result<String, Exception> {
-    Ok(String::from_utf8(bytes).map_err(|err| {
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+    if is_utf8_encoding(content_encoding.unwrap_or("utf-8")) {
+        Ok(String::from_utf8(bytes).map_err(|err| {
+            let err = DecodeError {
+                encoding: "utf-8".to_string(),
+                data: err.into_bytes(),
+            };
+            io::Error::new(io::ErrorKind::InvalidData, err)
+        })?)
+    } else {
         let err = DecodeError {
-            encoding: "UTF-8".to_string(),
-            data: err.into_bytes(),
+            encoding: "utf-8".to_string(),
+            data: bytes,
         };
-        io::Error::new(io::ErrorKind::InvalidData, err)
-    })?)
+        Err(io::Error::new(io::ErrorKind::InvalidData, err).into())
+    }
 }
 
 /// Decode a response body as the given content type.
@@ -347,8 +363,9 @@ fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<Str
 
     // Encoding names are always valid ASCII, so we can avoid including casing mapping tables
     let content_encoding = content_encoding.unwrap_or("utf-8").to_ascii_lowercase();
-    if content_encoding == "utf-8" {
-        return String::from_utf8(bytes).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err).into());
+    if is_utf8_encoding(content_encoding) {
+        return String::from_utf8(bytes)
+            .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err).into());
     }
 
     let decoder = TextDecoder::new_with_label(&content_encoding).unwrap();
