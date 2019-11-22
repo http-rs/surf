@@ -144,12 +144,21 @@ impl Response {
     /// This method can be called after the body has already been read, but will
     /// produce an empty buffer.
     ///
+    /// # Encodings
+    ///
+    /// If the "encoding" feature is enabled, this method tries to decode the body
+    /// with the encoding that is specified in the Content-Type header. If the header
+    /// does not specify an encoding, UTF-8 is assumed. If the "encoding" feature is
+    /// disabled, Surf only supports reading UTF-8 response bodies. The "encoding"
+    /// feature is enabled by default.
+    ///
     /// # Errors
     ///
     /// Any I/O error encountered while reading the body is immediately returned
     /// as an `Err`.
     ///
-    /// If the body cannot be interpreted as valid UTF-8, an `Err` is returned.
+    /// If the body cannot be interpreted because the encoding is unsupported or
+    /// incorrect, an `Err` is returned.
     ///
     /// # Examples
     ///
