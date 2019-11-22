@@ -300,7 +300,7 @@ fn decode_body(bytes: Vec<u8>, _content_encoding: Option<&str>) -> Result<String
 /// If an unsupported encoding is requested, or the body does not conform to the requested
 /// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
 /// carrying a `DecodeError` struct.
-#[cfg(all(feature = "encoding", not(arch = "wasm32")))]
+#[cfg(all(feature = "encoding", not(target_arch = "wasm32")))]
 fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
     use encoding_rs::Encoding;
     use std::borrow::Cow;
@@ -341,20 +341,25 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 /// If an unsupported encoding is requested, or the body does not conform to the requested
 /// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
 /// carrying a `DecodeError` struct.
-#[cfg(all(feature = "encoding", arch = "wasm32"))]
-fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+#[cfg(all(feature = "encoding", target_arch = "wasm32"))]
+fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
     use web_sys::TextDecoder;
 
-    let content_encoding = content_encoding.unwrap_or("utf-8");
-    let decoder = TextDecoder::new(content_encoding)?;
+    // Encoding names are always valid ASCII, so we can avoid including casing mapping tables
+    let content_encoding = content_encoding.unwrap_or("utf-8").to_ascii_lowercase();
+    if content_encoding == "utf-8" {
+        return String::from_utf8(bytes).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err).into());
+    }
 
-    Ok(decoder.decode_with_u8_array(&bytes).map_err(|_| {
+    let decoder = TextDecoder::new_with_label(&content_encoding).unwrap();
+
+    Ok(decoder.decode_with_u8_array(&mut bytes).map_err(|_| {
         let err = DecodeError {
             encoding: content_encoding.to_string(),
             data: bytes,
         };
-        Err(io::Error::new(io::ErrorKind::InvalidData, err))?
-    }))
+        io::Error::new(io::ErrorKind::InvalidData, err)
+    })?)
 }
 
 #[cfg(test)]
