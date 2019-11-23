@@ -14,7 +14,7 @@ edition = "2018"
 [features]
 default = ["native-client", "middleware-logger", "encoding"]
 native-client = ["curl-client", "wasm-client"]
-hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
+hyper-client = ["hyper", "hyper-tls", "native-tls", "runtime", "runtime-raw", "runtime-tokio" ]
 curl-client = ["isahc"]
 wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
