@@ -11,7 +11,7 @@ use std::task::{Context, Poll};
 
 use crate::headers::Headers;
 use crate::http_client;
-use crate::Exception;
+use crate::Error;
 
 /// An HTTP response, returned by `Request`.
 pub struct Response {
@@ -78,7 +78,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[runtime::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let mut res = surf::post("https://httpbin.org/get").await?;
     /// for (name, value) in res.headers() {
     ///     println!("{}: {}", name, value);
@@ -169,7 +169,7 @@ impl Response {
     /// let string: String = res.body_string().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_string(&mut self) -> Result<String, Exception> {
+    pub async fn body_string(&mut self) -> Result<String, Error> {
         let bytes = self.body_bytes().await?;
         let mime = self.mime();
         let claimed_encoding = mime
@@ -234,7 +234,7 @@ impl Response {
     /// let Body { apples } = res.body_form().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Exception> {
+    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Error> {
         let string = self.body_string().await?;
         Ok(serde_urlencoded::from_str(&string)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
@@ -312,7 +312,7 @@ fn is_utf8_encoding(encoding_label: &str) -> bool {
 /// If the body cannot be decoded as utf-8, this function returns an `std::io::Error` of kind
 /// `std::io::ErrorKind::InvalidData`, carrying a `DecodeError` struct.
 #[cfg(not(feature = "encoding"))]
-fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Error> {
     if is_utf8_encoding(content_encoding.unwrap_or("utf-8")) {
         Ok(String::from_utf8(bytes).map_err(|err| {
             let err = DecodeError {
@@ -340,7 +340,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 /// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
 /// carrying a `DecodeError` struct.
 #[cfg(all(feature = "encoding", not(target_arch = "wasm32")))]
-fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Error> {
     use encoding_rs::Encoding;
     use std::borrow::Cow;
 
@@ -381,7 +381,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 /// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
 /// carrying a `DecodeError` struct.
 #[cfg(all(feature = "encoding", target_arch = "wasm32"))]
-fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Error> {
     use web_sys::TextDecoder;
 
     // Encoding names are always valid ASCII, so we can avoid including casing mapping tables

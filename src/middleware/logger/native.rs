@@ -28,7 +28,7 @@ impl<C: HttpClient> Middleware<C> for Logger {
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
+    ) -> BoxFuture<'a, Result<Response, crate::Error>> {
         Box::pin(async move {
             let start_time = time::Instant::now();
             let uri = format!("{}", req.uri());

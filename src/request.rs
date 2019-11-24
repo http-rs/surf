@@ -8,7 +8,7 @@ use url::Url;
 use crate::headers::Headers;
 use crate::http_client::{self, Body, HttpClient};
 use crate::middleware::{Middleware, Next};
-use crate::Exception;
+use crate::Error;
 use crate::Response;
 
 use std::fmt;
@@ -35,7 +35,7 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     /// Holds the inner middleware.
     middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     /// Holds the state of the `impl Future`.
-    fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
+    fut: Option<BoxFuture<'static, Result<Response, Error>>>,
     /// Holds a reference to the Url
     url: Url,
 }
@@ -127,7 +127,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(page, 2);
     /// # Ok(()) }
     /// ```
-    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Exception> {
+    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Error> {
         use std::io::{Error, ErrorKind};
         let query = self
             .url
@@ -211,7 +211,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// ```no_run
     /// # #[runtime::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let mut req = surf::get("https://httpbin.org/get")
     ///     .set_header("X-Requested-With", "surf");
     ///
@@ -418,7 +418,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// ```no_run
     /// # #[runtime::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let res = surf::post("https://httpbin.org/post")
     ///     .body_file("README.md")?
     ///     .await?;
@@ -480,7 +480,7 @@ impl<C: HttpClient> Request<C> {
     /// assert!(bytes.len() > 0);
     /// # Ok(()) }
     /// ```
-    pub async fn recv_bytes(self) -> Result<Vec<u8>, Exception> {
+    pub async fn recv_bytes(self) -> Result<Vec<u8>, Error> {
         let mut req = self.await?;
         Ok(req.body_bytes().await?)
     }
@@ -496,7 +496,7 @@ impl<C: HttpClient> Request<C> {
     /// assert!(string.len() > 0);
     /// # Ok(()) }
     /// ```
-    pub async fn recv_string(self) -> Result<String, Exception> {
+    pub async fn recv_string(self) -> Result<String, Error> {
         let mut req = self.await?;
         Ok(req.body_string().await?)
     }
@@ -519,7 +519,7 @@ impl<C: HttpClient> Request<C> {
     /// assert!(ip.len() > 10);
     /// # Ok(()) }
     /// ```
-    pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+    pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Error> {
         let mut req = self.await?;
         Ok(req.body_json::<T>().await?)
     }
@@ -549,7 +549,7 @@ impl<C: HttpClient> Request<C> {
     /// let Body { apples } = surf::get(url).recv_form().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+    pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Error> {
         let mut req = self.await?;
         Ok(req.body_form::<T>().await?)
     }
@@ -561,7 +561,7 @@ impl<C: HttpClient> Request<C> {
 }
 
 impl<C: HttpClient> Future for Request<C> {
-    type Output = Result<Response, Exception>;
+    type Output = Result<Response, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {

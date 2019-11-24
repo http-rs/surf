@@ -96,4 +96,4 @@ mod one_off;
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
 /// A generic error type.
-pub type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;
+pub type Error = anyhow::Error;

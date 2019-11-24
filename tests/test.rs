@@ -1,5 +1,5 @@
 #[runtime::test]
-async fn post_json() -> Result<(), surf::Exception> {
+async fn post_json() -> Result<(), surf::Error> {
     #[derive(serde::Deserialize, serde::Serialize)]
     struct Cat {
         name: String,
@@ -17,7 +17,7 @@ async fn post_json() -> Result<(), surf::Exception> {
 }
 
 #[runtime::test]
-async fn get_json() -> Result<(), surf::Exception> {
+async fn get_json() -> Result<(), surf::Error> {
     #[derive(serde::Deserialize)]
     struct Ip {
         ip: String,
