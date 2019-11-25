@@ -1,6 +1,6 @@
 //! HTTP Client Interface
 use futures::future::BoxFuture;
-use futures::io::AsyncRead;
+use futures::io::{AsyncRead, Cursor};
 
 use std::error::Error;
 use std::fmt::{self, Debug};
@@ -96,7 +96,7 @@ impl From<Vec<u8>> for Body {
     #[inline]
     fn from(vec: Vec<u8>) -> Body {
         Self {
-            reader: Box::new(io::Cursor::new(vec)),
+            reader: Box::new(Cursor::new(vec)),
         }
     }
 }
