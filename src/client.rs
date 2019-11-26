@@ -9,7 +9,7 @@ use super::http_client::native::NativeClient;
 /// # Examples
 ///
 /// ```no_run
-/// # #[runtime::main]
+/// # #[async_std::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 /// let client = surf::Client::new();
 /// let req1 = client.get("https://httpbin.org/get").recv_string();
@@ -29,7 +29,7 @@ impl Client<NativeClient> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// # Ok(()) }
@@ -62,7 +62,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.get("https://httpbin.org/get").recv_string().await?;
@@ -86,7 +86,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.head("https://httpbin.org/head").recv_string().await?;
@@ -110,7 +110,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.post("https://httpbin.org/post").recv_string().await?;
@@ -134,7 +134,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.put("https://httpbin.org/put").recv_string().await?;
@@ -158,7 +158,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.delete("https://httpbin.org/delete").recv_string().await?;
@@ -182,7 +182,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.connect("https://httpbin.org/connect").recv_string().await?;
@@ -206,7 +206,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.options("https://httpbin.org/options").recv_string().await?;
@@ -230,7 +230,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.trace("https://httpbin.org/trace").recv_string().await?;
@@ -254,7 +254,7 @@ impl<C: HttpClient> Client<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let client = surf::Client::new();
     /// let string = client.patch("https://httpbin.org/patch").recv_string().await?;

@@ -14,14 +14,14 @@ edition = "2018"
 [features]
 default = ["native-client", "middleware-logger", "encoding"]
 native-client = ["curl-client", "wasm-client"]
-hyper-client = ["hyper", "runtime", "runtime-raw", "runtime-tokio" ]
+hyper-client = ["hyper", "hyper-tls", "native-tls", "runtime", "runtime-raw", "runtime-tokio" ]
 curl-client = ["isahc"]
 wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
 encoding = ["encoding_rs"]
 
 [dependencies]
-futures-preview = { version = "0.3.0-alpha.19", features = ["compat", "io-compat"] }
+futures = { version = "0.3.1", features = ["compat", "io-compat"] }
 http = "0.1.17"
 log = { version = "0.4.7", features = ["kv_unstable"] }
 mime = "0.3.13"
@@ -37,7 +37,7 @@ anyhow = "1.0.23"
 encoding_rs = { version = "0.8.20", optional = true }
 
 # isahc-client
-isahc = { version = "0.7", optional = true, default-features = false, features = ["http2"]  }
+isahc = { version = "0.8", optional = true, default-features = false, features = ["http2"]  }
 
 # hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }
@@ -51,7 +51,7 @@ runtime-tokio = { version = "0.3.0-alpha.5", optional = true }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = { version = "0.3.25", optional = true }
 wasm-bindgen = { version = "0.2.48", optional = true }
-wasm-bindgen-futures = { version = "0.3.25", features = ["futures_0_3"], optional = true }
+wasm-bindgen-futures = { version = "0.4.5", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3.25"
@@ -73,7 +73,6 @@ features = [
 ]
 
 [dev-dependencies]
-async-std = "0.99.10"
+async-std = { version = "1.0", features = ["attributes"] }
 femme = "1.1.0"
-runtime = "0.3.0-alpha.6"
 serde = { version = "1.0.97", features = ["derive"] }
