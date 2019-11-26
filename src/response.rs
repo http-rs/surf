@@ -170,7 +170,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub async fn body_string(&mut self) -> Result<String, Error> {
-        let bytes = self.body_bytes().await?;
+        let bytes = self.body_bytes().await.map_err(Error::new)?;
         let mime = self.mime();
         let claimed_encoding = mime
             .as_ref()
@@ -236,8 +236,7 @@ impl Response {
     /// ```
     pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Error> {
         let string = self.body_string().await?;
-        Ok(serde_urlencoded::from_str(&string)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
+        Ok(serde_urlencoded::from_str(&string).map_err(Error::new)?)
     }
 }
 
@@ -326,7 +325,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
             encoding: "utf-8".to_string(),
             data: bytes,
         };
-        Err(io::Error::new(io::ErrorKind::InvalidData, err).into())
+        Err(Error::new(err))
     }
 }
 
@@ -352,7 +351,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
                 encoding: encoding_used.name().into(),
                 data: bytes,
             };
-            Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+            Err(Error::new(err))
         } else {
             Ok(match decoded {
                 // If encoding_rs returned a `Cow::Borrowed`, the bytes are guaranteed to be valid
@@ -367,7 +366,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
             encoding: content_encoding.to_string(),
             data: bytes,
         };
-        Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+        Err(Error::new(err))
     }
 }
 

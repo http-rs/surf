@@ -75,6 +75,7 @@
 #![cfg_attr(test, deny(warnings))]
 
 mod client;
+mod error;
 mod http_client;
 mod request;
 mod response;
@@ -87,6 +88,7 @@ pub use mime;
 pub use url;
 
 pub use client::Client;
+pub use error::Error;
 pub use request::Request;
 pub use response::{DecodeError, Response};
 
@@ -95,5 +97,3 @@ mod one_off;
 #[cfg(feature = "native-client")]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
-/// A generic error type.
-pub type Error = anyhow::Error;

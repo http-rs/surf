@@ -128,12 +128,11 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Error> {
-        use std::io::{Error, ErrorKind};
         let query = self
             .url
             .query()
-            .ok_or_else(|| Error::from(ErrorKind::InvalidData))?;
-        Ok(serde_urlencoded::from_str(query)?)
+            .ok_or_else(|| Error::msg("no query found on url"))?;
+        Ok(serde_urlencoded::from_str(query).map_err(Error::new)?)
     }
 
     /// Set the URL querystring.
@@ -481,8 +480,8 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub async fn recv_bytes(self) -> Result<Vec<u8>, Error> {
-        let mut req = self.await?;
-        Ok(req.body_bytes().await?)
+        let mut req = self.await.map_err(Error::new)?;
+        Ok(req.body_bytes().await.map_err(Error::new)?)
     }
 
     /// Submit the request and get the response body as a string.
@@ -520,8 +519,8 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Error> {
-        let mut req = self.await?;
-        Ok(req.body_json::<T>().await?)
+        let mut req = self.await.map_err(Error::new)?;
+        Ok(req.body_json::<T>().await.map_err(Error::new)?)
     }
 
     /// Submit the request and decode the response body from form encoding into a struct.
@@ -573,7 +572,7 @@ impl<C: HttpClient> Future for Request<C> {
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req, client| {
-                    Box::pin(async move { client.send(req).await.map_err(|e| e.into()) })
+                    Box::pin(async move { client.send(req).await.map_err(Error::new) })
                 });
 
                 let res = next.run(req, client).await?;
