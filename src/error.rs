@@ -5,7 +5,8 @@ use std::{fmt::{self, Display, Debug}, ops::{Deref, DerefMut}};
 pub struct Error(anyhow::Error);
 
 impl Error {
-    pub(crate) fn new<E>(error: E) -> Self
+    /// Use this when you need to implement middleware, where the error type must be `surf::Error`.
+    pub fn new<E>(error: E) -> Self
         where E: std::error::Error + Send + Sync + 'static
     {
         Self(anyhow::Error::new(error))
@@ -18,6 +19,7 @@ impl Error {
     }
 
     /// Use this to add context to errors
+    #[allow(dead_code)]
     pub(crate) fn context<C>(self, context: C) -> Self
         where C: Display + Send + Sync + 'static
     {

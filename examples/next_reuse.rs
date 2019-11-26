@@ -26,25 +26,27 @@ impl<C: HttpClient> Middleware<C> for Doubler {
 
                 let res = res1?;
                 let mut body = res.into_body();
-                body.read_to_end(&mut buf).await?;
+                body.read_to_end(&mut buf).await.map_err(surf::Error::new)?;
 
                 let mut res = res2?;
                 let mut body = std::mem::replace(res.body_mut(), Body::empty());
-                body.read_to_end(&mut buf).await?;
+                body.read_to_end(&mut buf).await.map_err(surf::Error::new)?;
 
                 *res.body_mut() = Body::from(buf);
                 Ok(res)
             })
         } else {
-            next.run(req, client)
+            Box::pin(async move {
+                next.run(req, client).await.map_err(surf::Error::new)
+            })
         }
     }
 }
 
 // The need for Ok with turbofish is explained here
 // https://rust-lang.github.io/async-book/07_workarounds/03_err_in_async_blocks.html
-fn main() -> Result<(), surf::Error> {
-    femme::start(log::LevelFilter::Info).unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    femme::start(log::LevelFilter::Info)?;
     task::block_on(async {
         let mut res = surf::get("https://httpbin.org/get")
             .middleware(Doubler {})
@@ -53,6 +55,6 @@ fn main() -> Result<(), surf::Error> {
         let body = res.body_bytes().await?;
         let body = String::from_utf8_lossy(&body);
         println!("{}", body);
-        Ok::<(), surf::Error>(())
+        Ok(())
     })
 }

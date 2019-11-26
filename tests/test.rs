@@ -1,5 +1,5 @@
 #[async_std::test]
-async fn post_json() -> Result<(), surf::Error> {
+async fn post_json() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     #[derive(serde::Deserialize, serde::Serialize)]
     struct Cat {
         name: String,
@@ -17,7 +17,7 @@ async fn post_json() -> Result<(), surf::Error> {
 }
 
 #[async_std::test]
-async fn get_json() -> Result<(), surf::Error> {
+async fn get_json() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     #[derive(serde::Deserialize)]
     struct Ip {
         ip: String,

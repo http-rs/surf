@@ -416,13 +416,8 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-<<<<<<< HEAD
-    /// # #[runtime::main]
-    /// # async fn main() -> Result<(), surf::Error> {
-=======
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
->>>>>>> upstream/master
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     /// let res = surf::post("https://httpbin.org/post")
     ///     .body_file("README.md")?
     ///     .await?;

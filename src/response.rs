@@ -133,9 +133,9 @@ impl Response {
     /// let bytes: Vec<u8> = res.body_bytes().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
+    pub async fn body_bytes(&mut self) -> Result<Vec<u8>, Error> {
         let mut buf = Vec::with_capacity(1024);
-        self.response.body_mut().read_to_end(&mut buf).await?;
+        self.response.body_mut().read_to_end(&mut buf).await.map_err(Error::new)?;
         Ok(buf)
     }
 
@@ -204,9 +204,9 @@ impl Response {
     /// let Ip { ip } = res.body_json().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
+    pub async fn body_json<T: DeserializeOwned>(&mut self) -> Result<T, Error> {
         let body_bytes = self.body_bytes().await?;
-        Ok(serde_json::from_slice(&body_bytes).map_err(io::Error::from)?)
+        serde_json::from_slice(&body_bytes).map_err(Error::new)
     }
 
     /// Reads and deserialized the entire request body from form encoding.
@@ -236,7 +236,7 @@ impl Response {
     /// ```
     pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Error> {
         let string = self.body_string().await?;
-        Ok(serde_urlencoded::from_str(&string).map_err(Error::new)?)
+        serde_urlencoded::from_str(&string).map_err(Error::new)
     }
 }
 
