@@ -14,8 +14,9 @@
 //!
 //! # Examples
 //! ```no_run
+//! # use surf::error::BoxError;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), BoxError> {
 //! let mut res = surf::get("https://httpbin.org/get").await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
@@ -23,17 +24,19 @@
 //!
 //! It's also possible to skip the intermediate `Response`, and access the response type directly.
 //! ```no_run
+//! # use surf::error::BoxError;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), BoxError> {
 //! dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
 //! # Ok(()) }
 //! ```
 //!
 //! Both sending and receiving JSON is real easy too.
 //! ```no_run
+//! # use surf::error::BoxError;
 //! # use serde::{Deserialize, Serialize};
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), BoxError> {
 //! #[derive(Deserialize, Serialize)]
 //! struct Ip {
 //!     ip: String
@@ -53,8 +56,9 @@
 //! And even creating streaming proxies is no trouble at all.
 //!
 //! ```no_run
+//! # use surf::error::BoxError;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), BoxError> {
 //! let reader = surf::get("https://img.fyi/q6YvNqP").await?;
 //! let res = surf::post("https://box.rs/upload").body(reader).await?;
 //! # Ok(()) }
@@ -75,7 +79,8 @@
 #![cfg_attr(test, deny(warnings))]
 
 mod client;
-mod error;
+#[doc(hidden)]
+pub mod error;
 mod http_client;
 mod request;
 mod response;
@@ -88,7 +93,7 @@ pub use mime;
 pub use url;
 
 pub use client::Client;
-pub use error::Error;
+pub use error::{Result, Error};
 pub use request::Request;
 pub use response::{DecodeError, Response};
 

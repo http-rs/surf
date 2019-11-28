@@ -29,8 +29,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
@@ -44,8 +45,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// use surf::http::version::Version;
     ///
     /// let res = surf::get("https://httpbin.org/get").await?;
@@ -61,8 +63,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert!(res.header("Content-Length").is_some());
     /// # Ok(()) }
@@ -77,6 +80,7 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), surf::Error> {
     /// let mut res = surf::post("https://httpbin.org/get").await?;
@@ -102,8 +106,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// use surf::mime;
     /// let res = surf::get("https://httpbin.org/json").await?;
     /// assert_eq!(res.mime(), Some(mime::APPLICATION_JSON));
@@ -127,8 +132,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
     /// let bytes: Vec<u8> = res.body_bytes().await?;
     /// # Ok(()) }
@@ -163,8 +169,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
     /// let string: String = res.body_string().await?;
     /// # Ok(()) }
@@ -192,9 +199,10 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
     ///     ip: String
@@ -222,9 +230,10 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
+    /// # use surf::error::BoxError;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), BoxError> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {
     ///     apples: u32

@@ -5,13 +5,15 @@ use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
 
 struct Doubler;
 
+type BoxError = Box<dyn std::error::Error + Send + Sync>;
+
 impl<C: HttpClient> Middleware<C> for Doubler {
     fn handle<'a>(
         &'a self,
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, surf::Error>> {
+    ) -> BoxFuture<'a, Result<Response, BoxError>> {
         if req.method().is_safe() {
             let mut new_req = Request::new(Body::empty());
             *new_req.method_mut() = req.method().clone();
@@ -26,18 +28,18 @@ impl<C: HttpClient> Middleware<C> for Doubler {
 
                 let res = res1?;
                 let mut body = res.into_body();
-                body.read_to_end(&mut buf).await.map_err(surf::Error::new)?;
+                body.read_to_end(&mut buf).await?;
 
                 let mut res = res2?;
                 let mut body = std::mem::replace(res.body_mut(), Body::empty());
-                body.read_to_end(&mut buf).await.map_err(surf::Error::new)?;
+                body.read_to_end(&mut buf).await?;
 
                 *res.body_mut() = Body::from(buf);
                 Ok(res)
             })
         } else {
             Box::pin(async move {
-                next.run(req, client).await.map_err(surf::Error::new)
+                next.run(req, client).await.map_err(From::from)
             })
         }
     }

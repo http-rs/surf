@@ -1,16 +1,28 @@
+//! The error types for `surf`.
+//!
+//! This module contains the type `Error` which represents any error that surf may return. It also
+//! contains a `Result` type alias which is like `std::result::Result` but defaults to using
+//! `surf::Error`, and the `BoxError` type alias that is just shorthand for a boxed error. `Error`
+//! and `Result` are re-exported at the crate root, so you shouldn't usually have to use anything
+//! in this module.
+use std::{
+    fmt::{self, Display, Debug},
+};
 
-use std::{fmt::{self, Display, Debug}, ops::{Deref, DerefMut}};
+/// A version of `std::result::Result` that defaults the error type to `surf::Error`.
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 /// A generic error type.
-pub struct Error(anyhow::Error);
+pub struct Error(pub(crate) anyhow::Error);
 
 impl Error {
     /// Use this when you need to implement middleware, where the error type must be `surf::Error`.
-    pub fn new<E>(error: E) -> Self
+    pub(crate) fn new<E>(error: E) -> Self
         where E: std::error::Error + Send + Sync + 'static
     {
         Self(anyhow::Error::new(error))
     }
+
     /// Use this to create string errors.
     pub(crate) fn msg<M>(message: M) -> Self
         where M: Display + Debug + Send + Sync + 'static
@@ -39,21 +51,11 @@ impl Debug for Error {
     }
 }
 
-impl Deref for Error {
-    type Target = dyn std::error::Error + Send + Sync + 'static;
-    fn deref(&self) -> &Self::Target {
-        Deref::deref(&self.0)
-    }
-}
-
-impl DerefMut for Error {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        DerefMut::deref_mut(&mut self.0)
-    }
-}
-
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         self.0.source()
     }
 }
+
+/// A type alias for any boxed error.
+pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
