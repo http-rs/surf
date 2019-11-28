@@ -47,7 +47,7 @@ impl<C: HttpClient> Middleware<C> for Doubler {
 
 // The need for Ok with turbofish is explained here
 // https://rust-lang.github.io/async-book/07_workarounds/03_err_in_async_blocks.html
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+fn main() -> Result<(), BoxError> {
     femme::start(log::LevelFilter::Info)?;
     task::block_on(async {
         let mut res = surf::get("https://httpbin.org/get")
