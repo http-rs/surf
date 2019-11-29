@@ -87,6 +87,7 @@ pub use mime;
 pub use url;
 
 pub use client::Client;
+pub use http_client::native::NativeClient;
 pub use request::Request;
 pub use response::{DecodeError, Response};
 
