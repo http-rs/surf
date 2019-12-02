@@ -30,6 +30,8 @@ serde = "1.0.97"
 serde_json = "1.0.40"
 serde_urlencoded = "0.6.1"
 url = "2.0.0"
+# http-client = { version = "1.0", features = ["native_client"] }
+http-client = { git = "https://github.com/pwoolcoc/http-client", branch = "issue-5-port-to-futures-0-3", features = ["native_client"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # encoding

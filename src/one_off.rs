@@ -1,5 +1,5 @@
 #[cfg(feature = "native-client")]
-use super::http_client::native::NativeClient;
+use http_client::native::NativeClient;
 
 use super::Request;
 

@@ -1,8 +1,8 @@
-use crate::http_client::HttpClient;
+use http_client::HttpClient;
 use crate::Request;
 
 #[cfg(feature = "native-client")]
-use super::http_client::native::NativeClient;
+use http_client::native::NativeClient;
 
 /// An HTTP client, capable of creating new `Request`s.
 ///
