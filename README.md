@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let mut res = surf::get("https://httpbin.org/get").await?;
         dbg!(res.body_string().await?);
         Ok(())
-    });
+    })
 }
 ```
 
@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     task::block_on(async {
         dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
         Ok(())
-    });
+    })
 }
 ```
 
@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let reader = surf::get("https://img.fyi/q6YvNqP").await?;
         let res = surf::post("https://box.rs/upload").body(reader).await?;
         Ok(())
-    });
+    })
 }
 ```
 
