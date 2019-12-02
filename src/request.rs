@@ -199,7 +199,7 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
-        let value = value.as_ref().to_owned();
+        let value = value.as_ref();
         let req = self.req.as_mut().unwrap();
         req.headers_mut().insert(key, value.parse().unwrap());
         self

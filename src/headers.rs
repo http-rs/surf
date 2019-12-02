@@ -21,7 +21,7 @@ impl<'a> Headers<'a> {
 
     /// Set a header.
     pub fn insert(&mut self, key: &'static str, value: impl AsRef<str>) -> Option<String> {
-        let value = value.as_ref().to_owned();
+        let value = value.as_ref();
         let res = self.headers.insert(key, value.parse().unwrap());
         res.as_ref().map(|h| h.to_str().unwrap().to_owned())
     }
