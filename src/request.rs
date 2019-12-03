@@ -205,7 +205,7 @@ impl<C: HttpClient> Request<C> {
     where
         K: http::header::IntoHeaderName,
     {
-        let value = value.as_ref().to_owned();
+        let value = value.as_ref();
         let req = self.req.as_mut().unwrap();
         req.headers_mut().insert(key, value.parse().unwrap());
         self

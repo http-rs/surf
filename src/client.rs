@@ -69,7 +69,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn get(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::GET, uri, self.client.clone())
     }
 
@@ -93,7 +93,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn head(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::HEAD, uri, self.client.clone())
     }
 
@@ -117,7 +117,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn post(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::POST, uri, self.client.clone())
     }
 
@@ -141,7 +141,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn put(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::PUT, uri, self.client.clone())
     }
 
@@ -165,7 +165,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn delete(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::DELETE, uri, self.client.clone())
     }
 
@@ -189,7 +189,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn connect(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::CONNECT, uri, self.client.clone())
     }
 
@@ -213,7 +213,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn options(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::OPTIONS, uri, self.client.clone())
     }
 
@@ -237,7 +237,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn trace(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::TRACE, uri, self.client.clone())
     }
 
@@ -261,7 +261,7 @@ impl<C: HttpClient> Client<C> {
     /// # Ok(()) }
     /// ```
     pub fn patch(&self, uri: impl AsRef<str>) -> Request<C> {
-        let uri = uri.as_ref().to_owned().parse().unwrap();
+        let uri = uri.as_ref().parse().unwrap();
         Request::with_client(http::Method::PATCH, uri, self.client.clone())
     }
 }

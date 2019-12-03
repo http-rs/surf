@@ -31,7 +31,7 @@ use super::Request;
 /// # Ok(()) }
 /// ```
 pub fn get(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::GET, uri)
 }
 
@@ -72,7 +72,7 @@ pub fn get(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::HEAD, uri)
 }
 
@@ -130,7 +130,7 @@ pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn post(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::POST, uri)
 }
 
@@ -166,7 +166,7 @@ pub fn post(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn put(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::PUT, uri)
 }
 
@@ -197,7 +197,7 @@ pub fn put(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn delete(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::DELETE, uri)
 }
 
@@ -237,7 +237,7 @@ pub fn delete(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn connect(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::CONNECT, uri)
 }
 
@@ -270,7 +270,7 @@ pub fn connect(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn options(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::OPTIONS, uri)
 }
 
@@ -307,7 +307,7 @@ pub fn options(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn trace(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::TRACE, uri)
 }
 
@@ -350,6 +350,6 @@ pub fn trace(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// # Ok(()) }
 /// ```
 pub fn patch(uri: impl AsRef<str>) -> Request<NativeClient> {
-    let uri = uri.as_ref().to_owned().parse().unwrap();
+    let uri = uri.as_ref().parse().unwrap();
     Request::new(http::Method::PATCH, uri)
 }
