@@ -6,10 +6,10 @@ use serde::Serialize;
 use url::Url;
 
 use crate::headers::Headers;
-use http_client::{self, Body, HttpClient};
 use crate::middleware::{Middleware, Next};
 use crate::Exception;
 use crate::Response;
+use http_client::{self, Body, HttpClient};
 
 use std::fmt;
 use std::fmt::Debug;

@@ -1,5 +1,5 @@
-use http_client::HttpClient;
 use crate::Request;
+use http_client::HttpClient;
 
 #[cfg(feature = "native-client")]
 use http_client::native::NativeClient;

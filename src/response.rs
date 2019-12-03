@@ -10,9 +10,9 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::headers::Headers;
-use http_client;
 use crate::Exception;
 use futures::io::AsyncReadExt;
+use http_client;
 
 /// An HTTP response, returned by `Request`.
 pub struct Response {
