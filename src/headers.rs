@@ -15,12 +15,18 @@ impl<'a> Headers<'a> {
     }
 
     /// Get a header.
-    pub fn get(&self, key: &'static str) -> Option<&'_ str> {
+    pub fn get<K>(&self, key: K) -> Option<&'_ str>
+    where
+        K: http::header::AsHeaderName,
+    {
         self.headers.get(key).map(|h| h.to_str().unwrap())
     }
 
     /// Set a header.
-    pub fn insert(&mut self, key: &'static str, value: impl AsRef<str>) -> Option<String> {
+    pub fn insert<K>(&mut self, key: K, value: impl AsRef<str>) -> Option<String>
+    where
+        K: http::header::IntoHeaderName,
+    {
         let value = value.as_ref();
         let res = self.headers.insert(key, value.parse().unwrap());
         res.as_ref().map(|h| h.to_str().unwrap().to_owned())

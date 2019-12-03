@@ -181,7 +181,10 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
     /// # Ok(()) }
     /// ```
-    pub fn header(&self, key: &'static str) -> Option<&'_ str> {
+    pub fn header<K>(&self, key: K) -> Option<&'_ str> 
+    where
+        K: http::header::AsHeaderName,
+    {
         let req = self.req.as_ref().unwrap();
         req.headers().get(key).map(|h| h.to_str().unwrap())
     }
@@ -198,7 +201,10 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
     /// # Ok(()) }
     /// ```
-    pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
+    pub fn set_header<K>(mut self, key: K, value: impl AsRef<str>) -> Self
+    where
+        K: http::header::IntoHeaderName,
+    {
         let value = value.as_ref();
         let req = self.req.as_mut().unwrap();
         req.headers_mut().insert(key, value.parse().unwrap());
