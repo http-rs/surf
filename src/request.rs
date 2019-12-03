@@ -181,7 +181,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
     /// # Ok(()) }
     /// ```
-    pub fn header<K>(&self, key: K) -> Option<&'_ str> 
+    pub fn header<K>(&self, key: K) -> Option<&'_ str>
     where
         K: http::header::AsHeaderName,
     {
