@@ -1,3 +1,10 @@
+#[cfg(all(
+    feature = "curl-client",
+    feature = "unstable",
+    not(target_arch = "wasm32")
+))]
+pub use super::isahc::IsahcClient as NativeClient;
+
 #[cfg(all(feature = "curl-client", not(target_arch = "wasm32")))]
 pub(crate) use super::isahc::IsahcClient as NativeClient;
 

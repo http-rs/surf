@@ -90,6 +90,9 @@ pub use client::Client;
 pub use request::Request;
 pub use response::{DecodeError, Response};
 
+#[cfg(all(feature = "unstable", feature = "native-client"))]
+pub use http_client::native::NativeClient;
+
 #[cfg(feature = "native-client")]
 mod one_off;
 #[cfg(feature = "native-client")]

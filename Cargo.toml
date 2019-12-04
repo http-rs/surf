@@ -18,6 +18,7 @@ hyper-client = ["hyper", "hyper-tls", "native-tls", "runtime", "runtime-raw", "r
 curl-client = ["isahc"]
 wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
 middleware-logger = []
+unstable = []
 encoding = ["encoding_rs"]
 
 [dependencies]
