@@ -40,7 +40,10 @@ impl HttpClient for IsahcClient {
         let client = self.client.clone();
         Box::pin(async move {
             let (parts, body) = req.into_parts();
-            let body = isahc::Body::reader(body);
+            let body = match body.len {
+                Some(len) => isahc::Body::reader_sized(body, len),
+                None => isahc::Body::reader(body),
+            };
             let req: http::Request<isahc::Body> = http::Request::from_parts(parts, body);
 
             let res = client.send_async(req).await?;
