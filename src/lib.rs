@@ -75,7 +75,6 @@
 #![cfg_attr(test, deny(warnings))]
 
 mod client;
-mod http_client;
 mod request;
 mod response;
 

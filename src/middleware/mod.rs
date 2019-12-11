@@ -47,7 +47,7 @@
 //! ```
 
 #[doc(inline)]
-pub use crate::http_client::{Body, HttpClient, Request, Response};
+pub use http_client::{Body, HttpClient, Request, Response};
 
 pub mod logger;
 

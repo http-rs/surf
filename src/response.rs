@@ -1,6 +1,8 @@
+use futures::io::AsyncReadExt;
 use futures::prelude::*;
 use http::status::StatusCode;
 use http::version::Version;
+use http_client;
 use mime::Mime;
 use serde::de::DeserializeOwned;
 
@@ -10,7 +12,6 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::headers::Headers;
-use crate::http_client;
 use crate::Exception;
 
 /// An HTTP response, returned by `Request`.
