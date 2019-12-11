@@ -2,7 +2,7 @@
 //!
 //! # Examples
 //!
-//! ```
+//! ```no_run
 //! # #[async_std::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let mut res = surf::get("https://httpbin.org/get")
@@ -28,7 +28,7 @@ use native::Logger;
 ///
 /// # Examples
 ///
-/// ```
+/// ```no_run
 /// # #[async_std::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 /// let mut res = surf::get("https://httpbin.org/get")
