@@ -113,7 +113,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -140,7 +140,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -173,7 +173,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
@@ -193,7 +193,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
@@ -234,7 +234,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::http;
@@ -251,7 +251,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::url::Url;
@@ -278,7 +278,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
@@ -298,7 +298,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
@@ -450,7 +450,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
