@@ -16,7 +16,7 @@
 //!         req: Request,
 //!         client: C,
 //!         next: Next<'a, C>,
-//!     ) -> BoxFuture<'a, Result<Response, Box<dyn std::error::Error + Send + Sync>>> {
+//!     ) -> BoxFuture<'a, Result<Response, surf::Error>> {
 //!         Box::pin(async move {
 //!             println!("sending request to {}", req.uri());
 //!             let now = time::Instant::now();
@@ -51,7 +51,7 @@ pub use crate::http_client::{Body, HttpClient, Request, Response};
 
 pub mod logger;
 
-use crate::error::{Error, BoxError};
+use crate::error::Error;
 use futures::future::BoxFuture;
 use std::sync::Arc;
 
@@ -63,7 +63,7 @@ pub trait Middleware<C: HttpClient>: 'static + Send + Sync {
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, BoxError>>;
+    ) -> BoxFuture<'a, Result<Response, Error>>;
 }
 
 // This allows functions to work as middleware too.
@@ -72,14 +72,14 @@ where
     F: Send
         + Sync
         + 'static
-        + for<'a> Fn(Request, C, Next<'a, C>) -> BoxFuture<'a, Result<Response, BoxError>>,
+        + for<'a> Fn(Request, C, Next<'a, C>) -> BoxFuture<'a, Result<Response, Error>>,
 {
     fn handle<'a>(
         &'a self,
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, BoxError>> {
+    ) -> BoxFuture<'a, Result<Response, Error>> {
         (self)(req, client, next)
     }
 }
@@ -125,7 +125,10 @@ impl<'a, C: HttpClient> Next<'a, C> {
         if let Some((current, next)) = self.next_middleware.split_first() {
             self.next_middleware = next;
             Box::pin(async move {
-                current.handle(req, client, self).await.map_err(|e| Error(anyhow::anyhow!(e)))
+                current
+                    .handle(req, client, self)
+                    .await
+                    .map_err(|e| Error(anyhow::anyhow!(e)))
             })
         } else {
             (self.endpoint)(req, client)

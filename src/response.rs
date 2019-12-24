@@ -29,9 +29,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
@@ -45,9 +45,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::http::version::Version;
     ///
     /// let res = surf::get("https://httpbin.org/get").await?;
@@ -63,9 +63,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert!(res.header("Content-Length").is_some());
     /// # Ok(()) }
@@ -80,7 +80,7 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), surf::Error> {
     /// let mut res = surf::post("https://httpbin.org/get").await?;
@@ -106,9 +106,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::mime;
     /// let res = surf::get("https://httpbin.org/json").await?;
     /// assert_eq!(res.mime(), Some(mime::APPLICATION_JSON));
@@ -132,16 +132,20 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
     /// let bytes: Vec<u8> = res.body_bytes().await?;
     /// # Ok(()) }
     /// ```
     pub async fn body_bytes(&mut self) -> Result<Vec<u8>, Error> {
         let mut buf = Vec::with_capacity(1024);
-        self.response.body_mut().read_to_end(&mut buf).await.map_err(Error::new)?;
+        self.response
+            .body_mut()
+            .read_to_end(&mut buf)
+            .await
+            .map_err(Error::new)?;
         Ok(buf)
     }
 
@@ -169,9 +173,9 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
     /// let string: String = res.body_string().await?;
     /// # Ok(()) }
@@ -199,10 +203,10 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
     ///     ip: String
@@ -230,10 +234,10 @@ impl Response {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {
     ///     apples: u32

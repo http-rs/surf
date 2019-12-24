@@ -1,5 +1,5 @@
 use crate::http_client::HttpClient;
-use crate::middleware::{Middleware, Next, Request, Response, BoxError};
+use crate::middleware::{Error, Middleware, Next, Request, Response};
 
 use futures::future::BoxFuture;
 use std::fmt::Arguments;
@@ -28,7 +28,7 @@ impl<C: HttpClient> Middleware<C> for Logger {
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, BoxError>> {
+    ) -> BoxFuture<'a, Result<Response, Error>> {
         Box::pin(async move {
             let start_time = time::Instant::now();
             let uri = format!("{}", req.uri());

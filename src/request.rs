@@ -51,9 +51,9 @@ impl Request<NativeClient> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::{http, url};
     ///
     /// let method = http::Method::GET;
@@ -98,9 +98,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let res = surf::get("https://httpbin.org/get")
     ///     .middleware(surf::middleware::logger::new())
     ///     .await?;
@@ -116,10 +116,10 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
     ///     page: u32
@@ -143,10 +143,10 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
     ///     page: u32
@@ -177,9 +177,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let req = surf::get("https://httpbin.org/get")
     ///     .set_header("X-Requested-With", "surf");
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
@@ -195,9 +195,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let req = surf::get("https://httpbin.org/get")
     ///     .set_header("X-Requested-With", "surf");
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
@@ -234,9 +234,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::http;
     /// let req = surf::get("https://httpbin.org/get");
     /// assert_eq!(req.method(), http::Method::GET);
@@ -252,9 +252,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::url::Url;
     /// let req = surf::get("https://httpbin.org/get");
     /// assert_eq!(req.url(), &Url::parse("https://httpbin.org/get")?);
@@ -280,9 +280,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::mime;
     /// let req = surf::post("https://httpbin.org/get")
     ///     .set_mime(mime::TEXT_CSS);
@@ -301,9 +301,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// use surf::mime;
     /// let req = surf::post("https://httpbin.org/get")
     ///     .set_mime(mime::TEXT_CSS);
@@ -323,9 +323,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let reader = surf::get("https://httpbin.org/get").await?;
     /// let uri = "https://httpbin.org/post";
     /// let res = surf::post(uri).body(reader).await?;
@@ -353,9 +353,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let uri = "https://httpbin.org/post";
     /// let data = serde_json::json!({ "name": "chashu" });
     /// let res = surf::post(uri).body_json(&data)?.await?;
@@ -376,9 +376,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let uri = "https://httpbin.org/post";
     /// let data = "hello world".to_string();
     /// let res = surf::post(uri).body_string(data).await?;
@@ -399,9 +399,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let uri = "https://httpbin.org/post";
     /// let data = b"hello world";
     /// let res = surf::post(uri).body_bytes(data).await?;
@@ -430,9 +430,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let res = surf::post("https://httpbin.org/post")
     ///     .body_file("README.md")?
     ///     .await?;
@@ -459,10 +459,10 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Body {
     ///     apples: u32
@@ -489,9 +489,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let bytes = surf::get("https://httpbin.org/get").recv_bytes().await?;
     /// assert!(bytes.len() > 0);
     /// # Ok(()) }
@@ -506,9 +506,9 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
     /// assert!(string.len() > 0);
     /// # Ok(()) }
@@ -523,10 +523,10 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
     ///     ip: String
@@ -555,10 +555,10 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # use surf::error::BoxError;
+    /// # use surf::error::Error;
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), BoxError> {
+    /// # async fn main() -> Result<(), Error> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {
     ///     apples: u32

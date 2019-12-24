@@ -14,9 +14,9 @@
 //!
 //! # Examples
 //! ```no_run
-//! # use surf::error::BoxError;
+//! # use surf::error::Error;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), BoxError> {
+//! # async fn main() -> Result<(), Error> {
 //! let mut res = surf::get("https://httpbin.org/get").await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
@@ -24,19 +24,19 @@
 //!
 //! It's also possible to skip the intermediate `Response`, and access the response type directly.
 //! ```no_run
-//! # use surf::error::BoxError;
+//! # use surf::error::Error;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), BoxError> {
+//! # async fn main() -> Result<(), Error> {
 //! dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
 //! # Ok(()) }
 //! ```
 //!
 //! Both sending and receiving JSON is real easy too.
 //! ```no_run
-//! # use surf::error::BoxError;
+//! # use surf::error::Error;
 //! # use serde::{Deserialize, Serialize};
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), BoxError> {
+//! # async fn main() -> Result<(), Error> {
 //! #[derive(Deserialize, Serialize)]
 //! struct Ip {
 //!     ip: String
@@ -56,9 +56,9 @@
 //! And even creating streaming proxies is no trouble at all.
 //!
 //! ```no_run
-//! # use surf::error::BoxError;
+//! # use surf::error::Error;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), BoxError> {
+//! # async fn main() -> Result<(), Error> {
 //! let reader = surf::get("https://img.fyi/q6YvNqP").await?;
 //! let res = surf::post("https://box.rs/upload").body(reader).await?;
 //! # Ok(()) }
@@ -93,7 +93,7 @@ pub use mime;
 pub use url;
 
 pub use client::Client;
-pub use error::{Result, Error};
+pub use error::{Error, Result};
 pub use request::Request;
 pub use response::{DecodeError, Response};
 
@@ -101,4 +101,3 @@ pub use response::{DecodeError, Response};
 mod one_off;
 #[cfg(feature = "native-client")]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
-

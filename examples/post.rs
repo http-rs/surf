@@ -1,8 +1,6 @@
 use async_std::task;
 
-type BoxError = Box<dyn std::error::Error + Send + Sync>;
-
-fn main() -> Result<(), BoxError> {
+fn main() -> Result<(), surf::Error> {
     femme::start(log::LevelFilter::Info)?;
     task::block_on(async {
         let uri = "https://httpbin.org/post";

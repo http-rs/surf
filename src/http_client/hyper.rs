@@ -17,7 +17,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use super::{Body, HttpClient, Request, Response};
-use crate::error::BoxError;
+use crate::error::Error;
 
 /// Hyper HTTP Client.
 #[derive(Debug)]
@@ -92,7 +92,7 @@ struct ChunkStream<R: AsyncRead> {
 }
 
 impl<R: AsyncRead + Unpin> futures::Stream for ChunkStream<R> {
-    type Item = Result<hyper::Chunk, BoxError>;
+    type Item = Result<hyper::Chunk, Error>;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // This is not at all efficient, but that's okay for now.

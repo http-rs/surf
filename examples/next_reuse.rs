@@ -5,15 +5,13 @@ use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
 
 struct Doubler;
 
-type BoxError = Box<dyn std::error::Error + Send + Sync>;
-
 impl<C: HttpClient> Middleware<C> for Doubler {
     fn handle<'a>(
         &'a self,
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, BoxError>> {
+    ) -> BoxFuture<'a, Result<Response, surf::Error>> {
         if req.method().is_safe() {
             let mut new_req = Request::new(Body::empty());
             *new_req.method_mut() = req.method().clone();
@@ -38,16 +36,14 @@ impl<C: HttpClient> Middleware<C> for Doubler {
                 Ok(res)
             })
         } else {
-            Box::pin(async move {
-                next.run(req, client).await.map_err(From::from)
-            })
+            Box::pin(async move { next.run(req, client).await.map_err(From::from) })
         }
     }
 }
 
 // The need for Ok with turbofish is explained here
 // https://rust-lang.github.io/async-book/07_workarounds/03_err_in_async_blocks.html
-fn main() -> Result<(), BoxError> {
+fn main() -> Result<(), surf::Error> {
     femme::start(log::LevelFilter::Info)?;
     task::block_on(async {
         let mut res = surf::get("https://httpbin.org/get")

@@ -1,7 +1,7 @@
-use surf::error::BoxError;
+use surf::error::Error;
 
 #[async_std::test]
-async fn post_json() -> Result<(), BoxError> {
+async fn post_json() -> Result<(), Error> {
     #[derive(serde::Deserialize, serde::Serialize)]
     struct Cat {
         name: String,
@@ -19,7 +19,7 @@ async fn post_json() -> Result<(), BoxError> {
 }
 
 #[async_std::test]
-async fn get_json() -> Result<(), BoxError> {
+async fn get_json() -> Result<(), Error> {
     #[derive(serde::Deserialize)]
     struct Ip {
         ip: String,

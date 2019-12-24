@@ -3,9 +3,9 @@
 //! # Examples
 //!
 //! ```
-//! # use surf::error::BoxError;
+//! # use surf::error::Error;
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), BoxError> {
+//! # async fn main() -> Result<(), Error> {
 //! let mut res = surf::get("https://httpbin.org/get")
 //!     .middleware(surf::middleware::logger::new())
 //!     .await?;
@@ -30,9 +30,9 @@ use native::Logger;
 /// # Examples
 ///
 /// ```
-/// # use surf::error::BoxError;
+/// # use surf::error::Error;
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), BoxError> {
+/// # async fn main() -> Result<(), Error> {
 /// let mut res = surf::get("https://httpbin.org/get")
 ///     .middleware(surf::middleware::logger::new())
 ///     .await?;

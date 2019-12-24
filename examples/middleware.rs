@@ -4,15 +4,13 @@ use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
 struct Printer;
 
-type BoxError = Box<dyn std::error::Error + Send + Sync>;
-
 impl<C: HttpClient> Middleware<C> for Printer {
     fn handle<'a>(
         &'a self,
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, BoxError>> {
+    ) -> BoxFuture<'a, Result<Response, surf::Error>> {
         Box::pin(async move {
             println!("sending a request!");
             let res = next.run(req, client).await?;
@@ -22,7 +20,7 @@ impl<C: HttpClient> Middleware<C> for Printer {
     }
 }
 
-fn main() -> Result<(), BoxError> {
+fn main() -> Result<(), surf::Error> {
     femme::start(log::LevelFilter::Info)?;
 
     task::block_on(async {
