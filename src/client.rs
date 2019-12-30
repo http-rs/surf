@@ -4,6 +4,9 @@ use http_client::HttpClient;
 #[cfg(feature = "native-client")]
 use http_client::native::NativeClient;
 
+#[cfg(feature = "h1-client")]
+use http_client::h1::H1Client;
+
 /// An HTTP client, capable of creating new `Request`s.
 ///
 /// # Examples
@@ -39,6 +42,23 @@ impl Client<NativeClient> {
     }
 }
 
+#[cfg(feature = "h1-client")]
+impl Client<H1Client> {
+    /// Create a new instance.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::Client::new();
+    /// # Ok(()) }
+    /// ```
+    pub fn new() -> Self {
+        Self::with_client(H1Client::new())
+    }
+}
+
 impl<C: HttpClient> Client<C> {
     /// Create a new instance with an `http_client::HttpClient` instance.
     // TODO(yw): hidden from docs until we make the traits public.
@@ -70,7 +90,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn get(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::GET, uri, self.client.clone())
+        Request::with_client(http_types::Method::Get, uri, self.client.clone())
     }
 
     /// Perform an HTTP `HEAD` request using the `Client` connection.
@@ -94,7 +114,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn head(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::HEAD, uri, self.client.clone())
+        Request::with_client(http_types::Method::Head, uri, self.client.clone())
     }
 
     /// Perform an HTTP `POST` request using the `Client` connection.
@@ -118,7 +138,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn post(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::POST, uri, self.client.clone())
+        Request::with_client(http_types::Method::Post, uri, self.client.clone())
     }
 
     /// Perform an HTTP `PUT` request using the `Client` connection.
@@ -142,7 +162,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn put(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::PUT, uri, self.client.clone())
+        Request::with_client(http_types::Method::Put, uri, self.client.clone())
     }
 
     /// Perform an HTTP `DELETE` request using the `Client` connection.
@@ -166,7 +186,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn delete(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::DELETE, uri, self.client.clone())
+        Request::with_client(http_types::Method::Delete, uri, self.client.clone())
     }
 
     /// Perform an HTTP `CONNECT` request using the `Client` connection.
@@ -190,7 +210,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn connect(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::CONNECT, uri, self.client.clone())
+        Request::with_client(http_types::Method::Connect, uri, self.client.clone())
     }
 
     /// Perform an HTTP `OPTIONS` request using the `Client` connection.
@@ -214,7 +234,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn options(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::OPTIONS, uri, self.client.clone())
+        Request::with_client(http_types::Method::Options, uri, self.client.clone())
     }
 
     /// Perform an HTTP `TRACE` request using the `Client` connection.
@@ -238,7 +258,7 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn trace(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::TRACE, uri, self.client.clone())
+        Request::with_client(http_types::Method::Trace, uri, self.client.clone())
     }
 
     /// Perform an HTTP `PATCH` request using the `Client` connection.
@@ -262,6 +282,6 @@ impl<C: HttpClient> Client<C> {
     /// ```
     pub fn patch(&self, uri: impl AsRef<str>) -> Request<C> {
         let uri = uri.as_ref().parse().unwrap();
-        Request::with_client(http::Method::PATCH, uri, self.client.clone())
+        Request::with_client(http_types::Method::Patch, uri, self.client.clone())
     }
 }
