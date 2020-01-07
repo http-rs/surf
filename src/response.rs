@@ -387,7 +387,7 @@ fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<Str
 
     // Encoding names are always valid ASCII, so we can avoid including casing mapping tables
     let content_encoding = content_encoding.unwrap_or("utf-8").to_ascii_lowercase();
-    if is_utf8_encoding(content_encoding) {
+    if is_utf8_encoding(&content_encoding) {
         return String::from_utf8(bytes)
             .map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err).into());
     }

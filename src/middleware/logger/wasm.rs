@@ -1,4 +1,4 @@
-use crate::http_client::HttpClient;
+use http_client::HttpClient;
 use crate::middleware::{Middleware, Next, Request, Response};
 
 use futures::future::BoxFuture;
