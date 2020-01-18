@@ -1,7 +1,7 @@
 use async_std::task;
 use dialoguer::{Input, PasswordInput};
 use directories::BaseDirs;
-use mkdirp::mkdirp;
+use std::fs;
 use serde::{Deserialize, Serialize};
 use surf::Client;
 use surf::Exception;
@@ -26,7 +26,6 @@ impl Sdk {
     /// let sdk = Sdk::login(async || {
     ///     let username = Input::<String>::new().with_prompt("Your name").interact()?;
     ///     let password = PasswordInput::new().with_prompt("New Password")
-    ///                 .with_confirmation("Confirm password", "Passwords mismatching")
     ///                     .interact()?;
     ///     Ok((username, password))
     /// }).await?;
@@ -66,15 +65,11 @@ impl Sdk {
 
     async fn test_creds(creds: StoredCredentials) -> Result<VerifiedCredentials, Exception> {
         let client = Client::new();
-        let creds = client
+        client
             .get("https://api.github.com/user")
             .set_header("Authorization", format!("Token {}", creds.api_token))
             .recv_json::<VerifiedCredentials>()
-            .await;
-        match creds {
-            Ok(creds) => Ok(creds),
-            Err(e) => Err(e),
-        }
+            .await
     }
 
     async fn get_creds(
@@ -102,24 +97,23 @@ impl Sdk {
             BaseDirs::new().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "oh no!"))?;
         let dir = base_dir.data_dir().join("my_sdk");
         let file = base_dir.data_dir().join("my_sdk/store.json");
-        mkdirp(dir)?;
+        fs::create_dir_all(dir)?;
         let buf = serde_json::to_string(&creds)?;
         async_std::fs::write(file, buf.as_bytes()).await?;
         Ok(())
     }
 }
 
-fn main() {
+fn main() -> Result<(), Exception> {
     task::block_on(async {
         Sdk::login(|| {
             let username = Input::<String>::new().with_prompt("Your name").interact().unwrap();
             let password = PasswordInput::new()
                 .with_prompt("New Password")
-                .with_confirmation("Confirm password", "Passwords mismatching")
                 .interact().unwrap();
             (username, password)
-        })
-        .await
-        .unwrap();
+        }).await?;
+
+        Ok::<(), surf::Exception>(())
     })
 }
