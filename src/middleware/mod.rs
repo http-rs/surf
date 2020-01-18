@@ -1,7 +1,7 @@
 //! Middleware types
 //!
 //! # Examples
-//! ```
+//! ```no_run
 //! use futures::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::time;
@@ -30,7 +30,7 @@
 //! `Middleware` can also be instantiated using a free function thanks to some convenient trait
 //! implementations.
 //!
-//! ```
+//! ```no_run
 //! use futures::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::time;
@@ -47,7 +47,7 @@
 //! ```
 
 #[doc(inline)]
-pub use crate::http_client::{Body, HttpClient, Request, Response};
+pub use http_client::{Body, HttpClient, Request, Response};
 
 pub mod logger;
 

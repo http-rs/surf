@@ -1,5 +1,5 @@
-use crate::http_client::HttpClient;
 use crate::middleware::{Middleware, Next, Request, Response};
+use http_client::HttpClient;
 
 use futures::future::BoxFuture;
 

@@ -6,10 +6,10 @@ use serde::Serialize;
 use url::Url;
 
 use crate::headers::Headers;
-use crate::http_client::{self, Body, HttpClient};
 use crate::middleware::{Middleware, Next};
 use crate::Exception;
 use crate::Response;
+use http_client::{self, Body, HttpClient};
 
 use std::fmt;
 use std::fmt::Debug;
@@ -22,7 +22,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 #[cfg(feature = "native-client")]
-use super::http_client::native::NativeClient;
+use http_client::native::NativeClient;
 #[cfg(feature = "native-client")]
 use std::convert::TryFrom;
 
@@ -51,7 +51,7 @@ impl Request<NativeClient> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::{http, url};
     ///
@@ -97,7 +97,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get")
     ///     .middleware(surf::middleware::logger::new())
@@ -113,9 +113,9 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use serde::{Deserialize, Serialize};
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
@@ -140,9 +140,9 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use serde::{Deserialize, Serialize};
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
@@ -157,7 +157,7 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn set_query(
         mut self,
-        query: &impl Serialize,
+        query: &(impl Serialize + ?Sized),
     ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(query)?;
         self.url.set_query(Some(&query));
@@ -173,15 +173,18 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// # #[runtime::main]
+    /// ```no_run
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
     ///     .set_header("X-Requested-With", "surf");
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
     /// # Ok(()) }
     /// ```
-    pub fn header(&self, key: &'static str) -> Option<&'_ str> {
+    pub fn header<K>(&self, key: K) -> Option<&'_ str>
+    where
+        K: http::header::AsHeaderName,
+    {
         let req = self.req.as_ref().unwrap();
         req.headers().get(key).map(|h| h.to_str().unwrap())
     }
@@ -190,16 +193,19 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// # #[runtime::main]
+    /// ```no_run
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
     ///     .set_header("X-Requested-With", "surf");
     /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
     /// # Ok(()) }
     /// ```
-    pub fn set_header(mut self, key: &'static str, value: impl AsRef<str>) -> Self {
-        let value = value.as_ref().to_owned();
+    pub fn set_header<K>(mut self, key: K, value: impl AsRef<str>) -> Self
+    where
+        K: http::header::IntoHeaderName,
+    {
+        let value = value.as_ref();
         let req = self.req.as_mut().unwrap();
         req.headers_mut().insert(key, value.parse().unwrap());
         self
@@ -210,7 +216,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), surf::Exception> {
     /// let mut req = surf::get("https://httpbin.org/get")
     ///     .set_header("X-Requested-With", "surf");
@@ -228,8 +234,8 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// # #[runtime::main]
+    /// ```no_run
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::http;
     /// let req = surf::get("https://httpbin.org/get");
@@ -245,8 +251,8 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// # #[runtime::main]
+    /// ```no_run
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::url::Url;
     /// let req = surf::get("https://httpbin.org/get");
@@ -272,8 +278,8 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// # #[runtime::main]
+    /// ```no_run
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
     /// let req = surf::post("https://httpbin.org/get")
@@ -292,8 +298,8 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// # #[runtime::main]
+    /// ```no_run
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
     /// let req = surf::post("https://httpbin.org/get")
@@ -314,7 +320,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let reader = surf::get("https://httpbin.org/get").await?;
     /// let uri = "https://httpbin.org/post";
@@ -343,7 +349,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
     /// let data = serde_json::json!({ "name": "chashu" });
@@ -351,7 +357,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_json(mut self, json: &impl Serialize) -> serde_json::Result<Self> {
+    pub fn body_json(mut self, json: &(impl Serialize + ?Sized)) -> serde_json::Result<Self> {
         *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
         Ok(self.set_mime(mime::APPLICATION_JSON))
     }
@@ -365,7 +371,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
     /// let data = "hello world".to_string();
@@ -387,7 +393,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let uri = "https://httpbin.org/post";
     /// let data = b"hello world";
@@ -417,7 +423,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), surf::Exception> {
     /// let res = surf::post("https://httpbin.org/post")
     ///     .body_file("README.md")?
@@ -444,9 +450,9 @@ impl<C: HttpClient> Request<C> {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```no_run
     /// # use serde::{Deserialize, Serialize};
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Body {
@@ -461,7 +467,7 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn body_form(
         mut self,
-        form: &impl Serialize,
+        form: &(impl Serialize + ?Sized),
     ) -> Result<Self, serde_urlencoded::ser::Error> {
         let query = serde_urlencoded::to_string(form)?;
         self = self.body_string(query);
@@ -474,7 +480,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let bytes = surf::get("https://httpbin.org/get").recv_bytes().await?;
     /// assert!(bytes.len() > 0);
@@ -490,7 +496,7 @@ impl<C: HttpClient> Request<C> {
     /// # Examples
     ///
     /// ```no_run
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
     /// assert!(string.len() > 0);
@@ -507,7 +513,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
@@ -538,7 +544,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
-    /// # #[runtime::main]
+    /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {

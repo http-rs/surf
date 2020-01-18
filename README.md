@@ -13,11 +13,6 @@
     <img src="https://img.shields.io/crates/v/surf.svg?style=flat-square"
     alt="Crates.io version" />
   </a>
-  <!-- Build Status -->
-  <a href="https://travis-ci.com/rustasync/surf">
-    <img src="https://travis-ci.com/rustasync/surf.svg?branch=master"
-      alt="Build Status" />
-  </a>
   <!-- Downloads -->
   <a href="https://crates.io/crates/surf">
     <img src="https://img.shields.io/crates/d/surf.svg?style=flat-square"
@@ -36,7 +31,7 @@
       API Docs
     </a>
     <span> | </span>
-    <a href="https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md">
+    <a href="https://github.com/http-rs/surf/blob/master/.github/CONTRIBUTING.md">
       Contributing
     </a>
     <span> | </span>
@@ -47,7 +42,7 @@
 </div>
 
 <div align="center">
-  <sub>Built with 🌊 by <a href="https://github.com/rustasync">The Rust Async Ecosystem WG</a>
+  <sub>Built with 🌊 by <a href="https://github.com/http-rs">The http-rs team</a>
 </div>
 
 <br/>
@@ -67,11 +62,14 @@ quick script, or a cross-platform SDK, Surf will make it work.
 ## Examples
 
 ```rust
-#[runtime::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    let mut res = surf::get("https://httpbin.org/get").await?;
-    dbg!(res.body_string().await?);
-    Ok(())
+use async_std::task;
+
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    task::block_on(async {
+        let mut res = surf::get("https://httpbin.org/get").await?;
+        dbg!(res.body_string().await?);
+        Ok(())
+    })
 }
 ```
 
@@ -79,49 +77,66 @@ It's also possible to skip the intermediate `Response`, and access the response
 type directly.
 
 ```rust
-#[runtime::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
-    Ok(())
+use async_std::task;
+
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    task::block_on(async {
+        dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
+        Ok(())
+    })
 }
 ```
 
 Both sending and receiving JSON is real easy too.
 
 ```rust
+use async_std::task;
 use serde::{Deserialize, Serialize};
-#[runtime::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     #[derive(Deserialize, Serialize)]
     struct Ip {
         ip: String
     }
 
-    let uri = "https://httpbin.org/post";
-    let data = &Ip { ip: "129.0.0.1".into() };
-    let res = surf::post(uri).body_json(data)?.await?;
-    assert_eq!(res.status(), 200);
+    task::block_on(async {
+        let uri = "https://httpbin.org/post";
+        let data = &Ip { ip: "129.0.0.1".into() };
+        let res = surf::post(uri).body_json(data)?.await?;
+        assert_eq!(res.status(), 200);
 
-    let uri = "https://api.ipify.org?format=json";
-    let Ip { ip } = surf::get(uri).recv_json().await?;
-    assert!(ip.len() > 10);
-    Ok(())
+        let uri = "https://api.ipify.org?format=json";
+        let Ip { ip } = surf::get(uri).recv_json().await?;
+        assert!(ip.len() > 10);
+        Ok(())
+    }
 }
 ```
 
 And even creating streaming proxies is no trouble at all.
 
 ```rust
-#[runtime::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    let reader = surf::get("https://img.fyi/q6YvNqP").await?;
-    let res = surf::post("https://box.rs/upload").body(reader).await?;
-    Ok(())
+use async_std::task;
+
+fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    task::block_on(async {
+        let reader = surf::get("https://img.fyi/q6YvNqP").await?;
+        let res = surf::post("https://box.rs/upload").body(reader).await?;
+        Ok(())
+    })
 }
 ```
 
 ## Installation
 
+Install OpenSSL - 
+- Ubuntu - ``` sudo apt install libssl-dev ```
+- Fedora - ``` sudo dnf install openssl-devel ```
+
+Make sure your rust is up to date using: 
+``` rustup update ```
+
+With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
 ```sh
 $ cargo add surf
 ```
@@ -144,9 +159,9 @@ look at some of these issues:
 
 ## See Also
 
-- [rustasync/http-client](https://github.com/rustasync/http-client)
-- [rustasync/http-service](https://github.com/rustasync/http-service)
-- [rustasync/tide](https://github.com/rustasync/tide)
+- [http-rs/http-client](https://github.com/http-rs/http-client)
+- [http-rs/http-service](https://github.com/http-rs/http-service)
+- [http-rs/tide](https://github.com/http-rs/tide)
 
 ## Thanks
 
@@ -160,13 +175,13 @@ use `async` curl client that saved us countless hours.
 
 [1]: https://img.shields.io/crates/v/surf.svg?style=flat-square
 [2]: https://crates.io/crates/surf
-[3]: https://img.shields.io/travis/rustasync/surf/master.svg?style=flat-square
-[4]: https://travis-ci.org/rustasync/surf
+[3]: https://img.shields.io/travis/http-rs/surf/master.svg?style=flat-square
+[4]: https://travis-ci.org/http-rs/surf
 [5]: https://img.shields.io/crates/d/surf.svg?style=flat-square
 [6]: https://crates.io/crates/surf
 [7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
 [8]: https://docs.rs/surf
-[releases]: https://github.com/rustasync/surf/releases
-[contributing]: https://github.com/rustasync/surf/blob/master/.github/CONTRIBUTING.md
-[good-first-issue]: https://github.com/rustasync/surf/labels/good%20first%20issue
-[help-wanted]: https://github.com/rustasync/surf/labels/help%20wanted
+[releases]: https://github.com/http-rs/surf/releases
+[contributing]: https://github.com/http-rs/surf/blob/master/.github/CONTRIBUTING.md
+[good-first-issue]: https://github.com/http-rs/surf/labels/good%20first%20issue
+[help-wanted]: https://github.com/http-rs/surf/labels/help%20wanted

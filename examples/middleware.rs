@@ -1,3 +1,4 @@
+use async_std::task;
 use futures::future::BoxFuture;
 use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
@@ -19,11 +20,15 @@ impl<C: HttpClient> Middleware<C> for Printer {
     }
 }
 
-#[runtime::main]
-async fn main() -> Result<(), surf::Exception> {
+// The need for Ok with turbofish is explained here
+// https://rust-lang.github.io/async-book/07_workarounds/03_err_in_async_blocks.html
+fn main() -> Result<(), surf::Exception> {
     femme::start(log::LevelFilter::Info)?;
-    surf::get("https://httpbin.org/get")
-        .middleware(Printer {})
-        .await?;
-    Ok(())
+
+    task::block_on(async {
+        surf::get("https://httpbin.org/get")
+            .middleware(Printer {})
+            .await?;
+        Ok::<(), surf::Exception>(())
+    })
 }

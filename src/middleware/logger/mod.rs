@@ -2,8 +2,8 @@
 //!
 //! # Examples
 //!
-//! ```
-//! # #[runtime::main]
+//! ```no_run
+//! # #[async_std::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let mut res = surf::get("https://httpbin.org/get")
 //!     .middleware(surf::middleware::logger::new())
@@ -28,8 +28,8 @@ use native::Logger;
 ///
 /// # Examples
 ///
-/// ```
-/// # #[runtime::main]
+/// ```no_run
+/// # #[async_std::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 /// let mut res = surf::get("https://httpbin.org/get")
 ///     .middleware(surf::middleware::logger::new())
