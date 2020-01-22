@@ -1,12 +1,12 @@
 use async_std::task;
 use dialoguer::{Input, PasswordInput};
 use directories::BaseDirs;
-use std::fs;
 use serde::{Deserialize, Serialize};
+use std::fs;
 use surf::Client;
 use surf::Exception;
 pub struct Sdk {
-    credentials: VerifiedCredentials,
+    _credentials: VerifiedCredentials,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -45,7 +45,7 @@ impl Sdk {
         let valid_creds = Sdk::test_existing_creds(creds, login_fn).await?;
         Sdk::store_creds(valid_creds.clone()).await?;
         Ok(Self {
-            credentials: valid_creds,
+            _credentials: valid_creds,
         })
     }
 
@@ -107,12 +107,17 @@ impl Sdk {
 fn main() -> Result<(), Exception> {
     task::block_on(async {
         Sdk::login(|| {
-            let username = Input::<String>::new().with_prompt("Your name").interact().unwrap();
+            let username = Input::<String>::new()
+                .with_prompt("Your name")
+                .interact()
+                .unwrap();
             let password = PasswordInput::new()
                 .with_prompt("New Password")
-                .interact().unwrap();
+                .interact()
+                .unwrap();
             (username, password)
-        }).await?;
+        })
+        .await?;
 
         Ok::<(), surf::Exception>(())
     })
