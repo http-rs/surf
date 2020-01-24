@@ -109,7 +109,7 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let Ip { ip } = surf::get(uri).recv_json().await?;
         assert!(ip.len() > 10);
         Ok(())
-    }
+    })
 }
 ```
 
