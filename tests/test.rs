@@ -1,3 +1,5 @@
+#![cfg(feature = "native-client")]
+
 use mockito::mock;
 
 #[async_std::test]

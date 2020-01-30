@@ -49,6 +49,7 @@
 #[doc(inline)]
 pub use http_client::{Body, HttpClient, Request, Response};
 
+#[cfg(feature = "middleware-logger")]
 pub mod logger;
 
 use crate::Exception;
