@@ -90,6 +90,9 @@ pub use request::Request;
 pub use response::{DecodeError, Response};
 
 #[cfg(feature = "native-client")]
+pub use http_client::native::NativeClient;
+
+#[cfg(feature = "native-client")]
 mod one_off;
 #[cfg(feature = "native-client")]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
