@@ -206,8 +206,16 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
-        let body_bytes = self.body_bytes().await?;
-        Ok(serde_json::from_slice(&body_bytes).map_err(io::Error::from)?)
+        #[cfg(not(feature = "simd-json"))]
+        {
+            let body_bytes = self.body_bytes().await?;
+            Ok(serde_json::from_slice(&body_bytes).map_err(io::Error::from)?)
+        }
+        #[cfg(feature = "simd-json")]
+        {
+            let mut body_bytes = self.body_bytes().await?;
+            Ok(simd_json::from_slice(&mut body_bytes).map_err(io::Error::from)?)
+        }
     }
 
     /// Reads and deserialized the entire request body from form encoding.
