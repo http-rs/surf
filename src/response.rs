@@ -10,7 +10,7 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use crate::headers::Headers;
-use crate::Exception;
+use crate::Result;
 use futures::io::AsyncReadExt;
 use http_client;
 
@@ -31,7 +31,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
@@ -46,7 +46,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// use surf::http::version::Version;
     ///
     /// let res = surf::get("https://httpbin.org/get").await?;
@@ -63,7 +63,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert!(res.header("Content-Length").is_some());
     /// # Ok(()) }
@@ -79,7 +79,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let mut res = surf::post("https://httpbin.org/get").await?;
     /// for (name, value) in res.headers() {
     ///     println!("{}: {}", name, value);
@@ -104,7 +104,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// use surf::mime;
     /// let res = surf::get("https://httpbin.org/json").await?;
     /// assert_eq!(res.mime(), Some(mime::APPLICATION_JSON));
@@ -129,7 +129,7 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
     /// let bytes: Vec<u8> = res.body_bytes().await?;
     /// # Ok(()) }
@@ -165,12 +165,12 @@ impl Response {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// let mut res = surf::get("https://httpbin.org/get").await?;
     /// let string: String = res.body_string().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_string(&mut self) -> Result<String, Exception> {
+    pub async fn body_string(&mut self) -> Result<String> {
         let bytes = self.body_bytes().await?;
         let mime = self.mime();
         let claimed_encoding = mime
@@ -195,7 +195,7 @@ impl Response {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
     ///     ip: String
@@ -225,7 +225,7 @@ impl Response {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> Result<(), surf::Error> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {
     ///     apples: u32
@@ -235,7 +235,7 @@ impl Response {
     /// let Body { apples } = res.body_form().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Exception> {
+    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T> {
         let string = self.body_string().await?;
         Ok(serde_urlencoded::from_str(&string)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
@@ -248,7 +248,7 @@ impl AsyncRead for Response {
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
         buf: &mut [u8],
-    ) -> Poll<Result<usize, io::Error>> {
+    ) -> Poll<std::result::Result<usize, std::io::Error>> {
         Pin::new(&mut self.response.body_mut()).poll_read(cx, buf)
     }
 }
@@ -313,7 +313,7 @@ fn is_utf8_encoding(encoding_label: &str) -> bool {
 /// If the body cannot be decoded as utf-8, this function returns an `std::io::Error` of kind
 /// `std::io::ErrorKind::InvalidData`, carrying a `DecodeError` struct.
 #[cfg(not(feature = "encoding"))]
-fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String> {
     if is_utf8_encoding(content_encoding.unwrap_or("utf-8")) {
         Ok(String::from_utf8(bytes).map_err(|err| {
             let err = DecodeError {
@@ -341,7 +341,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 /// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
 /// carrying a `DecodeError` struct.
 #[cfg(all(feature = "encoding", not(target_arch = "wasm32")))]
-fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String> {
     use encoding_rs::Encoding;
     use std::borrow::Cow;
 
@@ -382,7 +382,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
 /// encoding, this function returns an `std::io::Error` of kind `std::io::ErrorKind::InvalidData`,
 /// carrying a `DecodeError` struct.
 #[cfg(all(feature = "encoding", target_arch = "wasm32"))]
-fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String, Exception> {
+fn decode_body(mut bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String> {
     use web_sys::TextDecoder;
 
     // Encoding names are always valid ASCII, so we can avoid including casing mapping tables

@@ -1,7 +1,7 @@
 use mockito::mock;
 
 #[async_std::test]
-async fn post_json() -> Result<(), surf::Exception> {
+async fn post_json() -> anyhow::Result<()> {
     #[derive(serde::Deserialize, serde::Serialize)]
     struct Cat {
         name: String,
@@ -23,7 +23,7 @@ async fn post_json() -> Result<(), surf::Exception> {
 }
 
 #[async_std::test]
-async fn get_json() -> Result<(), surf::Exception> {
+async fn get_json() -> anyhow::Result<()> {
     #[derive(serde::Deserialize)]
     struct Message {
         message: String,

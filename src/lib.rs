@@ -15,7 +15,7 @@
 //! # Examples
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), surf::Error> {
 //! let mut res = surf::get("https://httpbin.org/get").await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
@@ -24,7 +24,7 @@
 //! It's also possible to skip the intermediate `Response`, and access the response type directly.
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), surf::Error> {
 //! dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
 //! # Ok(()) }
 //! ```
@@ -33,7 +33,7 @@
 //! ```no_run
 //! # use serde::{Deserialize, Serialize};
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), surf::Error> {
 //! #[derive(Deserialize, Serialize)]
 //! struct Ip {
 //!     ip: String
@@ -54,7 +54,7 @@
 //!
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), surf::Error> {
 //! let reader = surf::get("https://img.fyi/q6YvNqP").await?;
 //! let res = surf::post("https://box.rs/upload").body(reader).await?;
 //! # Ok(()) }
@@ -75,6 +75,7 @@
 #![cfg_attr(test, deny(warnings))]
 
 mod client;
+mod error;
 mod request;
 mod response;
 
@@ -86,6 +87,7 @@ pub use mime;
 pub use url;
 
 pub use client::Client;
+pub use error::{Error, Result};
 pub use request::Request;
 pub use response::{DecodeError, Response};
 
@@ -93,6 +95,3 @@ pub use response::{DecodeError, Response};
 mod one_off;
 #[cfg(feature = "native-client")]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
-
-/// A generic error type.
-pub type Exception = Box<dyn std::error::Error + Send + Sync + 'static>;

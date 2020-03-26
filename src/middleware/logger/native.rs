@@ -1,7 +1,8 @@
 use crate::middleware::{Middleware, Next, Request, Response};
-use http_client::HttpClient;
+use crate::Result;
 
 use futures::future::BoxFuture;
+use http_client::HttpClient;
 use std::fmt::Arguments;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time;
@@ -28,7 +29,7 @@ impl<C: HttpClient> Middleware<C> for Logger {
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
+    ) -> BoxFuture<'a, Result<Response>> {
         Box::pin(async move {
             let start_time = time::Instant::now();
             let uri = format!("{}", req.uri());
@@ -80,7 +81,7 @@ impl<'a> log::kv::Source for RequestPairs<'a> {
     fn visit<'kvs>(
         &'kvs self,
         visitor: &mut dyn log::kv::Visitor<'kvs>,
-    ) -> Result<(), log::kv::Error> {
+    ) -> std::result::Result<(), log::kv::Error> {
         visitor.visit_pair("req.id".into(), self.id.into())?;
         visitor.visit_pair("req.method".into(), self.method.into())?;
         visitor.visit_pair("req.uri".into(), self.uri.into())?;
@@ -98,7 +99,7 @@ impl<'a> log::kv::Source for ResponsePairs<'a> {
     fn visit<'kvs>(
         &'kvs self,
         visitor: &mut dyn log::kv::Visitor<'kvs>,
-    ) -> Result<(), log::kv::Error> {
+    ) -> std::result::Result<(), log::kv::Error> {
         visitor.visit_pair("req.id".into(), self.id.into())?;
         visitor.visit_pair("req.status".into(), self.status.into())?;
         visitor.visit_pair("elapsed".into(), self.elapsed.into())?;

@@ -4,7 +4,7 @@
 //!
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> Result<(), surf::Error> {
 //! let mut res = surf::get("https://httpbin.org/get")
 //!     .middleware(surf::middleware::logger::new())
 //!     .await?;
@@ -30,7 +30,7 @@ use native::Logger;
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let mut res = surf::get("https://httpbin.org/get")
 ///     .middleware(surf::middleware::logger::new())
 ///     .await?;

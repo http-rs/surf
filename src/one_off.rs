@@ -26,7 +26,7 @@ use super::Request;
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -67,7 +67,7 @@ pub fn get(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::head("https://httpbin.org/head").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -125,7 +125,7 @@ pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::post("https://httpbin.org/post").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -161,7 +161,7 @@ pub fn post(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::put("https://httpbin.org/put").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -192,7 +192,7 @@ pub fn put(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::delete("https://httpbin.org/delete").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -232,7 +232,7 @@ pub fn delete(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::connect("https://httpbin.org/connect").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -265,7 +265,7 @@ pub fn connect(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::options("https://httpbin.org/options").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -302,7 +302,7 @@ pub fn options(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::trace("https://httpbin.org/trace").recv_string().await?;
 /// # Ok(()) }
 /// ```
@@ -345,7 +345,7 @@ pub fn trace(uri: impl AsRef<str>) -> Request<NativeClient> {
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> Result<(), surf::Error> {
 /// let string = surf::patch("https://httpbin.org/patch").recv_string().await?;
 /// # Ok(()) }
 /// ```

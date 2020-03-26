@@ -64,7 +64,7 @@ quick script, or a cross-platform SDK, Surf will make it work.
 ```rust
 use async_std::task;
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+fn main() -> Result<(), surf::Error> {
     task::block_on(async {
         let mut res = surf::get("https://httpbin.org/get").await?;
         dbg!(res.body_string().await?);
@@ -79,7 +79,7 @@ type directly.
 ```rust
 use async_std::task;
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+fn main() -> Result<(), surf::Error> {
     task::block_on(async {
         dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
         Ok(())
@@ -93,7 +93,7 @@ Both sending and receiving JSON is real easy too.
 use async_std::task;
 use serde::{Deserialize, Serialize};
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+fn main() -> Result<(), surf::Error> {
     #[derive(Deserialize, Serialize)]
     struct Ip {
         ip: String
@@ -118,7 +118,7 @@ And even creating streaming proxies is no trouble at all.
 ```rust
 use async_std::task;
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+fn main() -> Result<(), surf::Error> {
     task::block_on(async {
         let reader = surf::get("https://img.fyi/q6YvNqP").await?;
         let res = surf::post("https://box.rs/upload").body(reader).await?;
@@ -129,11 +129,11 @@ fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 
 ## Installation
 
-Install OpenSSL - 
+Install OpenSSL -
 - Ubuntu - ``` sudo apt install libssl-dev ```
 - Fedora - ``` sudo dnf install openssl-devel ```
 
-Make sure your rust is up to date using: 
+Make sure your rust is up to date using:
 ``` rustup update ```
 
 With [cargo add](https://github.com/killercup/cargo-edit#Installation) installed :
