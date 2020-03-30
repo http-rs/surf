@@ -23,7 +23,7 @@ encoding = ["encoding_rs"]
 [dependencies]
 futures = { version = "0.3.1", features = ["compat", "io-compat"] }
 http = "0.1.17"
-log = { version = "0.4.7", features = ["kv_unstable"] }
+log = { version = "0.4.7" }
 mime = "0.3.13"
 mime_guess = "2.0.3"
 serde = "1.0.97"
