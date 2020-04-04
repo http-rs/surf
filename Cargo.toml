@@ -22,7 +22,7 @@ encoding = ["encoding_rs"]
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat", "io-compat"] }
-http = "0.1.17"
+http = "0.2.1"
 log = { version = "0.4.7", features = ["kv_unstable"] }
 mime = "0.3.13"
 mime_guess = "2.0.3"
@@ -30,14 +30,14 @@ serde = "1.0.97"
 serde_json = "1.0.40"
 serde_urlencoded = "0.6.1"
 url = "2.0.0"
-http-client = { version = "1.1.0", features = ["native_client"] }
+http-client = { git = "https://github.com/mythmon/http-client", branch = "isahc-0.9", features = ["native_client"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # encoding
 encoding_rs = { version = "0.8.20", optional = true }
 
 # isahc-client
-isahc = { version = "0.8", optional = true, default-features = false, features = ["http2"]  }
+isahc = { version = "0.9", optional = true, default-features = false, features = ["http2"]  }
 
 # hyper-client
 hyper = { version = "0.12.32", optional = true, default-features = false }

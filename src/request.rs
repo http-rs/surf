@@ -330,7 +330,7 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn body<R>(mut self, reader: R) -> Self
     where
-        R: AsyncRead + Unpin + Send + 'static,
+        R: AsyncRead + Unpin + Send + Sync + 'static,
     {
         *self.req.as_mut().unwrap().body_mut() = Box::new(reader).into();
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
@@ -592,7 +592,7 @@ impl<C: HttpClient> Future for Request<C> {
 }
 
 #[cfg(feature = "native-client")]
-impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
+impl<R: AsyncRead + Unpin + Send + Sync + 'static> TryFrom<http::Request<Box<R>>>
     for Request<NativeClient>
 {
     type Error = io::Error;
