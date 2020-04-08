@@ -358,7 +358,15 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn body_json(mut self, json: &(impl Serialize + ?Sized)) -> serde_json::Result<Self> {
-        *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
+        #[cfg(not(feature = "simd-json"))]
+        {
+            *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
+        }
+        #[cfg(feature = "simd-json")]
+        {
+            *self.req.as_mut().unwrap().body_mut() = simd_json::to_vec(json)?.into();
+        }
+
         Ok(self.set_mime(mime::APPLICATION_JSON))
     }
 
