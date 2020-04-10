@@ -47,8 +47,8 @@ async fn get_google() -> Result<(), http_types::Error> {
     let mut req = surf::get(url).await?;
     assert_eq!(req.status(), http_types::StatusCode::Ok);
 
-    let msg = req.body_string().await?;
-
+    let msg = req.body_bytes().await?;
+    let msg = String::from_utf8_lossy(&msg);
     println!("recieved: '{}'", msg);
     assert!(msg.contains("<!doctype html>"));
     assert!(msg.contains("<title>Google</title>"));
