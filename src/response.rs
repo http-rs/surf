@@ -26,7 +26,7 @@ impl Response {
     pub(crate) fn new(response: http_client::Response) -> Self {
         let cookies = response
             .headers()
-            .get_all(http::header::COOKIE)
+            .get_all(http::header::SET_COOKIE)
             .iter()
             .map(|h| h.to_str().unwrap().to_string().parse().unwrap())
             .collect();
