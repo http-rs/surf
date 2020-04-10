@@ -1,3 +1,4 @@
+use cookie::Cookie;
 use futures::prelude::*;
 use http::status::StatusCode;
 use http::version::Version;
@@ -16,13 +17,20 @@ use http_client;
 
 /// An HTTP response, returned by `Request`.
 pub struct Response {
+    cookies: Vec<Cookie<'static>>,
     response: http_client::Response,
 }
 
 impl Response {
     /// Create a new instance.
     pub(crate) fn new(response: http_client::Response) -> Self {
-        Self { response }
+        let cookies = response
+            .headers()
+            .get_all(http::header::COOKIE)
+            .iter()
+            .map(|h| h.to_str().unwrap().to_string().parse().unwrap())
+            .collect();
+        Self { cookies, response }
     }
 
     /// Get the HTTP status code.
@@ -88,6 +96,41 @@ impl Response {
     /// ```
     pub fn headers(&mut self) -> Headers<'_> {
         Headers::new(self.response.headers_mut())
+    }
+
+    /// Get a cookie.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let res = surf::get("https://httpbin.org/cookies/set/foo/bar").await?;
+    /// assert_eq!(res.cookie("foo"), Some("bar"));
+    /// # Ok(()) }
+    /// ```
+    pub fn cookie(&self, name: &str) -> Option<&str> {
+        self.cookies
+            .iter()
+            .find(|c| c.name() == name)
+            .map(|c| c.value())
+    }
+
+    /// Get all cookies.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), surf::Exception> {
+    /// let mut res = surf::get("https://httpbin.org/cookies/set?foo=bar&baz=quux").await?;
+    /// for (name, value) in res.cookies() {
+    ///     println!("{}: {}", name, value);
+    /// }
+    /// # Ok(()) }
+    /// ```
+    pub fn cookies(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.cookies.iter().map(|c| (c.name(), c.value()))
     }
 
     /// Get the request MIME.

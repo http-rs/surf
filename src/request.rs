@@ -1,3 +1,4 @@
+use cookie::Cookie;
 use futures::future::BoxFuture;
 use futures::prelude::*;
 use http::Method;
@@ -32,6 +33,8 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     client: Option<C>,
     /// Holds the state of the request.
     req: Option<http_client::Request>,
+    /// Holds the cookies added to the request.
+    cookies: Option<Vec<Cookie<'static>>>,
     /// Holds the inner middleware.
     middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     /// Holds the state of the `impl Future`.
@@ -77,6 +80,7 @@ impl<C: HttpClient> Request<C> {
         let client = Self {
             fut: None,
             client: Some(client),
+            cookies: Some(Vec::new()),
             req: Some(req),
             url,
             middleware: Some(vec![]),
@@ -228,6 +232,71 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn headers(&mut self) -> Headers<'_> {
         Headers::new(self.req.as_mut().unwrap().headers_mut())
+    }
+
+    /// Get a cookie.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let req = surf::get("https://httpbin.org/get")
+    ///     .set_cookie("foo", "bar");
+    /// assert_eq!(req.cookie("foo"), Some("bar"));
+    /// # Ok(()) }
+    /// ```
+    pub fn cookie<N>(&self, name: N) -> Option<&str>
+    where
+        N: AsRef<str>,
+    {
+        let cookies = self.cookies.as_ref().unwrap();
+        cookies
+            .iter()
+            .find(|c| c.name() == name.as_ref())
+            .map(|c| c.value())
+    }
+
+    /// Set a cookie.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let req = surf::get("https://httpbin.org/get")
+    ///     .set_cookie("foo", "bar");
+    /// assert_eq!(req.cookie("foo"), Some("bar"));
+    /// # Ok(()) }
+    /// ```
+    pub fn set_cookie<N, V>(mut self, name: N, value: V) -> Self
+    where
+        N: Into<String>,
+        V: Into<String>,
+    {
+        let cookie = Cookie::new(name.into(), value.into());
+        self.cookies.as_mut().unwrap().push(cookie);
+        self
+    }
+
+    /// Get all cookies.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), surf::Exception> {
+    /// let mut req = surf::get("https://httpbin.org/get")
+    ///     .set_cookie("foo", "bar");
+    ///
+    /// for (name, value) in req.cookies() {
+    ///     println!("{}: {}", name, value);
+    /// }
+    /// # Ok(()) }
+    /// ```
+    pub fn cookies(&self) -> impl Iterator<Item = (&str, &str)> {
+        let cookies = self.cookies.as_ref().unwrap();
+        cookies.iter().map(|c| (c.name(), c.value()))
     }
 
     /// Get the request HTTP method.
@@ -575,7 +644,13 @@ impl<C: HttpClient> Future for Request<C> {
             // request and middleware stack.
             let client = self.client.take().unwrap();
             let middleware = self.middleware.take().unwrap();
-            let req = self.req.take().unwrap();
+            let mut req = self.req.take().unwrap();
+            let cookies = self.cookies.take().unwrap();
+
+            for cookie in cookies {
+                let headers = req.headers_mut();
+                headers.append(http::header::COOKIE, cookie.to_string().parse().unwrap());
+            }
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req, client| {

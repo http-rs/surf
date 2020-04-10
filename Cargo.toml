@@ -21,6 +21,7 @@ middleware-logger = []
 encoding = ["encoding_rs"]
 
 [dependencies]
+cookie = "0.13.3"
 futures = { version = "0.3.1", features = ["compat", "io-compat"] }
 http = "0.1.17"
 log = { version = "0.4.7", features = ["kv_unstable"] }
