@@ -67,6 +67,7 @@
 //! - __`curl-client`:__ use `curl` (through `isahc`) as the HTTP backend.
 //! - __`hyper-client`:__ use `hyper` as the HTTP backend.
 //! - __`wasm-client`:__ use `window.fetch` as the HTTP backend.
+//! - __`simd-json`:__ uses simd-json instead of serde for json parsing. Note: you got to pass `-C target-feature=+avx,+avx2,+sse4.2` to `RUSTFLAGS` if this is enabled.
 
 #![forbid(future_incompatible, rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]
