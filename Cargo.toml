@@ -1,6 +1,6 @@
 [package]
 name = "surf"
-version = "2.0.0-alpha.0"
+version = "2.0.0-alpha.1"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/http-rs/surf"
 documentation = "https://docs.rs/surf"
@@ -31,7 +31,7 @@ serde = "1.0.97"
 serde_json = "1.0.40"
 serde_urlencoded = "0.6.1"
 url = "2.0.0"
-http-client = { git = "https://github.com/dignifiedquire/http-client-1", branch = "h1", default-features = false, features = ["h1_client"] }
+http-client = "2.0.0"
 async-std = { version = "1.4.0", default-features = false, features = ["std"] }
 
 # h1-client
