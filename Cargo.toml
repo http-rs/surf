@@ -12,7 +12,7 @@ readme = "README.md"
 edition = "2018"
 
 [features]
-default = ["h1-client", "middleware-logger", "encoding"]
+default = ["native-client", "middleware-logger", "encoding"]
 h1-client = ["async-h1", "wasm-client"]
 native-client = ["curl-client", "wasm-client", "http-client/native_client"]
 hyper-client = ["hyper", "hyper-tls", "native-tls", "runtime", "runtime-raw", "runtime-tokio" ]
