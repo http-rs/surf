@@ -1,5 +1,8 @@
 #[cfg(feature = "native-client")]
-use http_client::native::NativeClient;
+use http_client::native::NativeClient as Client;
+
+#[cfg(feature = "h1-client")]
+use http_client::h1::H1Client as Client;
 
 use super::Request;
 
@@ -30,9 +33,9 @@ use super::Request;
 /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn get(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn get(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::GET, uri)
+    Request::new(http_types::Method::Get, uri)
 }
 
 /// Perform a one-off `HEAD` request.
@@ -71,9 +74,9 @@ pub fn get(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::head("https://httpbin.org/head").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn head(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::HEAD, uri)
+    Request::new(http_types::Method::Head, uri)
 }
 
 /// Perform a one-off `POST` request.
@@ -129,9 +132,9 @@ pub fn head(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::post("https://httpbin.org/post").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn post(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn post(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::POST, uri)
+    Request::new(http_types::Method::Post, uri)
 }
 
 /// Perform a one-off `PUT` request.
@@ -165,9 +168,9 @@ pub fn post(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::put("https://httpbin.org/put").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn put(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn put(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::PUT, uri)
+    Request::new(http_types::Method::Put, uri)
 }
 
 /// Perform a one-off `DELETE` request.
@@ -196,9 +199,9 @@ pub fn put(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::delete("https://httpbin.org/delete").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn delete(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn delete(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::DELETE, uri)
+    Request::new(http_types::Method::Delete, uri)
 }
 
 /// Perform a one-off `CONNECT` request.
@@ -236,9 +239,9 @@ pub fn delete(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::connect("https://httpbin.org/connect").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn connect(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn connect(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::CONNECT, uri)
+    Request::new(http_types::Method::Connect, uri)
 }
 
 /// Perform a one-off `OPTIONS` request.
@@ -269,9 +272,9 @@ pub fn connect(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::options("https://httpbin.org/options").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn options(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn options(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::OPTIONS, uri)
+    Request::new(http_types::Method::Options, uri)
 }
 
 /// Perform a one-off `TRACE` request.
@@ -306,9 +309,9 @@ pub fn options(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::trace("https://httpbin.org/trace").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn trace(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn trace(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::TRACE, uri)
+    Request::new(http_types::Method::Trace, uri)
 }
 
 /// Perform a one-off `PATCH` request.
@@ -349,7 +352,7 @@ pub fn trace(uri: impl AsRef<str>) -> Request<NativeClient> {
 /// let string = surf::patch("https://httpbin.org/patch").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn patch(uri: impl AsRef<str>) -> Request<NativeClient> {
+pub fn patch(uri: impl AsRef<str>) -> Request<Client> {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(http::Method::PATCH, uri)
+    Request::new(http_types::Method::Patch, uri)
 }

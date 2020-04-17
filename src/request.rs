@@ -1,15 +1,13 @@
+use crate::middleware::{Middleware, Next};
+use crate::Response;
+use async_std::io::BufRead;
 use futures::future::BoxFuture;
-use futures::prelude::*;
-use http::Method;
+use http_client::{self, HttpClient};
+use http_types::headers::{HeaderName, HeaderValue, CONTENT_TYPE};
+use http_types::{Body, Error, Method};
 use mime::Mime;
 use serde::Serialize;
 use url::Url;
-
-use crate::headers::Headers;
-use crate::middleware::{Middleware, Next};
-use crate::Exception;
-use crate::Response;
-use http_client::{self, Body, HttpClient};
 
 use std::fmt;
 use std::fmt::Debug;
@@ -22,8 +20,12 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 #[cfg(feature = "native-client")]
-use http_client::native::NativeClient;
-#[cfg(feature = "native-client")]
+use http_client::native::NativeClient as Client;
+
+#[cfg(feature = "h1-client")]
+use http_client::h1::H1Client as Client;
+
+#[cfg(any(feature = "native-client", feature = "h1-client"))]
 use std::convert::TryFrom;
 
 /// An HTTP request, returns a `Response`.
@@ -35,13 +37,13 @@ pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     /// Holds the inner middleware.
     middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
     /// Holds the state of the `impl Future`.
-    fut: Option<BoxFuture<'static, Result<Response, Exception>>>,
+    fut: Option<BoxFuture<'static, Result<Response, Error>>>,
     /// Holds a reference to the Url
     url: Url,
 }
 
-#[cfg(feature = "native-client")]
-impl Request<NativeClient> {
+#[cfg(any(feature = "native-client", feature = "h1-client"))]
+impl Request<Client> {
     /// Create a new instance.
     ///
     /// This method is particularly useful when input URLs might be passed by third parties, and
@@ -53,15 +55,15 @@ impl Request<NativeClient> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::{http, url};
+    /// use surf::{http_types, url};
     ///
-    /// let method = http::Method::GET;
+    /// let method = http_types::Method::Get;
     /// let url = url::Url::parse("https://httpbin.org/get")?;
     /// let string = surf::Request::new(method, url).recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn new(method: http::Method, url: Url) -> Self {
-        Self::with_client(method, url, NativeClient::new())
+    pub fn new(method: http_types::Method, url: Url) -> Self {
+        Self::with_client(method, url, Client::new())
     }
 }
 
@@ -70,10 +72,9 @@ impl<C: HttpClient> Request<C> {
     // TODO(yw): hidden from docs until we make the traits public.
     #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
-    pub fn with_client(method: http::Method, url: Url, client: C) -> Self {
-        let mut req = http_client::Request::new(Body::empty());
-        *req.method_mut() = method;
-        *req.uri_mut() = url.as_str().parse().unwrap();
+    pub fn with_client(method: http_types::Method, url: Url, client: C) -> Self {
+        let req = http_client::Request::new(method, url.clone());
+
         let client = Self {
             fut: None,
             client: Some(client),
@@ -127,7 +128,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(page, 2);
     /// # Ok(()) }
     /// ```
-    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Exception> {
+    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Error> {
         use std::io::{Error, ErrorKind};
         let query = self
             .url
@@ -152,7 +153,7 @@ impl<C: HttpClient> Request<C> {
     /// let query = Index { page: 2 };
     /// let req = surf::get("https://httpbin.org/get").set_query(&query)?;
     /// assert_eq!(req.url().query(), Some("page=2"));
-    /// assert_eq!(format!("{}", req.request().unwrap().uri()), "https://httpbin.org/get?page=2");
+    /// assert_eq!(req.request().unwrap().url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
     pub fn set_query(
@@ -163,8 +164,7 @@ impl<C: HttpClient> Request<C> {
         self.url.set_query(Some(&query));
 
         let req = self.req.as_mut().unwrap();
-        let uri = req.uri_mut();
-        *uri = self.url.clone().into_string().parse().unwrap();
+        *req.url_mut() = self.url.clone();
 
         Ok(self)
     }
@@ -177,16 +177,13 @@ impl<C: HttpClient> Request<C> {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
-    ///     .set_header("X-Requested-With", "surf");
-    /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
+    ///     .set_header("X-Requested-With".parse().unwrap(), "surf");
+    /// assert_eq!(req.header(&"X-Requested-With".parse().unwrap()), Some(&vec!["surf".parse().unwrap()]));
     /// # Ok(()) }
     /// ```
-    pub fn header<K>(&self, key: K) -> Option<&'_ str>
-    where
-        K: http::header::AsHeaderName,
-    {
+    pub fn header(&self, key: &HeaderName) -> Option<&'_ Vec<HeaderValue>> {
         let req = self.req.as_ref().unwrap();
-        req.headers().get(key).map(|h| h.to_str().unwrap())
+        req.header(key)
     }
 
     /// Set an HTTP header.
@@ -197,37 +194,17 @@ impl<C: HttpClient> Request<C> {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get")
-    ///     .set_header("X-Requested-With", "surf");
-    /// assert_eq!(req.header("X-Requested-With"), Some("surf"));
+    ///     .set_header("X-Requested-With".parse().unwrap(), "surf");
+    /// assert_eq!(req.header(&"X-Requested-With".parse().unwrap()), Some(&vec!["surf".parse().unwrap()]));
     /// # Ok(()) }
     /// ```
-    pub fn set_header<K>(mut self, key: K, value: impl AsRef<str>) -> Self
-    where
-        K: http::header::IntoHeaderName,
-    {
-        let value = value.as_ref();
-        let req = self.req.as_mut().unwrap();
-        req.headers_mut().insert(key, value.parse().unwrap());
+    pub fn set_header(mut self, key: HeaderName, value: impl AsRef<str>) -> Self {
+        self.req
+            .as_mut()
+            .unwrap()
+            .insert_header(key, &[value.as_ref().parse().unwrap()][..])
+            .unwrap();
         self
-    }
-
-    /// Get all headers.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # #[async_std::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
-    /// let mut req = surf::get("https://httpbin.org/get")
-    ///     .set_header("X-Requested-With", "surf");
-    ///
-    /// for (name, value) in req.headers() {
-    ///     println!("{}: {}", name, value);
-    /// }
-    /// # Ok(()) }
-    /// ```
-    pub fn headers(&mut self) -> Headers<'_> {
-        Headers::new(self.req.as_mut().unwrap().headers_mut())
     }
 
     /// Get the request HTTP method.
@@ -237,12 +214,12 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::http;
+    /// use surf::http_types;
     /// let req = surf::get("https://httpbin.org/get");
-    /// assert_eq!(req.method(), http::Method::GET);
+    /// assert_eq!(req.method(), http_types::Method::Get);
     /// # Ok(()) }
     /// ```
-    pub fn method(&self) -> &Method {
+    pub fn method(&self) -> Method {
         let req = self.req.as_ref().unwrap();
         req.method()
     }
@@ -288,8 +265,14 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn mime(&self) -> Option<Mime> {
-        let header = self.header("Content-Type")?;
-        Some(header.parse().unwrap())
+        let header = self.header(&CONTENT_TYPE)?;
+        Some(
+            header
+                .iter()
+                .last()
+                .and_then(|s| s.as_str().parse().ok())
+                .unwrap(),
+        )
     }
 
     /// Set the request MIME.
@@ -308,7 +291,7 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn set_mime(self, mime: Mime) -> Self {
-        self.set_header("Content-Type", format!("{}", mime))
+        self.set_header(CONTENT_TYPE, mime.to_string())
     }
 
     /// Pass an `AsyncRead` stream as the request body.
@@ -330,9 +313,12 @@ impl<C: HttpClient> Request<C> {
     /// ```
     pub fn body<R>(mut self, reader: R) -> Self
     where
-        R: AsyncRead + Unpin + Send + 'static,
+        R: BufRead + Unpin + Send + Sync + 'static,
     {
-        *self.req.as_mut().unwrap().body_mut() = Box::new(reader).into();
+        self.req
+            .as_mut()
+            .unwrap()
+            .set_body(Body::from_reader(reader, None));
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
@@ -358,7 +344,10 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn body_json(mut self, json: &(impl Serialize + ?Sized)) -> serde_json::Result<Self> {
-        *self.req.as_mut().unwrap().body_mut() = serde_json::to_vec(json)?.into();
+        self.req
+            .as_mut()
+            .unwrap()
+            .set_body(serde_json::to_vec(json)?);
         Ok(self.set_mime(mime::APPLICATION_JSON))
     }
 
@@ -380,7 +369,7 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn body_string(mut self, string: String) -> Self {
-        *self.req.as_mut().unwrap().body_mut() = string.into_bytes().into();
+        self.req.as_mut().unwrap().set_body(string.into_bytes());
         self.set_mime(mime::TEXT_PLAIN_UTF_8)
     }
 
@@ -402,7 +391,10 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> Self {
-        *self.req.as_mut().unwrap().body_mut() = bytes.as_ref().to_owned().into();
+        self.req
+            .as_mut()
+            .unwrap()
+            .set_body(bytes.as_ref().to_owned());
         self.set_mime(mime::APPLICATION_OCTET_STREAM)
     }
 
@@ -424,7 +416,7 @@ impl<C: HttpClient> Request<C> {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), surf::Exception> {
+    /// # async fn main() -> Result<(), http_types::Error> {
     /// let res = surf::post("https://httpbin.org/post")
     ///     .body_file("README.md")?
     ///     .await?;
@@ -434,7 +426,7 @@ impl<C: HttpClient> Request<C> {
     pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
         let mime = mime_guess::from_path(&path).first_or_octet_stream();
         let bytes = fs::read(path)?;
-        *self.req.as_mut().unwrap().body_mut() = bytes.into();
+        self.req.as_mut().unwrap().set_body(bytes);
         Ok(self.set_mime(mime))
     }
 
@@ -486,7 +478,7 @@ impl<C: HttpClient> Request<C> {
     /// assert!(bytes.len() > 0);
     /// # Ok(()) }
     /// ```
-    pub async fn recv_bytes(self) -> Result<Vec<u8>, Exception> {
+    pub async fn recv_bytes(self) -> Result<Vec<u8>, Error> {
         let mut req = self.await?;
         Ok(req.body_bytes().await?)
     }
@@ -502,7 +494,7 @@ impl<C: HttpClient> Request<C> {
     /// assert!(string.len() > 0);
     /// # Ok(()) }
     /// ```
-    pub async fn recv_string(self) -> Result<String, Exception> {
+    pub async fn recv_string(self) -> Result<String, Error> {
         let mut req = self.await?;
         Ok(req.body_string().await?)
     }
@@ -525,7 +517,7 @@ impl<C: HttpClient> Request<C> {
     /// assert!(ip.len() > 10);
     /// # Ok(()) }
     /// ```
-    pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+    pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T, Error> {
         let mut req = self.await?;
         Ok(req.body_json::<T>().await?)
     }
@@ -555,7 +547,7 @@ impl<C: HttpClient> Request<C> {
     /// let Body { apples } = surf::get(url).recv_form().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Exception> {
+    pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T, Error> {
         let mut req = self.await?;
         Ok(req.body_form::<T>().await?)
     }
@@ -567,7 +559,7 @@ impl<C: HttpClient> Request<C> {
 }
 
 impl<C: HttpClient> Future for Request<C> {
-    type Output = Result<Response, Exception>;
+    type Output = Result<Response, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {
@@ -579,7 +571,7 @@ impl<C: HttpClient> Future for Request<C> {
 
             self.fut = Some(Box::pin(async move {
                 let next = Next::new(&middleware, &|req, client| {
-                    Box::pin(async move { client.send(req).await.map_err(|e| e.into()) })
+                    Box::pin(async move { client.send(req).await.map_err(Into::into) })
                 });
 
                 let res = next.run(req, client).await?;
@@ -591,25 +583,25 @@ impl<C: HttpClient> Future for Request<C> {
     }
 }
 
-#[cfg(feature = "native-client")]
-impl<R: AsyncRead + Unpin + Send + 'static> TryFrom<http::Request<Box<R>>>
-    for Request<NativeClient>
-{
+#[cfg(any(feature = "native-client", feature = "h1-client"))]
+impl TryFrom<http_types::Request> for Request<Client> {
     type Error = io::Error;
 
-    /// Converts an `http::Request` to a `surf::Request`.
-    fn try_from(http_request: http::Request<Box<R>>) -> io::Result<Self> {
-        let (parts, body) = http_request.into_parts();
-        let url = format!("{}", parts.uri);
-        let req = Self::new(parts.method, url.parse().unwrap());
-        let req = req.body(Box::new(Body::from(body)));
+    /// Converts an `http_types::Request` to a `surf::Request`.
+    fn try_from(http_request: http_types::Request) -> io::Result<Self> {
+        let method = http_request.method().clone();
+        let url = http_request.url().clone();
+        let req = Self::new(method, url);
+        let body: Body = http_request.into();
+        let req = req.body(body);
+
         Ok(req)
     }
 }
 
-impl<C: HttpClient> Into<http::Request<Body>> for Request<C> {
-    /// Converts a `surf::Request` to an `http::Request`.
-    fn into(self) -> http::Request<Body> {
+impl<C: HttpClient> Into<http_types::Request> for Request<C> {
+    /// Converts a `surf::Request` to an `http_types::Request`.
+    fn into(self) -> http_types::Request {
         self.req.unwrap()
     }
 }
@@ -617,5 +609,39 @@ impl<C: HttpClient> Into<http::Request<Body>> for Request<C> {
 impl<C: HttpClient> fmt::Debug for Request<C> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.req, f)
+    }
+}
+
+#[cfg(any(feature = "native-client", feature = "h1-client"))]
+impl IntoIterator for Request<Client> {
+    type Item = (HeaderName, Vec<HeaderValue>);
+    type IntoIter = http_types::headers::IntoIter;
+
+    /// Returns a iterator of references over the remaining items.
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.req.map(|req| req.into_iter()).unwrap()
+    }
+}
+
+#[cfg(any(feature = "native-client", feature = "h1-client"))]
+impl<'a> IntoIterator for &'a Request<Client> {
+    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type IntoIter = http_types::headers::Iter<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.req.as_ref().unwrap().iter()
+    }
+}
+
+#[cfg(any(feature = "native-client", feature = "h1-client"))]
+impl<'a> IntoIterator for &'a mut Request<Client> {
+    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type IntoIter = http_types::headers::IterMut<'a>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.req.as_mut().unwrap().iter_mut()
     }
 }

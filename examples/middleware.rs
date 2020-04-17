@@ -10,7 +10,7 @@ impl<C: HttpClient> Middleware<C> for Printer {
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, surf::Exception>> {
+    ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {
             println!("sending a request!");
             let res = next.run(req, client).await?;
@@ -22,13 +22,13 @@ impl<C: HttpClient> Middleware<C> for Printer {
 
 // The need for Ok with turbofish is explained here
 // https://rust-lang.github.io/async-book/07_workarounds/03_err_in_async_blocks.html
-fn main() -> Result<(), surf::Exception> {
+fn main() -> Result<(), http_types::Error> {
     femme::start(log::LevelFilter::Info)?;
 
     task::block_on(async {
         surf::get("https://httpbin.org/get")
             .middleware(Printer {})
             .await?;
-        Ok::<(), surf::Exception>(())
+        Ok::<(), http_types::Error>(())
     })
 }

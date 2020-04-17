@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches:
-      - master
       - staging
       - trying
 
@@ -18,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        rust: ["1.39.0", nightly]
+        rust: [nightly]
 
     steps:
     - uses: actions/checkout@master
@@ -35,6 +34,12 @@ jobs:
         command: check
         args: --all --bins --examples
 
+    - name: check unstable
+      uses: actions-rs/cargo@v1
+      with:
+        command:  check
+        args: --all --benches --bins --examples --tests
+
     - name: tests
       uses: actions-rs/cargo@v1
       with:
@@ -46,14 +51,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-
-    - name: Install stable toolchain
-      uses: actions-rs/toolchain@v1
+    - uses: actions-rs/toolchain@v1
       with:
-        profile: minimal
-        toolchain: stable
+        toolchain: nightly
+        components: rustfmt, clippy
         override: true
-        components: rustfmt
 
     - name: fmt
       run: cargo fmt --all -- --check

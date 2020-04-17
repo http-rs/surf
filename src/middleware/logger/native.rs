@@ -28,10 +28,10 @@ impl<C: HttpClient> Middleware<C> for Logger {
         req: Request,
         client: C,
         next: Next<'a, C>,
-    ) -> BoxFuture<'a, Result<Response, crate::Exception>> {
+    ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {
             let start_time = time::Instant::now();
-            let uri = format!("{}", req.uri());
+            let uri = format!("{}", req.url());
             let method = format!("{}", req.method());
             let id = COUNTER.fetch_add(1, Ordering::SeqCst);
             print(
@@ -62,7 +62,7 @@ impl<C: HttpClient> Middleware<C> for Logger {
                 ResponsePairs {
                     id,
                     elapsed: &format!("{:?}", elapsed),
-                    status: status.as_u16(),
+                    status: status.into(),
                 },
             );
 
