@@ -13,13 +13,13 @@ edition = "2018"
 
 [features]
 default = ["native-client", "middleware-logger", "encoding"]
-h1-client = ["async-h1", "wasm-client"]
+h1-client = ["wasm-client", "http-client/h1_client"]
 native-client = ["curl-client", "wasm-client", "http-client/native_client"]
-hyper-client = ["hyper", "hyper-tls", "native-tls", "runtime", "runtime-raw", "runtime-tokio" ]
-curl-client = ["isahc"]
-wasm-client = ["js-sys", "web-sys", "wasm-bindgen", "wasm-bindgen-futures"]
+curl-client = ["http-client/curl_client"]
+wasm-client = ["web-sys", "http-client/wasm_client"]
 middleware-logger = []
-encoding = ["encoding_rs"]
+# requires web-sys for TextDecoder on wasm
+encoding = ["encoding_rs", "web-sys"]
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat", "io-compat"] }
@@ -33,49 +33,18 @@ serde_urlencoded = "0.6.1"
 url = "2.0.0"
 http-client = "2.0.0"
 async-std = { version = "1.4.0", default-features = false, features = ["std"] }
-
-# h1-client
-async-h1 = { version = "1.0.0", optional = true }
 pin-project-lite = "0.1.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # encoding
 encoding_rs = { version = "0.8.20", optional = true }
 
-# isahc-client
-isahc = { version = "0.8", optional = true, default-features = false, features = ["http2"]  }
-
-# hyper-client
-hyper = { version = "0.13.2", optional = true, default-features = false }
-hyper-tls = { version = "0.3.2", optional = true }
-native-tls = { version = "0.2.2", optional = true }
-runtime = { version = "0.3.0-alpha.8", optional = true }
-runtime-raw = { version = "0.3.0-alpha.4", optional = true }
-runtime-tokio = { version = "0.3.0-alpha.6", optional = true }
-
 # wasm-client
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = { version = "0.3.25", optional = true }
-wasm-bindgen = { version = "0.2.48", optional = true }
-wasm-bindgen-futures = { version = "0.4.5", optional = true }
-
 [target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
 version = "0.3.25"
 optional = true
 features = [
-    "AbortSignal",
-    "Headers",
-    "ObserverCallback",
-    "ReferrerPolicy",
-    "Request",
-    "RequestCache",
-    "RequestCredentials",
-    "RequestInit",
-    "RequestMode",
-    "RequestRedirect",
-    "Response",
     "TextDecoder",
-    "Window",
 ]
 
 [dev-dependencies]
@@ -83,3 +52,6 @@ async-std = { version = "1.0", features = ["attributes"] }
 femme = "1.1.0"
 serde = { version = "1.0.97", features = ["derive"] }
 mockito = "0.23.3"
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen = "0.2.48"
