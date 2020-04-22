@@ -18,7 +18,7 @@ default = ["native-client", "middleware-logger", "encoding"]
 h1-client = ["wasm-client", "http-client/h1_client"]
 native-client = ["curl-client", "wasm-client", "http-client/native_client"]
 curl-client = ["http-client/curl_client"]
-wasm-client = ["web-sys", "http-client/wasm_client"]
+wasm-client = ["http-client/wasm_client"]
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
 encoding = ["encoding_rs", "web-sys"]
