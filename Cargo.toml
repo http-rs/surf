@@ -12,6 +12,8 @@ readme = "README.md"
 edition = "2018"
 
 [features]
+# when the default feature set is updated, verify that the `--features` flags in
+# `.github/workflows/ci.yaml` are updated accordingly
 default = ["native-client", "middleware-logger", "encoding"]
 h1-client = ["wasm-client", "http-client/h1_client"]
 native-client = ["curl-client", "wasm-client", "http-client/native_client"]
