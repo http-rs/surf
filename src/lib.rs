@@ -72,6 +72,8 @@
 #![warn(missing_docs, unreachable_pub)]
 // #![warn(missing_docs, missing_doc_code_examples, unreachable_pub)] TODO(yw): re-enable me
 #![cfg_attr(test, deny(warnings))]
+#![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]
+#![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
 mod client;
 mod request;
