@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.0.0-alpha.2] - 2020-04-29
+
+This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable `futures`. There may be significant breaking changes before the final 2.0 release. Until then, we recommend pinning to the particular alpha:
+
+```toml
+[dependencies]
+surf = "= 2.0.0-alpha.2"
+```
+
+### Added
+- `http_types::{Error, Result}` are re-exported as `surf::{Error, Result}` https://github.com/http-rs/surf/pull/163
+
+### Changed
+- Add http-rs logo for docs.rs. https://github.com/http-rs/surf/pull/165
+
+### Fixed
+- Removed dependencies that are no longer necessary since the switch to [`http-client`](https://github.com/http-rs/http-client) in 2.0.0-alpha.0 https://github.com/http-rs/surf/pull/164
+
+## [2.0.0-alpha.1] - 2020-04-17
+
+This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable `futures`. There may be significant breaking changes before the final 2.0 release. Until thin, we recommend pinning to the particular alpha:
+
+```toml
+[dependencies]
+surf = "= 2.0.0-alpha.1"
+```
+
+### Added
+- `h1-client` backend is now available https://github.com/http-rs/surf/pull/146
+
+### Changed
+
+- Updated `http-client` to v2.0.0
+- Switched from `hyperium/http` to [`http-types`](https://docs.rs/http-types/1.2.0/http_types/) https://github.com/http-rs/surf/pull/146
+
+### Fixed
+- Updated `mime-guess` requirement https://github.com/http-rs/surf/pull/148
+
 ## [2.0.0-alpha.0] - 2020-03-02
 
 This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable `futures`. There may be significant breaking changes before the final 2.0 release. Until thin, we recommend pinning to the particular alpha:
