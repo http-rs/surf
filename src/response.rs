@@ -3,7 +3,7 @@ use futures::io::AsyncReadExt;
 use futures::prelude::*;
 use http_client;
 use http_types::{
-    headers::{HeaderName, HeaderValues, CONTENT_TYPE},
+    headers::{HeaderName, HeaderValue, HeaderValues, CONTENT_TYPE},
     Error, StatusCode, Version,
 };
 use mime::Mime;
@@ -73,6 +73,22 @@ impl Response {
     /// ```
     pub fn header(&self, key: impl Into<HeaderName>) -> Option<&HeaderValues> {
         self.response.header(key)
+    }
+
+    /// Get an iterator of header names.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let res = surf::get("https://httpbin.org/get").await?;
+    /// let names: Vec<_> = res.header_names().collect();
+    /// assert!(names.contains(&&"Content-Length".parse().unwrap()));
+    /// # Ok(()) }
+    /// ```
+    pub fn header_names(&'_ self) -> Names<'_> {
+        self.response.header_names()
     }
 
     /// Get the request MIME.
