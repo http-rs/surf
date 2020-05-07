@@ -87,7 +87,7 @@ impl Response {
     /// assert!(names.contains(&&"Content-Length".parse().unwrap()));
     /// # Ok(()) }
     /// ```
-    pub fn header_names(&'_ self) -> Names<'_> {
+    pub fn header_names(&self) -> Names<'_> {
         self.response.header_names()
     }
 
