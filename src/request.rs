@@ -207,6 +207,29 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Add an HTTP header.
+    ///
+    /// Unlike `set_header`, this method will not overwrite an already existing header value.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let req = surf::get("https://httpbin.org/get")
+    ///     .add_header("X-Requested-With".parse().unwrap(), "surf");
+    /// assert_eq!(req.header(&"X-Requested-With".parse().unwrap()), Some(&vec!["surf".parse().unwrap()]));
+    /// # Ok(()) }
+    /// ```
+    pub fn add_header(mut self, key: HeaderName, value: impl AsRef<str>) -> Self {
+        self.req
+            .as_mut()
+            .unwrap()
+            .append_header(key, &[value.as_ref().parse().unwrap()][..])
+            .unwrap();
+        self
+    }
+
     /// Get the request HTTP method.
     ///
     /// # Examples
