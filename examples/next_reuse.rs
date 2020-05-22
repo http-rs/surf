@@ -17,7 +17,7 @@ impl<C: HttpClient> Middleware<C> for Doubler {
                 let mut new_req = Request::new(req.method().clone(), req.url().clone());
                 new_req.set_version(req.version().clone());
                 for (name, value) in &req {
-                    new_req.insert_header(name.clone(), &value[..])?;
+                    new_req.insert_header(name, value);
                 }
 
                 let mut buf = Vec::new();
