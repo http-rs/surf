@@ -27,14 +27,12 @@ impl<C: HttpClient> Middleware<C> for Logger {
         next: Next<'a, C>,
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {
-            let uri = format!("{}", req.uri());
-            let method = format!("{}", req.method());
             print(
                 log::Level::Info,
                 format_args!("sending request"),
                 RequestPairs {
-                    uri: &uri,
-                    method: &method,
+                    uri: req.url().as_ref(),
+                    method: req.method().as_ref(),
                 },
             );
 
@@ -53,7 +51,7 @@ impl<C: HttpClient> Middleware<C> for Logger {
                 level,
                 format_args!("request completed"),
                 ResponsePairs {
-                    status: status.as_u16(),
+                    status: status.into(),
                 },
             );
             Ok(res)
