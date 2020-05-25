@@ -62,6 +62,7 @@
 //!
 //! # Features
 //! The following features are available.
+//! - __`h1-client`:__ use `async-h1` on the server and `window.fetch` in the browser.
 //! - __`native-client` (default):__ use `curl` on the server and `window.fetch` in the browser.
 //! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
 //! - __`curl-client`:__ use `curl` (through `isahc`) as the HTTP backend.
