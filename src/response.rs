@@ -3,7 +3,7 @@ use futures::io::AsyncReadExt;
 use futures::prelude::*;
 use http_client;
 use http_types::{
-    headers::{HeaderName, HeaderValue, CONTENT_TYPE},
+    headers::{HeaderName, HeaderValue, Iter, IterMut, Values, CONTENT_TYPE},
     Error, StatusCode, Version,
 };
 use mime::Mime;
@@ -73,6 +73,22 @@ impl Response {
     /// ```
     pub fn header(&self, key: &HeaderName) -> Option<&'_ Vec<HeaderValue>> {
         self.response.header(key)
+    }
+
+    /// An iterator visiting all header values in arbitrary order.
+    pub fn header_values(&self) -> Values<'_> {
+        self.response.header_values()
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order.
+    pub fn headers(&self) -> Iter<'_> {
+        self.response.iter()
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
+    /// values.
+    pub fn headers_mut(&mut self) -> IterMut<'_> {
+        self.response.iter_mut()
     }
 
     /// Get the request MIME.
