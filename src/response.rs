@@ -3,7 +3,7 @@ use futures::io::AsyncReadExt;
 use futures::prelude::*;
 use http_client;
 use http_types::{
-    headers::{HeaderName, HeaderValue, HeaderValues, CONTENT_TYPE},
+    headers::{HeaderName, HeaderValue, HeaderValues, Names, CONTENT_TYPE},
     Error, StatusCode, Version,
 };
 use mime::Mime;
