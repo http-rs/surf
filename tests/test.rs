@@ -16,7 +16,10 @@ async fn post_json() -> Result<(), http_types::Error> {
         .match_body(&serde_json::to_string(&cat)?[..])
         .with_body(&serde_json::to_string(&cat)?[..])
         .create();
-    let res = surf::post(mockito::server_url()).body_json(&cat)?.await?;
+    let res = surf::post(mockito::server_url())
+        .set_header("Accept", "application/json")
+        .body_json(&cat)?
+        .await?;
     m.assert();
     assert_eq!(res.status(), http_types::StatusCode::Ok);
     Ok(())
