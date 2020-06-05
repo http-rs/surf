@@ -197,11 +197,7 @@ impl<C: HttpClient> Request<C> {
     /// # Ok(()) }
     /// ```
     pub fn set_header(mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) -> Self {
-        self.req
-            .as_mut()
-            .unwrap()
-            .insert_header(key, value)
-            .unwrap();
+        self.req.as_mut().unwrap().insert_header(key, value);
         self
     }
 
