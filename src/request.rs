@@ -3,7 +3,7 @@ use crate::Response;
 use async_std::io::BufRead;
 use futures::future::BoxFuture;
 use http_client::{self, HttpClient};
-use http_types::headers::{HeaderName, HeaderValue, CONTENT_TYPE};
+use http_types::headers::{HeaderName, HeaderValues, ToHeaderValues, CONTENT_TYPE};
 use http_types::{Body, Error, Method};
 use mime::Mime;
 use serde::Serialize;
@@ -176,12 +176,11 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// let req = surf::get("https://httpbin.org/get")
-    ///     .set_header("X-Requested-With".parse().unwrap(), "surf");
-    /// assert_eq!(req.header(&"X-Requested-With".parse().unwrap()), Some(&vec!["surf".parse().unwrap()]));
+    /// let req = surf::get("https://httpbin.org/get").set_header("X-Requested-With", "surf");
+    /// assert_eq!(req.header("X-Requested-With").unwrap(), "surf");
     /// # Ok(()) }
     /// ```
-    pub fn header(&self, key: &HeaderName) -> Option<&'_ Vec<HeaderValue>> {
+    pub fn header(&self, key: impl Into<HeaderName>) -> Option<&HeaderValues> {
         let req = self.req.as_ref().unwrap();
         req.header(key)
     }
@@ -193,17 +192,12 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// let req = surf::get("https://httpbin.org/get")
-    ///     .set_header("X-Requested-With".parse().unwrap(), "surf");
-    /// assert_eq!(req.header(&"X-Requested-With".parse().unwrap()), Some(&vec!["surf".parse().unwrap()]));
+    /// let req = surf::get("https://httpbin.org/get").set_header("X-Requested-With", "surf");
+    /// assert_eq!(req.header("X-Requested-With").unwrap(), "surf");
     /// # Ok(()) }
     /// ```
-    pub fn set_header(mut self, key: HeaderName, value: impl AsRef<str>) -> Self {
-        self.req
-            .as_mut()
-            .unwrap()
-            .insert_header(key, &[value.as_ref().parse().unwrap()][..])
-            .unwrap();
+    pub fn set_header(mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) -> Self {
+        self.req.as_mut().unwrap().insert_header(key, value);
         self
     }
 
@@ -614,7 +608,7 @@ impl<C: HttpClient> fmt::Debug for Request<C> {
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl IntoIterator for Request<Client> {
-    type Item = (HeaderName, Vec<HeaderValue>);
+    type Item = (HeaderName, HeaderValues);
     type IntoIter = http_types::headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
@@ -626,7 +620,7 @@ impl IntoIterator for Request<Client> {
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl<'a> IntoIterator for &'a Request<Client> {
-    type Item = (&'a HeaderName, &'a Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = http_types::headers::Iter<'a>;
 
     #[inline]
@@ -637,7 +631,7 @@ impl<'a> IntoIterator for &'a Request<Client> {
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl<'a> IntoIterator for &'a mut Request<Client> {
-    type Item = (&'a HeaderName, &'a mut Vec<HeaderValue>);
+    type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = http_types::headers::IterMut<'a>;
 
     #[inline]

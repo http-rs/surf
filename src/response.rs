@@ -3,7 +3,7 @@ use futures::io::AsyncReadExt;
 use futures::prelude::*;
 use http_client;
 use http_types::{
-    headers::{HeaderName, HeaderValue, Iter, IterMut, Values, CONTENT_TYPE},
+    headers::{HeaderName, HeaderValues, Iter, IterMut, Values, CONTENT_TYPE},
     Error, StatusCode, Version,
 };
 use mime::Mime;
@@ -68,10 +68,10 @@ impl Response {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get").await?;
-    /// assert!(res.header(&"Content-Length".parse().unwrap()).is_some());
+    /// assert!(res.header("Content-Length").is_some());
     /// # Ok(()) }
     /// ```
-    pub fn header(&self, key: &HeaderName) -> Option<&'_ Vec<HeaderValue>> {
+    pub fn header(&self, key: impl Into<HeaderName>) -> Option<&HeaderValues> {
         self.response.header(key)
     }
 
@@ -112,8 +112,8 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn mime(&self) -> Option<Mime> {
-        let header = self.header(&CONTENT_TYPE)?;
-        header.last().and_then(|s| s.as_str().parse().ok())
+        self.header(&CONTENT_TYPE)
+            .and_then(|header| header.last().as_str().parse().ok())
     }
 
     /// Reads the entire request body into a byte buffer.
