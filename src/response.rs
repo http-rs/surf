@@ -18,14 +18,14 @@ pin_project_lite::pin_project! {
     /// An HTTP response, returned by `Request`.
     pub struct Response {
         #[pin]
-        response: http_client::Response,
+        res: http_client::Response,
     }
 }
 
 impl Response {
     /// Create a new instance.
-    pub(crate) fn new(response: http_client::Response) -> Self {
-        Self { response }
+    pub(crate) fn new(res: http_client::Response) -> Self {
+        Self { res }
     }
 
     /// Get the HTTP status code.
@@ -40,7 +40,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn status(&self) -> StatusCode {
-        self.response.status()
+        self.res.status()
     }
 
     /// Get the HTTP protocol version.
@@ -57,7 +57,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn version(&self) -> Option<Version> {
-        self.response.version()
+        self.res.version()
     }
 
     /// Get a header.
@@ -72,7 +72,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn header(&self, key: impl Into<HeaderName>) -> Option<&HeaderValues> {
-        self.response.header(key)
+        self.res.header(key)
     }
 
     /// Get the request MIME.
@@ -121,7 +121,7 @@ impl Response {
     /// ```
     pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
         let mut buf = Vec::with_capacity(1024);
-        self.response.read_to_end(&mut buf).await?;
+        self.res.read_to_end(&mut buf).await?;
         Ok(buf)
     }
 
@@ -234,7 +234,7 @@ impl AsyncRead for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<Result<usize, io::Error>> {
-        Pin::new(&mut self.response).poll_read(cx, buf)
+        Pin::new(&mut self.res).poll_read(cx, buf)
     }
 }
 
@@ -242,11 +242,11 @@ impl BufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.response.poll_fill_buf(cx)
+        this.res.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.response).consume(amt)
+        Pin::new(&mut self.res).consume(amt)
     }
 }
 
@@ -254,7 +254,7 @@ impl fmt::Debug for Response {
     #[allow(missing_doc_code_examples)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
-            .field("response", &self.response)
+            .field("response", &self.res)
             .finish()
     }
 }
