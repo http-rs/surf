@@ -5,7 +5,6 @@ use http_types::{
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
     Body, Error, Mime, StatusCode, Version,
 };
-use mime::Mime;
 use serde::de::DeserializeOwned;
 
 use std::fmt;
@@ -148,12 +147,11 @@ impl Response {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
     /// let res = surf::get("https://httpbin.org/json").await?;
-    /// assert_eq!(res.mime(), Some(mime::APPLICATION_JSON));
+    /// assert_eq!(res.content_type(), Some(mime::JSON));
     /// # Ok(()) }
     /// ```
-    pub fn mime(&self) -> Option<Mime> {
-        self.header(&CONTENT_TYPE)
-            .and_then(|header| header.last().as_str().parse().ok())
+    pub fn content_type(&self) -> Option<Mime> {
+        self.res.content_type()
     }
 
     /// Get the length of the body stream, if it has been set.
@@ -248,12 +246,12 @@ impl Response {
     /// ```
     pub async fn body_string(&mut self) -> http_types::Result<String> {
         let bytes = self.body_bytes().await?;
-        let mime = self.mime();
+        let mime = self.content_type();
         let claimed_encoding = mime
             .as_ref()
-            .and_then(|mime| mime.get_param("charset"))
-            .map(|name| name.as_str());
-        decode_body(bytes, claimed_encoding)
+            .and_then(|mime| mime.param("charset"))
+            .map(|name| name.to_string());
+        decode_body(bytes, claimed_encoding.as_deref())
     }
 
     /// Reads and deserialized the entire request body from json.

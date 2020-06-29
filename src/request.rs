@@ -2,9 +2,8 @@ use crate::middleware::{Middleware, Next};
 use crate::Response;
 use futures::future::BoxFuture;
 use http_client::{self, HttpClient};
-use http_types::{Body, Error, Method};
-use mime::Mime;
 use http_types::headers::{self, HeaderName, HeaderValues, ToHeaderValues};
+use http_types::{Body, Error, Method, Mime};
 use serde::Serialize;
 use url::Url;
 
@@ -304,7 +303,7 @@ impl<C: HttpClient> Request<C> {
         &self.url
     }
 
-    /// Get the request MIME.
+    /// Get the request content type as a `Mime`.
     ///
     /// Gets the `Content-Type` header and parses it to a `Mime` type.
     ///
@@ -324,22 +323,16 @@ impl<C: HttpClient> Request<C> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
     /// let req = surf::post("https://httpbin.org/get")
-    ///     .set_mime(mime::TEXT_CSS);
-    /// assert_eq!(req.mime(), Some(mime::TEXT_CSS));
+    ///     .set_content_type(mime::FORM);
+    /// assert_eq!(req.content_type(), Some(mime::FORM));
     /// # Ok(()) }
     /// ```
-    pub fn mime(&self) -> Option<Mime> {
-        let header = self.header(&CONTENT_TYPE)?;
-        Some(
-            header
-                .iter()
-                .last()
-                .and_then(|s| s.as_str().parse().ok())
-                .unwrap(),
-        )
+    pub fn content_type(&self) -> Option<Mime> {
+        let req = self.req.as_ref().unwrap();
+        req.content_type()
     }
 
-    /// Set the request MIME.
+    /// Set the request content type from a `Mime`.
     ///
     /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
     ///
@@ -350,12 +343,14 @@ impl<C: HttpClient> Request<C> {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::mime;
     /// let req = surf::post("https://httpbin.org/get")
-    ///     .set_mime(mime::TEXT_CSS);
-    /// assert_eq!(req.mime(), Some(mime::TEXT_CSS));
+    ///     .set_content_type(mime::FORM);
+    /// assert_eq!(req.content_type(), Some(mime::FORM));
     /// # Ok(()) }
     /// ```
-    pub fn set_mime(self, mime: Mime) -> Self {
-        self.set_header(CONTENT_TYPE, mime.to_string())
+    pub fn set_content_type(mut self, mime: Mime) -> Self {
+        let req = self.req.as_mut().unwrap();
+        req.set_content_type(mime);
+        self
     }
 
     /// Get the length of the body stream, if it has been set.

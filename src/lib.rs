@@ -84,8 +84,8 @@ mod response;
 pub mod middleware;
 
 pub use http_types;
+pub use http_types::mime;
 pub use http_types::{Error, Result};
-pub use mime;
 pub use url;
 
 pub use client::Client;
