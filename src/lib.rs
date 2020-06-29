@@ -55,8 +55,9 @@
 //! ```no_run
 //! # #[async_std::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let reader = surf::get("https://img.fyi/q6YvNqP").await?;
-//! let res = surf::post("https://box.rs/upload").body(reader).await?;
+//! let req = surf::get("https://img.fyi/q6YvNqP").await?;
+//! let body = surf::http_types::Body::from_reader(req, None);
+//! let res = surf::post("https://box.rs/upload").set_body(body).await?;
 //! # Ok(()) }
 //! ```
 //!
