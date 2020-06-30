@@ -1,10 +1,11 @@
-use async_std::io::BufRead;
-use futures::prelude::*;
-use http_client;
-use http_types::{
+use crate::http::{
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
     Body, Error, Mime, StatusCode, Version,
 };
+
+use async_std::io::BufRead;
+use futures::prelude::*;
+use http_client;
 use serde::de::DeserializeOwned;
 
 use std::fmt;
@@ -49,7 +50,7 @@ impl Response {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::http_types::Version;
+    /// use surf::http::Version;
     ///
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert_eq!(res.version(), Some(Version::Http1_1));
@@ -145,7 +146,7 @@ impl Response {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::mime;
+    /// use surf::http::mime;
     /// let res = surf::get("https://httpbin.org/json").await?;
     /// assert_eq!(res.content_type(), Some(mime::JSON));
     /// # Ok(()) }
@@ -210,7 +211,7 @@ impl Response {
     /// let bytes: Vec<u8> = res.body_bytes().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_bytes(&mut self) -> http_types::Result<Vec<u8>> {
+    pub async fn body_bytes(&mut self) -> crate::Result<Vec<u8>> {
         self.res.body_bytes().await
     }
 
@@ -244,7 +245,7 @@ impl Response {
     /// let string: String = res.body_string().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_string(&mut self) -> http_types::Result<String> {
+    pub async fn body_string(&mut self) -> crate::Result<String> {
         let bytes = self.body_bytes().await?;
         let mime = self.content_type();
         let claimed_encoding = mime
@@ -279,9 +280,9 @@ impl Response {
     /// let Ip { ip } = res.body_json().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_json<T: DeserializeOwned>(&mut self) -> http_types::Result<T> {
+    pub async fn body_json<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
         let body_bytes = self.body_bytes().await?;
-        Ok(serde_json::from_slice(&body_bytes).map_err(http_types::Error::from)?)
+        Ok(serde_json::from_slice(&body_bytes).map_err(crate::Error::from)?)
     }
 
     /// Reads and deserialized the entire request body from form encoding.
@@ -309,7 +310,7 @@ impl Response {
     /// let Body { apples } = res.body_form().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> http_types::Result<T> {
+    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> crate::Result<T> {
         self.res.body_form().await
     }
 }
