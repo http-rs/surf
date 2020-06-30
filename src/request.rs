@@ -1,9 +1,12 @@
+use crate::http::{
+    headers::{self, HeaderName, HeaderValues, ToHeaderValues},
+    Body, Error, Method, Mime,
+};
 use crate::middleware::{Middleware, Next};
 use crate::Response;
+
 use futures::future::BoxFuture;
 use http_client::{self, HttpClient};
-use http_types::headers::{self, HeaderName, HeaderValues, ToHeaderValues};
-use http_types::{Body, Error, Method, Mime};
 use serde::Serialize;
 use url::Url;
 
@@ -53,14 +56,15 @@ impl Request<Client> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::{http_types, url};
+    /// use surf::http::Method;
+    /// use surf::url::Url;
     ///
-    /// let method = http_types::Method::Get;
-    /// let url = url::Url::parse("https://httpbin.org/get")?;
+    /// let method = Method::Get;
+    /// let url = Url::parse("https://httpbin.org/get")?;
     /// let string = surf::Request::new(method, url).recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn new(method: http_types::Method, url: Url) -> Self {
+    pub fn new(method: Method, url: Url) -> Self {
         Self::with_client(method, url, Client::new())
     }
 }
@@ -70,7 +74,7 @@ impl<C: HttpClient> Request<C> {
     // TODO(yw): hidden from docs until we make the traits public.
     #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
-    pub fn with_client(method: http_types::Method, url: Url, client: C) -> Self {
+    pub fn with_client(method: Method, url: Url, client: C) -> Self {
         let req = http_client::Request::new(method, url.clone());
 
         let client = Self {
@@ -277,9 +281,8 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::http_types;
     /// let req = surf::get("https://httpbin.org/get");
-    /// assert_eq!(req.method(), http_types::Method::Get);
+    /// assert_eq!(req.method(), surf::http::Method::Get);
     /// # Ok(()) }
     /// ```
     pub fn method(&self) -> Method {
@@ -321,7 +324,7 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::mime;
+    /// use surf::http::mime;
     /// let req = surf::post("https://httpbin.org/get")
     ///     .set_content_type(mime::FORM);
     /// assert_eq!(req.content_type(), Some(mime::FORM));
@@ -341,7 +344,7 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::mime;
+    /// use surf::http::mime;
     /// let req = surf::post("https://httpbin.org/get")
     ///     .set_content_type(mime::FORM);
     /// assert_eq!(req.content_type(), Some(mime::FORM));
@@ -383,7 +386,7 @@ impl<C: HttpClient> Request<C> {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let reader = surf::get("https://httpbin.org/get").await?;
-    /// let body = surf::http_types::Body::from_reader(reader, None);
+    /// let body = surf::http::Body::from_reader(reader, None);
     /// let uri = "https://httpbin.org/post";
     /// let res = surf::post(uri).set_body(body).await?;
     /// assert_eq!(res.status(), 200);
@@ -425,7 +428,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_json(self, json: &impl Serialize) -> http_types::Result<Self> {
+    pub fn body_json(self, json: &impl Serialize) -> crate::Result<Self> {
         Ok(self.set_body(Body::from_json(json)?))
     }
 
@@ -527,7 +530,7 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_form(self, form: &impl Serialize) -> http_types::Result<Self> {
+    pub fn body_form(self, form: &impl Serialize) -> crate::Result<Self> {
         Ok(self.set_body(Body::from_form(form)?))
     }
 
@@ -677,7 +680,7 @@ impl<C: HttpClient> fmt::Debug for Request<C> {
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl IntoIterator for Request<Client> {
     type Item = (HeaderName, HeaderValues);
-    type IntoIter = http_types::headers::IntoIter;
+    type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
     #[inline]
@@ -689,7 +692,7 @@ impl IntoIterator for Request<Client> {
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl<'a> IntoIterator for &'a Request<Client> {
     type Item = (&'a HeaderName, &'a HeaderValues);
-    type IntoIter = http_types::headers::Iter<'a>;
+    type IntoIter = headers::Iter<'a>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
@@ -700,7 +703,7 @@ impl<'a> IntoIterator for &'a Request<Client> {
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl<'a> IntoIterator for &'a mut Request<Client> {
     type Item = (&'a HeaderName, &'a mut HeaderValues);
-    type IntoIter = http_types::headers::IterMut<'a>;
+    type IntoIter = headers::IterMut<'a>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {

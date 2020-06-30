@@ -56,7 +56,7 @@
 //! # #[async_std::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let req = surf::get("https://img.fyi/q6YvNqP").await?;
-//! let body = surf::http_types::Body::from_reader(req, None);
+//! let body = surf::http::Body::from_reader(req, None);
 //! let res = surf::post("https://box.rs/upload").set_body(body).await?;
 //! # Ok(()) }
 //! ```
@@ -83,9 +83,9 @@ mod response;
 
 pub mod middleware;
 
-pub use http_types;
-pub use http_types::mime;
-pub use http_types::{Error, Result};
+#[doc(inline)]
+pub use http_types::{self as http, Body, Error, Status, StatusCode};
+
 pub use url;
 
 pub use client::Client;
@@ -96,3 +96,6 @@ pub use response::{DecodeError, Response};
 mod one_off;
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
+
+/// A specialized Result type for Surf.
+pub type Result<T = Response> = std::result::Result<T, Error>;
