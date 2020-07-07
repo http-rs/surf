@@ -655,7 +655,7 @@ impl From<http_types::Request> for Request<Client> {
         let url = http_request.url().clone();
         let req = Self::new(method, url).set_body(http_request);
 
-        Self::new(method, url).body(body)
+        Ok(req)
     }
 }
 
