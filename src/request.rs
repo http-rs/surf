@@ -651,11 +651,9 @@ impl<C: HttpClient> Future for Request<C> {
 impl From<http_types::Request> for Request<Client> {
     /// Converts an `http_types::Request` to a `surf::Request`.
     fn from(http_request: http_types::Request) -> Self {
-        let method = http_request.method();
+        let method = http_request.method().clone();
         let url = http_request.url().clone();
-        let req = Self::new(method, url).set_body(http_request);
-
-        Ok(req)
+        Self::new(method, url).set_body(http_request)
     }
 }
 
