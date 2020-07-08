@@ -26,9 +26,6 @@ use http_client::native::NativeClient as Client;
 #[cfg(feature = "h1-client")]
 use http_client::h1::H1Client as Client;
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
-use std::convert::TryFrom;
-
 /// An HTTP request, returns a `Response`.
 pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
     /// Holds a `http_client::HttpClient` implementation.
@@ -651,16 +648,12 @@ impl<C: HttpClient> Future for Request<C> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl TryFrom<http_types::Request> for Request<Client> {
-    type Error = io::Error;
-
+impl From<http_types::Request> for Request<Client> {
     /// Converts an `http_types::Request` to a `surf::Request`.
-    fn try_from(http_request: http_types::Request) -> io::Result<Self> {
+    fn from(http_request: http_types::Request) -> Self {
         let method = http_request.method().clone();
         let url = http_request.url().clone();
-        let req = Self::new(method, url).set_body(http_request);
-
-        Ok(req)
+        Self::new(method, url).set_body(http_request)
     }
 }
 
