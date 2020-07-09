@@ -1,9 +1,8 @@
-use crate::middleware::{Middleware, Next, Request, Response};
-use http_client::HttpClient;
+use crate::middleware::{Middleware, Next};
+use crate::{Client, Request, Response};
 
 use std::fmt::Arguments;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
 use std::time;
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -27,7 +26,7 @@ impl Middleware for Logger {
     async fn handle(
         &self,
         req: Request,
-        client: Arc<dyn HttpClient>,
+        client: Client,
         next: Next<'_>,
     ) -> Result<Response, http_types::Error> {
         let start_time = time::Instant::now();

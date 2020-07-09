@@ -1,5 +1,5 @@
-use std::sync::Arc;
-use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
+use surf::middleware::{Middleware, Next};
+use surf::{Client, Request, Response};
 
 struct Printer;
 
@@ -8,7 +8,7 @@ impl Middleware for Printer {
     async fn handle(
         &self,
         req: Request,
-        client: Arc<dyn HttpClient>,
+        client: Client,
         next: Next<'_>,
     ) -> Result<Response, http_types::Error> {
         println!("sending a request!");
@@ -22,8 +22,7 @@ impl Middleware for Printer {
 async fn main() -> Result<(), http_types::Error> {
     femme::start(log::LevelFilter::Info)?;
 
-    surf::get("https://httpbin.org/get")
-        .middleware(Printer {})
-        .await?;
+    let req = surf::get("https://httpbin.org/get");
+    surf::client().middleware(Printer {}).send(req).await?;
     Ok(())
 }
