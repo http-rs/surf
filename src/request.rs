@@ -1,4 +1,5 @@
 use crate::http::{
+    self,
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
     Body, Error, Method, Mime,
 };
@@ -11,7 +12,6 @@ use serde::Serialize;
 use url::Url;
 
 use std::fmt;
-use std::fmt::Debug;
 use std::future::Future;
 use std::io;
 use std::ops::Index;
@@ -20,28 +20,27 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-#[cfg(feature = "native-client")]
-use http_client::native::NativeClient as Client;
+#[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+use http_client::native::NativeClient;
 
 #[cfg(feature = "h1-client")]
-use http_client::h1::H1Client as Client;
+use http_client::h1::H1Client;
 
 /// An HTTP request, returns a `Response`.
-pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
+pub struct Request {
     /// Holds a `http_client::HttpClient` implementation.
-    client: Option<C>,
+    client: Option<Arc<dyn HttpClient>>,
     /// Holds the state of the request.
     req: Option<http_client::Request>,
     /// Holds the inner middleware.
-    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
+    middleware: Option<Vec<Arc<dyn Middleware>>>,
     /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response, Error>>>,
     /// Holds a reference to the Url
     url: Url,
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl Request<Client> {
+impl Request {
     /// Create a new instance.
     ///
     /// This method is particularly useful when input URLs might be passed by third parties, and
@@ -62,18 +61,21 @@ impl Request<Client> {
     /// # Ok(()) }
     /// ```
     pub fn new(method: Method, url: Url) -> Self {
-        Self::with_client(method, url, Client::new())
+        #[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+        let client = NativeClient::new();
+        #[cfg(feature = "h1-client")]
+        let client = H1Client::new();
+        Self::with_client(method, url, Arc::new(client))
     }
 }
 
-impl<C: HttpClient> Request<C> {
+impl Request {
     /// Create a new instance with an `HttpClient` instance.
     // TODO(yw): hidden from docs until we make the traits public.
     #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
-    pub fn with_client(method: Method, url: Url, client: C) -> Self {
+    pub fn with_client(method: Method, url: Url, client: Arc<dyn HttpClient>) -> Self {
         let req = http_client::Request::new(method, url.clone());
-
         let client = Self {
             fut: None,
             client: Some(client),
@@ -104,7 +106,7 @@ impl<C: HttpClient> Request<C> {
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
+    pub fn middleware(mut self, mw: impl Middleware) -> Self {
         self.middleware.as_mut().unwrap().push(Arc::new(mw));
         self
     }
@@ -622,7 +624,7 @@ impl<C: HttpClient> Request<C> {
     }
 }
 
-impl<C: HttpClient> Future for Request<C> {
+impl Future for Request {
     type Output = Result<Response, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -648,30 +650,30 @@ impl<C: HttpClient> Future for Request<C> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl From<http_types::Request> for Request<Client> {
-    /// Converts an `http_types::Request` to a `surf::Request`.
-    fn from(http_request: http_types::Request) -> Self {
+impl From<http::Request> for Request {
+    /// Converts an `http::Request` to a `surf::Request`.
+    fn from(http_request: http::Request) -> Self {
         let method = http_request.method().clone();
         let url = http_request.url().clone();
         Self::new(method, url).set_body(http_request)
     }
 }
 
-impl<C: HttpClient> Into<http_types::Request> for Request<C> {
-    /// Converts a `surf::Request` to an `http_types::Request`.
-    fn into(self) -> http_types::Request {
+impl Into<http::Request> for Request {
+    /// Converts a `surf::Request` to an `http::Request`.
+    fn into(self) -> http::Request {
         self.req.unwrap()
     }
 }
 
-impl<C: HttpClient> fmt::Debug for Request<C> {
+impl fmt::Debug for Request {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.req, f)
     }
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl IntoIterator for Request<Client> {
+impl IntoIterator for Request {
     type Item = (HeaderName, HeaderValues);
     type IntoIter = headers::IntoIter;
 
@@ -683,7 +685,7 @@ impl IntoIterator for Request<Client> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl<'a> IntoIterator for &'a Request<Client> {
+impl<'a> IntoIterator for &'a Request {
     type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = headers::Iter<'a>;
 
@@ -694,7 +696,7 @@ impl<'a> IntoIterator for &'a Request<Client> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl<'a> IntoIterator for &'a mut Request<Client> {
+impl<'a> IntoIterator for &'a mut Request {
     type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = headers::IterMut<'a>;
 
@@ -704,7 +706,7 @@ impl<'a> IntoIterator for &'a mut Request<Client> {
     }
 }
 
-impl Index<HeaderName> for Request<Client> {
+impl Index<HeaderName> for Request {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
@@ -718,7 +720,7 @@ impl Index<HeaderName> for Request<Client> {
     }
 }
 
-impl Index<&str> for Request<Client> {
+impl Index<&str> for Request {
     type Output = HeaderValues;
 
     /// Returns a reference to the value corresponding to the supplied name.
