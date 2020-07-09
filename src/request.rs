@@ -20,7 +20,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-#[cfg(feature = "native-client")]
+#[cfg(all(feature = "native-client", not(feature = "h1-client")))]
 use http_client::native::NativeClient;
 
 #[cfg(feature = "h1-client")]
@@ -40,7 +40,6 @@ pub struct Request {
     url: Url,
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
 impl Request {
     /// Create a new instance.
     ///
@@ -62,7 +61,11 @@ impl Request {
     /// # Ok(()) }
     /// ```
     pub fn new(method: Method, url: Url) -> Self {
-        Self::with_client(method, url, Arc::new(NativeClient::new()))
+        #[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+        let client = NativeClient::new();
+        #[cfg(feature = "h1-client")]
+        let client = H1Client::new();
+        Self::with_client(method, url, Arc::new(client))
     }
 }
 

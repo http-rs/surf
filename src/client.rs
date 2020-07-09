@@ -6,7 +6,7 @@ use crate::Request;
 
 use http_client::HttpClient;
 
-#[cfg(feature = "native-client")]
+#[cfg(all(feature = "native-client", not(feature = "h1-client")))]
 use http_client::native::NativeClient;
 
 #[cfg(feature = "h1-client")]
@@ -35,7 +35,6 @@ impl fmt::Debug for Client {
     }
 }
 
-#[cfg(feature = "native-client")]
 impl Client {
     /// Create a new instance.
     ///
@@ -48,24 +47,11 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn new() -> Self {
-        Self::with_client(Arc::new(NativeClient::new()))
-    }
-}
-
-#[cfg(feature = "h1-client")]
-impl Client {
-    /// Create a new instance.
-    ///
-    /// # Examples
-    ///
-    /// ```no_run
-    /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// let client = surf::Client::new();
-    /// # Ok(()) }
-    /// ```
-    pub fn new() -> Self {
-        Self::with_client(Arc::new(H1Client::new()))
+        #[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+        let client = NativeClient::new();
+        #[cfg(feature = "h1-client")]
+        let client = H1Client::new();
+        Self::with_client(Arc::new(client))
     }
 }
 
