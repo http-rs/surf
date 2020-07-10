@@ -105,3 +105,17 @@ SOFTWARE.
 
     Ok(())
 }
+
+// TODO(Jeremiah): Re-enable this one httpbin is not broken, or use a mock server.
+// #[async_std::test]
+// async fn redirect() -> Result<(), http_types::Error> {
+//     femme::start(log::LevelFilter::Trace).ok();
+
+//     let url = "https://httpbin.org/redirect/2";
+//     let req = surf::get(url);
+//     let res = surf::client()
+//         .middleware(surf::middleware::Redirect::default())
+//         .send(req).await?;
+//     assert_eq!(res.status(), http_types::StatusCode::Ok);
+//     Ok(())
+// }

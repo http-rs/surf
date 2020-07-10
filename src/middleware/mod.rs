@@ -55,6 +55,9 @@ use std::sync::Arc;
 pub use http_client::{Body, HttpClient, Request, Response};
 
 pub mod logger;
+mod redirect;
+
+pub use redirect::Redirect;
 
 use futures::future::BoxFuture;
 use http_types::Error;
