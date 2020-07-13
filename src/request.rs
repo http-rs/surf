@@ -154,7 +154,7 @@ impl Request {
     /// let query = Index { page: 2 };
     /// let req = surf::get("https://httpbin.org/get").set_query(&query)?;
     /// assert_eq!(req.url().query(), Some("page=2"));
-    /// assert_eq!(req.request().unwrap().url().as_str(), "https://httpbin.org/get?page=2");
+    /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
     pub fn set_query(
@@ -617,10 +617,17 @@ impl Request {
         let mut req = self.await?;
         Ok(req.body_form::<T>().await?)
     }
+}
 
-    /// Get the underlying HTTP request
-    pub fn request(&self) -> Option<&http_client::Request> {
-        self.req.as_ref()
+impl AsRef<http::Request> for Request {
+    fn as_ref(&self) -> &http::Request {
+        self.req.as_ref().unwrap()
+    }
+}
+
+impl AsMut<http::Request> for Request {
+    fn as_mut(&mut self) -> &mut http::Request {
+        self.req.as_mut().unwrap()
     }
 }
 

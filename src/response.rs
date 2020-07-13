@@ -1,4 +1,5 @@
 use crate::http::{
+    self,
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
     Body, Error, Mime, StatusCode, Version,
 };
@@ -312,6 +313,18 @@ impl Response {
     /// ```
     pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> crate::Result<T> {
         self.res.body_form().await
+    }
+}
+
+impl AsRef<http::Response> for Response {
+    fn as_ref(&self) -> &http::Response {
+        &self.res
+    }
+}
+
+impl AsMut<http::Response> for Response {
+    fn as_mut(&mut self) -> &mut http::Response {
+        &mut self.res
     }
 }
 
