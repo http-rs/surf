@@ -60,9 +60,10 @@ use std::sync::Arc;
 #[doc(inline)]
 pub use http_client::{Body, HttpClient, Request, Response};
 
-pub mod logger;
+mod logger;
 mod redirect;
 
+pub use logger::Logger;
 pub use redirect::Redirect;
 
 use async_trait::async_trait;
