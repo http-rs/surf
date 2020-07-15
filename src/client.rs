@@ -35,6 +35,12 @@ impl fmt::Debug for Client {
     }
 }
 
+impl Default for Client {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Client {
     /// Create a new instance.
     ///

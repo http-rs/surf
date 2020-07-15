@@ -660,7 +660,7 @@ impl Future for Request {
 impl From<http::Request> for Request {
     /// Converts an `http::Request` to a `surf::Request`.
     fn from(http_request: http::Request) -> Self {
-        let method = http_request.method().clone();
+        let method = http_request.method();
         let url = http_request.url().clone();
         Self::new(method, url).set_body(http_request)
     }
