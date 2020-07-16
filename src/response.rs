@@ -6,7 +6,6 @@ use crate::http::{
 
 use async_std::io::BufRead;
 use futures::prelude::*;
-use http_client;
 use serde::de::DeserializeOwned;
 
 use std::fmt;
@@ -479,7 +478,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
                 encoding: encoding_used.name().into(),
                 data: bytes,
             };
-            Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+            Err(io::Error::new(io::ErrorKind::InvalidData, err).into())
         } else {
             Ok(match decoded {
                 // If encoding_rs returned a `Cow::Borrowed`, the bytes are guaranteed to be valid
@@ -494,7 +493,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
             encoding: content_encoding.to_string(),
             data: bytes,
         };
-        Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+        Err(io::Error::new(io::ErrorKind::InvalidData, err).into())
     }
 }
 
