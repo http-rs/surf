@@ -59,7 +59,7 @@ jobs:
         override: true
 
     - name: clippy
-      run: cargo clippy -- -D warnings
+      run: cargo clippy --tests --examples -- -D warnings
 
     - name: fmt
       run: cargo fmt --all -- --check
