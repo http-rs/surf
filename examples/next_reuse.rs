@@ -15,8 +15,8 @@ impl Middleware for Doubler {
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         if req.method().is_safe() {
             Box::pin(async move {
-                let mut new_req = Request::new(req.method().clone(), req.url().clone());
-                new_req.set_version(req.version().clone());
+                let mut new_req = Request::new(req.method(), req.url().clone());
+                new_req.set_version(req.version());
                 for (name, value) in &req {
                     new_req.insert_header(name, value);
                 }
