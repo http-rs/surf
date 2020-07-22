@@ -315,6 +315,18 @@ impl Response {
     }
 }
 
+impl From<http::Response> for Response {
+    fn from(response: http::Response) -> Self {
+        Self::new(response)
+    }
+}
+
+impl Into<http::Response> for Response {
+    fn into(self) -> http::Response {
+        self.res
+    }
+}
+
 impl AsRef<http::Response> for Response {
     fn as_ref(&self) -> &http::Response {
         &self.res
