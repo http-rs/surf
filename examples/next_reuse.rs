@@ -1,40 +1,38 @@
-use futures::future::BoxFuture;
 use futures::io::AsyncReadExt;
 use std::sync::Arc;
 use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
 
 struct Doubler;
 
+#[async_trait::async_trait]
 impl Middleware for Doubler {
-    fn handle<'a>(
-        &'a self,
+    async fn handle(
+        &self,
         req: Request,
         client: Arc<dyn HttpClient>,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
+        next: Next<'_>,
+    ) -> Result<Response, http_types::Error> {
         if req.method().is_safe() {
-            Box::pin(async move {
-                let mut new_req = Request::new(req.method(), req.url().clone());
-                new_req.set_version(req.version());
-                for (name, value) in &req {
-                    new_req.insert_header(name, value);
-                }
+            let mut new_req = Request::new(req.method(), req.url().clone());
+            new_req.set_version(req.version());
+            for (name, value) in &req {
+                new_req.insert_header(name, value);
+            }
 
-                let mut buf = Vec::new();
-                let (res1, res2) =
-                    futures::future::join(next.run(req, client.clone()), next.run(new_req, client))
-                        .await;
+            let mut buf = Vec::new();
+            let (res1, res2) =
+                futures::future::join(next.run(req, client.clone()), next.run(new_req, client))
+                    .await;
 
-                let mut res = res1?;
-                res.read_to_end(&mut buf).await?;
+            let mut res = res1?;
+            res.read_to_end(&mut buf).await?;
 
-                let mut res = res2?;
-                res.read_to_end(&mut buf).await?;
-                res.set_body(Body::from(buf));
-                Ok(res)
-            })
+            let mut res = res2?;
+            res.read_to_end(&mut buf).await?;
+            res.set_body(Body::from(buf));
+            Ok(res)
         } else {
-            next.run(req, client)
+            next.run(req, client).await
         }
     }
 }

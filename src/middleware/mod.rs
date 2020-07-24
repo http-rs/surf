@@ -2,7 +2,6 @@
 //!
 //! # Examples
 //! ```no_run
-//! use futures::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::error::Error;
 //! use std::time;
@@ -12,20 +11,19 @@
 //! #[derive(Debug)]
 //! pub struct Logger;
 //!
+//! #[async_trait::async_trait]
 //! impl Middleware for Logger {
-//!     fn handle<'a>(
-//!         &'a self,
+//!     async fn handle(
+//!         &self,
 //!         req: Request,
 //!         client: Arc<dyn HttpClient>,
-//!         next: Next<'a>,
-//!     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
-//!         Box::pin(async move {
-//!             println!("sending request to {}", req.url());
-//!             let now = time::Instant::now();
-//!             let res = next.run(req, client).await?;
-//!             println!("request completed ({:?})", now.elapsed());
-//!             Ok(res)
-//!         })
+//!         next: Next<'_>,
+//!     ) -> Result<Response, http_types::Error> {
+//!         println!("sending request to {}", req.url());
+//!         let now = time::Instant::now();
+//!         let res = next.run(req, client).await?;
+//!         println!("request completed ({:?})", now.elapsed());
+//!         Ok(res)
 //!     }
 //! }
 //! ```
@@ -47,6 +45,14 @@
 //!         Ok(res)
 //!     })
 //! }
+//! #
+//! # #[async_std::main]
+//! # async fn main() -> Result<(), http_types::Error> {
+//! #     surf::get("https://httpbin.org/get")
+//! #         .middleware(logger)
+//! #         .await?;
+//! #     Ok(())
+//! # }
 //! ```
 
 use std::sync::Arc;
@@ -59,21 +65,24 @@ mod redirect;
 
 pub use redirect::Redirect;
 
-use futures::future::BoxFuture;
+use async_trait::async_trait;
+use futures_util::future::BoxFuture;
 use http_types::Error;
 
 /// Middleware that wraps around remaining middleware chain.
+#[async_trait]
 pub trait Middleware: 'static + Send + Sync {
     /// Asynchronously handle the request, and return a response.
-    fn handle<'a>(
-        &'a self,
+    async fn handle(
+        &self,
         req: Request,
         client: Arc<dyn HttpClient>,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, Error>>;
+        next: Next<'_>,
+    ) -> Result<Response, Error>;
 }
 
 // This allows functions to work as middleware too.
+#[async_trait]
 impl<F> Middleware for F
 where
     F: Send
@@ -81,13 +90,13 @@ where
         + 'static
         + for<'a> Fn(Request, Arc<dyn HttpClient>, Next<'a>) -> BoxFuture<'a, Result<Response, Error>>,
 {
-    fn handle<'a>(
-        &'a self,
+    async fn handle(
+        &self,
         req: Request,
         client: Arc<dyn HttpClient>,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, Error>> {
-        (self)(req, client, next)
+        next: Next<'_>,
+    ) -> Result<Response, Error> {
+        (self)(req, client, next).await
     }
 }
 

@@ -25,6 +25,7 @@ encoding = ["encoding_rs", "web-sys"]
 
 [dependencies]
 futures = { version = "0.3.1", features = ["compat", "io-compat"] }
+futures-util = "0.3.5"
 log = { version = "0.4.7", features = ["kv_unstable"] }
 mime_guess = "2.0.3"
 serde = "1.0.97"
@@ -34,6 +35,7 @@ url = "2.0.0"
 http-client = "4.0.0"
 http-types = "2.0.0"
 async-std = { version = "1.6.0", default-features = false, features = ["std"] }
+async-trait = "0.1.36"
 pin-project-lite = "0.1.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
