@@ -4,7 +4,7 @@ use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
 
 struct Doubler;
 
-#[async_trait::async_trait]
+#[surf::utils::async_trait]
 impl Middleware for Doubler {
     async fn handle(
         &self,

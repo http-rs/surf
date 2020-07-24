@@ -11,7 +11,7 @@
 //! #[derive(Debug)]
 //! pub struct Logger;
 //!
-//! #[async_trait::async_trait]
+//! #[surf::utils::async_trait]
 //! impl Middleware for Logger {
 //!     async fn handle(
 //!         &self,

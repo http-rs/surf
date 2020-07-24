@@ -3,7 +3,7 @@ use surf::middleware::{HttpClient, Middleware, Next, Request, Response};
 
 struct Printer;
 
-#[async_trait::async_trait]
+#[surf::utils::async_trait]
 impl Middleware for Printer {
     async fn handle(
         &self,
