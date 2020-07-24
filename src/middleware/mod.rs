@@ -31,7 +31,7 @@
 //! implementations.
 //!
 //! ```no_run
-//! use futures::future::BoxFuture;
+//! use futures_util::future::BoxFuture;
 //! use surf::middleware::{Next, Middleware, Request, Response, HttpClient};
 //! use std::time;
 //! use std::sync::Arc;

@@ -22,7 +22,7 @@ use http_client::h1::H1Client;
 /// let client = surf::Client::new();
 /// let req1 = client.get("https://httpbin.org/get").recv_string();
 /// let req2 = client.get("https://httpbin.org/get").recv_string();
-/// let (str1, str2) = futures::future::try_join(req1, req2).await?;
+/// let (str1, str2) = futures_util::future::try_join(req1, req2).await?;
 /// # Ok(()) }
 /// ```
 pub struct Client {

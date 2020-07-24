@@ -24,7 +24,6 @@ middleware-logger = []
 encoding = ["encoding_rs", "web-sys"]
 
 [dependencies]
-futures = { version = "0.3.1", features = ["compat", "io-compat"] }
 futures-util = "0.3.5"
 log = { version = "0.4.7", features = ["kv_unstable"] }
 mime_guess = "2.0.3"

@@ -1,4 +1,4 @@
-use futures::io::AsyncReadExt;
+use futures_util::io::AsyncReadExt;
 use std::sync::Arc;
 use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
 
@@ -20,9 +20,11 @@ impl Middleware for Doubler {
             }
 
             let mut buf = Vec::new();
-            let (res1, res2) =
-                futures::future::join(next.run(req, client.clone()), next.run(new_req, client))
-                    .await;
+            let (res1, res2) = futures_util::future::join(
+                next.run(req, client.clone()),
+                next.run(new_req, client),
+            )
+            .await;
 
             let mut res = res1?;
             res.read_to_end(&mut buf).await?;
