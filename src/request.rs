@@ -102,7 +102,7 @@ impl Request {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get")
-    ///     .middleware(surf::middleware::logger::new())
+    ///     .middleware(surf::middleware::Redirect::default())
     ///     .await?;
     /// # Ok(()) }
     /// ```
