@@ -1,16 +1,6 @@
 //! Logging middleware.
 //!
-//! # Examples
-//!
-//! ```no_run
-//! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-//! let mut res = surf::get("https://httpbin.org/get")
-//!     .middleware(surf::middleware::logger::new())
-//!     .await?;
-//! dbg!(res.body_string().await?);
-//! # Ok(()) }
-//! ```
+//! This middleware is used by default unless the `"middleware-logger"` feature is disabled.
 
 #[cfg(target_arch = "wasm32")]
 mod wasm;

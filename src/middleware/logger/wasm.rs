@@ -4,6 +4,7 @@ use http_client::HttpClient;
 use futures::future::BoxFuture;
 
 use std::fmt::Arguments;
+use std::sync::Arc;
 
 /// Log each request's duration.
 #[derive(Debug)]
@@ -18,13 +19,13 @@ impl Logger {
     }
 }
 
-impl<C: HttpClient> Middleware<C> for Logger {
+impl Middleware for Logger {
     #[allow(missing_doc_code_examples)]
     fn handle<'a>(
         &'a self,
         req: Request,
-        client: C,
-        next: Next<'a, C>,
+        client: Arc<dyn HttpClient>,
+        next: Next<'a>,
     ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
         Box::pin(async move {
             print(

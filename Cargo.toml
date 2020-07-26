@@ -26,14 +26,13 @@ encoding = ["encoding_rs", "web-sys"]
 [dependencies]
 futures = { version = "0.3.1", features = ["compat", "io-compat"] }
 log = { version = "0.4.7", features = ["kv_unstable"] }
-mime = "0.3.13"
 mime_guess = "2.0.3"
 serde = "1.0.97"
 serde_json = "1.0.40"
 serde_urlencoded = "0.6.1"
 url = "2.0.0"
-http-client = { git = "https://github.com/Perseus101/http-client.git", branch = "fix-wasm-compilation", version = "3.0.0", default-features = false }
-http-types = "2.1.0"
+http-client = { git = "https://github.com/Perseus101/http-client.git", branch = "fix-wasm-compilation", version = "4.0.0", default-features = false }
+http-types = { version = "2.3.0", features = ["async_std"] }
 async-std = { version = "1.6.0", default-features = false, features = ["std"] }
 pin-project-lite = "0.1.1"
 

@@ -1,49 +1,44 @@
+use crate::http::{
+    self,
+    headers::{self, HeaderName, HeaderValues, ToHeaderValues},
+    Body, Error, Method, Mime,
+};
 use crate::middleware::{Middleware, Next};
 use crate::Response;
-use async_std::io::BufRead;
+
 use futures::future::BoxFuture;
 use http_client::{self, HttpClient};
-use http_types::headers::{HeaderName, HeaderValues, ToHeaderValues, CONTENT_TYPE};
-use http_types::{Body, Error, Method};
-use mime::Mime;
 use serde::Serialize;
 use url::Url;
 
 use std::fmt;
-use std::fmt::Debug;
-use std::fs;
 use std::future::Future;
-use std::io;
-use std::path::Path;
+use std::ops::Index;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-#[cfg(feature = "native-client")]
-use http_client::native::NativeClient as Client;
+#[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+use http_client::native::NativeClient;
 
 #[cfg(feature = "h1-client")]
-use http_client::h1::H1Client as Client;
-
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
-use std::convert::TryFrom;
+use http_client::h1::H1Client;
 
 /// An HTTP request, returns a `Response`.
-pub struct Request<C: HttpClient + Debug + Unpin + Send + Sync> {
+pub struct Request {
     /// Holds a `http_client::HttpClient` implementation.
-    client: Option<C>,
+    client: Option<Arc<dyn HttpClient>>,
     /// Holds the state of the request.
     req: Option<http_client::Request>,
     /// Holds the inner middleware.
-    middleware: Option<Vec<Arc<dyn Middleware<C>>>>,
+    middleware: Option<Vec<Arc<dyn Middleware>>>,
     /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response, Error>>>,
     /// Holds a reference to the Url
     url: Url,
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl Request<Client> {
+impl Request {
     /// Create a new instance.
     ///
     /// This method is particularly useful when input URLs might be passed by third parties, and
@@ -55,26 +50,30 @@ impl Request<Client> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::{http_types, url};
+    /// use surf::http::Method;
+    /// use surf::url::Url;
     ///
-    /// let method = http_types::Method::Get;
-    /// let url = url::Url::parse("https://httpbin.org/get")?;
+    /// let method = Method::Get;
+    /// let url = Url::parse("https://httpbin.org/get")?;
     /// let string = surf::Request::new(method, url).recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn new(method: http_types::Method, url: Url) -> Self {
-        Self::with_client(method, url, Client::new())
+    pub fn new(method: Method, url: Url) -> Self {
+        #[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+        let client = NativeClient::new();
+        #[cfg(feature = "h1-client")]
+        let client = H1Client::new();
+        Self::with_client(method, url, Arc::new(client))
     }
 }
 
-impl<C: HttpClient> Request<C> {
+impl Request {
     /// Create a new instance with an `HttpClient` instance.
     // TODO(yw): hidden from docs until we make the traits public.
     #[doc(hidden)]
     #[allow(missing_doc_code_examples)]
-    pub fn with_client(method: http_types::Method, url: Url, client: C) -> Self {
+    pub fn with_client(method: Method, url: Url, client: Arc<dyn HttpClient>) -> Self {
         let req = http_client::Request::new(method, url.clone());
-
         let client = Self {
             fut: None,
             client: Some(client),
@@ -101,11 +100,11 @@ impl<C: HttpClient> Request<C> {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let res = surf::get("https://httpbin.org/get")
-    ///     .middleware(surf::middleware::logger::new())
+    ///     .middleware(surf::middleware::Redirect::default())
     ///     .await?;
     /// # Ok(()) }
     /// ```
-    pub fn middleware(mut self, mw: impl Middleware<C>) -> Self {
+    pub fn middleware(mut self, mw: impl Middleware) -> Self {
         self.middleware.as_mut().unwrap().push(Arc::new(mw));
         self
     }
@@ -153,7 +152,7 @@ impl<C: HttpClient> Request<C> {
     /// let query = Index { page: 2 };
     /// let req = surf::get("https://httpbin.org/get").set_query(&query)?;
     /// assert_eq!(req.url().query(), Some("page=2"));
-    /// assert_eq!(req.request().unwrap().url().as_str(), "https://httpbin.org/get?page=2");
+    /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
     pub fn set_query(
@@ -185,6 +184,66 @@ impl<C: HttpClient> Request<C> {
         req.header(key)
     }
 
+    /// Get a mutable reference to a header.
+    pub fn header_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        let req = self.req.as_mut().unwrap();
+        req.header_mut(name)
+    }
+
+    /// Set an HTTP header.
+    pub fn insert_header(
+        &mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> Option<HeaderValues> {
+        let req = self.req.as_mut().unwrap();
+        req.insert_header(name, values)
+    }
+
+    /// Append a header to the headers.
+    ///
+    /// Unlike `insert` this function will not override the contents of a header, but insert a
+    /// header if there aren't any. Or else append to the existing list of headers.
+    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
+        let req = self.req.as_mut().unwrap();
+        req.append_header(name, values)
+    }
+
+    /// Remove a header.
+    pub fn remove_header(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        let req = self.req.as_mut().unwrap();
+        req.remove_header(name)
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order.
+    #[must_use]
+    pub fn iter(&self) -> headers::Iter<'_> {
+        let req = self.req.as_ref().unwrap();
+        req.iter()
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
+    /// values.
+    #[must_use]
+    pub fn iter_mut(&mut self) -> headers::IterMut<'_> {
+        let req = self.req.as_mut().unwrap();
+        req.iter_mut()
+    }
+
+    /// An iterator visiting all header names in arbitrary order.
+    #[must_use]
+    pub fn header_names(&self) -> headers::Names<'_> {
+        let req = self.req.as_ref().unwrap();
+        req.header_names()
+    }
+
+    /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
+    pub fn header_values(&self) -> headers::Values<'_> {
+        let req = self.req.as_ref().unwrap();
+        req.header_values()
+    }
+
     /// Set an HTTP header.
     ///
     /// # Examples
@@ -201,6 +260,17 @@ impl<C: HttpClient> Request<C> {
         self
     }
 
+    /// Get a request extension value.
+    #[must_use]
+    pub fn ext<T: Send + Sync + 'static>(&self) -> Option<&T> {
+        self.req.as_ref().unwrap().ext().get()
+    }
+
+    /// Set a request extension value.
+    pub fn set_ext<T: Send + Sync + 'static>(&mut self, val: T) -> Option<T> {
+        self.req.as_mut().unwrap().ext_mut().insert(val)
+    }
+
     /// Get the request HTTP method.
     ///
     /// # Examples
@@ -208,9 +278,8 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::http_types;
     /// let req = surf::get("https://httpbin.org/get");
-    /// assert_eq!(req.method(), http_types::Method::Get);
+    /// assert_eq!(req.method(), surf::http::Method::Get);
     /// # Ok(()) }
     /// ```
     pub fn method(&self) -> Method {
@@ -234,7 +303,7 @@ impl<C: HttpClient> Request<C> {
         &self.url
     }
 
-    /// Get the request MIME.
+    /// Get the request content type as a `Mime`.
     ///
     /// Gets the `Content-Type` header and parses it to a `Mime` type.
     ///
@@ -252,24 +321,18 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::mime;
+    /// use surf::http::mime;
     /// let req = surf::post("https://httpbin.org/get")
-    ///     .set_mime(mime::TEXT_CSS);
-    /// assert_eq!(req.mime(), Some(mime::TEXT_CSS));
+    ///     .set_content_type(mime::FORM);
+    /// assert_eq!(req.content_type(), Some(mime::FORM));
     /// # Ok(()) }
     /// ```
-    pub fn mime(&self) -> Option<Mime> {
-        let header = self.header(&CONTENT_TYPE)?;
-        Some(
-            header
-                .iter()
-                .last()
-                .and_then(|s| s.as_str().parse().ok())
-                .unwrap(),
-        )
+    pub fn content_type(&self) -> Option<Mime> {
+        let req = self.req.as_ref().unwrap();
+        req.content_type()
     }
 
-    /// Set the request MIME.
+    /// Set the request content type from a `Mime`.
     ///
     /// [Read more on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types)
     ///
@@ -278,14 +341,34 @@ impl<C: HttpClient> Request<C> {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::mime;
+    /// use surf::http::mime;
     /// let req = surf::post("https://httpbin.org/get")
-    ///     .set_mime(mime::TEXT_CSS);
-    /// assert_eq!(req.mime(), Some(mime::TEXT_CSS));
+    ///     .set_content_type(mime::FORM);
+    /// assert_eq!(req.content_type(), Some(mime::FORM));
     /// # Ok(()) }
     /// ```
-    pub fn set_mime(self, mime: Mime) -> Self {
-        self.set_header(CONTENT_TYPE, mime.to_string())
+    pub fn set_content_type(mut self, mime: Mime) -> Self {
+        let req = self.req.as_mut().unwrap();
+        req.set_content_type(mime);
+        self
+    }
+
+    /// Get the length of the body stream, if it has been set.
+    ///
+    /// This value is set when passing a fixed-size object into as the body.
+    /// E.g. a string, or a buffer. Consumers of this API should check this
+    /// value to decide whether to use `Chunked` encoding, or set the
+    /// response length.
+    pub fn len(&self) -> Option<usize> {
+        let req = self.req.as_ref().unwrap();
+        req.len()
+    }
+
+    /// Returns `true` if the set length of the body stream is zero, `false`
+    /// otherwise.
+    pub fn is_empty(&self) -> Option<bool> {
+        let req = self.req.as_ref().unwrap();
+        req.is_empty()
     }
 
     /// Pass an `AsyncRead` stream as the request body.
@@ -300,20 +383,25 @@ impl<C: HttpClient> Request<C> {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let reader = surf::get("https://httpbin.org/get").await?;
+    /// let body = surf::http::Body::from_reader(reader, None);
     /// let uri = "https://httpbin.org/post";
-    /// let res = surf::post(uri).body(reader).await?;
+    /// let res = surf::post(uri).set_body(body).await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body<R>(mut self, reader: R) -> Self
-    where
-        R: BufRead + Unpin + Send + Sync + 'static,
-    {
-        self.req
-            .as_mut()
-            .unwrap()
-            .set_body(Body::from_reader(reader, None));
-        self.set_mime(mime::APPLICATION_OCTET_STREAM)
+    pub fn set_body(mut self, body: impl Into<Body>) -> Self {
+        self.req.as_mut().unwrap().set_body(body);
+        self
+    }
+
+    /// Take the request body as a `Body`.
+    ///
+    /// This method can be called after the body has already been taken or read,
+    /// but will return an empty `Body`.
+    ///
+    /// This is useful for consuming the body via an AsyncReader or AsyncBufReader.
+    pub fn take_body(&mut self) -> Body {
+        self.req.as_mut().unwrap().take_body()
     }
 
     /// Pass JSON as the request body.
@@ -337,12 +425,8 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_json(mut self, json: &(impl Serialize + ?Sized)) -> serde_json::Result<Self> {
-        self.req
-            .as_mut()
-            .unwrap()
-            .set_body(serde_json::to_vec(json)?);
-        Ok(self.set_mime(mime::APPLICATION_JSON))
+    pub fn body_json(self, json: &impl Serialize) -> crate::Result<Self> {
+        Ok(self.set_body(Body::from_json(json)?))
     }
 
     /// Pass a string as the request body.
@@ -362,9 +446,8 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_string(mut self, string: String) -> Self {
-        self.req.as_mut().unwrap().set_body(string.into_bytes());
-        self.set_mime(mime::TEXT_PLAIN_UTF_8)
+    pub fn body_string(self, string: String) -> Self {
+        self.set_body(Body::from_string(string))
     }
 
     /// Pass bytes as the request body.
@@ -384,12 +467,8 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_bytes(mut self, bytes: impl AsRef<[u8]>) -> Self {
-        self.req
-            .as_mut()
-            .unwrap()
-            .set_body(bytes.as_ref().to_owned());
-        self.set_mime(mime::APPLICATION_OCTET_STREAM)
+    pub fn body_bytes(self, bytes: impl AsRef<[u8]>) -> Self {
+        self.set_body(Body::from(bytes.as_ref()))
     }
 
     /// Pass a file as the request body.
@@ -412,16 +491,14 @@ impl<C: HttpClient> Request<C> {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), http_types::Error> {
     /// let res = surf::post("https://httpbin.org/post")
-    ///     .body_file("README.md")?
+    ///     .body_file("README.md").await?
     ///     .await?;
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_file(mut self, path: impl AsRef<Path>) -> io::Result<Self> {
-        let mime = mime_guess::from_path(&path).first_or_octet_stream();
-        let bytes = fs::read(path)?;
-        self.req.as_mut().unwrap().set_body(bytes);
-        Ok(self.set_mime(mime))
+    #[cfg(not(target_os = "unknown"))]
+    pub async fn body_file(self, path: impl AsRef<std::path::Path>) -> std::io::Result<Self> {
+        Ok(self.set_body(Body::from_file(path).await?))
     }
 
     /// Pass a form as the request body.
@@ -451,14 +528,8 @@ impl<C: HttpClient> Request<C> {
     /// assert_eq!(res.status(), 200);
     /// # Ok(()) }
     /// ```
-    pub fn body_form(
-        mut self,
-        form: &(impl Serialize + ?Sized),
-    ) -> Result<Self, serde_urlencoded::ser::Error> {
-        let query = serde_urlencoded::to_string(form)?;
-        self = self.body_string(query);
-        self = self.set_mime(mime::APPLICATION_WWW_FORM_URLENCODED);
-        Ok(self)
+    pub fn body_form(self, form: &impl Serialize) -> crate::Result<Self> {
+        Ok(self.set_body(Body::from_form(form)?))
     }
 
     /// Submit the request and get the response body as bytes.
@@ -545,14 +616,21 @@ impl<C: HttpClient> Request<C> {
         let mut req = self.await?;
         Ok(req.body_form::<T>().await?)
     }
+}
 
-    /// Get a HTTP request
-    pub fn request(&self) -> Option<&http_client::Request> {
-        self.req.as_ref()
+impl AsRef<http::Request> for Request {
+    fn as_ref(&self) -> &http::Request {
+        self.req.as_ref().unwrap()
     }
 }
 
-impl<C: HttpClient> Future for Request<C> {
+impl AsMut<http::Request> for Request {
+    fn as_mut(&mut self) -> &mut http::Request {
+        self.req.as_mut().unwrap()
+    }
+}
+
+impl Future for Request {
     type Output = Result<Response, Error>;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -578,38 +656,32 @@ impl<C: HttpClient> Future for Request<C> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl TryFrom<http_types::Request> for Request<Client> {
-    type Error = io::Error;
-
-    /// Converts an `http_types::Request` to a `surf::Request`.
-    fn try_from(http_request: http_types::Request) -> io::Result<Self> {
-        let method = http_request.method().clone();
+impl From<http::Request> for Request {
+    /// Converts an `http::Request` to a `surf::Request`.
+    fn from(http_request: http::Request) -> Self {
+        let method = http_request.method();
         let url = http_request.url().clone();
-        let req = Self::new(method, url);
-        let body: Body = http_request.into();
-        let req = req.body(body);
-
-        Ok(req)
+        Self::new(method, url).set_body(http_request)
     }
 }
 
-impl<C: HttpClient> Into<http_types::Request> for Request<C> {
-    /// Converts a `surf::Request` to an `http_types::Request`.
-    fn into(self) -> http_types::Request {
+impl Into<http::Request> for Request {
+    /// Converts a `surf::Request` to an `http::Request`.
+    fn into(self) -> http::Request {
         self.req.unwrap()
     }
 }
 
-impl<C: HttpClient> fmt::Debug for Request<C> {
+impl fmt::Debug for Request {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Debug::fmt(&self.req, f)
     }
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl IntoIterator for Request<Client> {
+impl IntoIterator for Request {
     type Item = (HeaderName, HeaderValues);
-    type IntoIter = http_types::headers::IntoIter;
+    type IntoIter = headers::IntoIter;
 
     /// Returns a iterator of references over the remaining items.
     #[inline]
@@ -619,9 +691,9 @@ impl IntoIterator for Request<Client> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl<'a> IntoIterator for &'a Request<Client> {
+impl<'a> IntoIterator for &'a Request {
     type Item = (&'a HeaderName, &'a HeaderValues);
-    type IntoIter = http_types::headers::Iter<'a>;
+    type IntoIter = headers::Iter<'a>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
@@ -630,12 +702,40 @@ impl<'a> IntoIterator for &'a Request<Client> {
 }
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
-impl<'a> IntoIterator for &'a mut Request<Client> {
+impl<'a> IntoIterator for &'a mut Request {
     type Item = (&'a HeaderName, &'a mut HeaderValues);
-    type IntoIter = http_types::headers::IterMut<'a>;
+    type IntoIter = headers::IterMut<'a>;
 
     #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.req.as_mut().unwrap().iter_mut()
+    }
+}
+
+impl Index<HeaderName> for Request {
+    type Output = HeaderValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Request`.
+    #[inline]
+    fn index(&self, name: HeaderName) -> &HeaderValues {
+        &self.req.as_ref().unwrap()[name]
+    }
+}
+
+impl Index<&str> for Request {
+    type Output = HeaderValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Request`.
+    #[inline]
+    fn index(&self, name: &str) -> &HeaderValues {
+        &self.req.as_ref().unwrap()[name]
     }
 }

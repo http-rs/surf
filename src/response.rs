@@ -1,16 +1,16 @@
-use async_std::io::BufRead;
-use futures::io::AsyncReadExt;
-use futures::prelude::*;
-use http_client;
-use http_types::{
-    headers::{HeaderName, HeaderValues, CONTENT_TYPE},
-    Error, StatusCode, Version,
+use crate::http::{
+    self,
+    headers::{self, HeaderName, HeaderValues, ToHeaderValues},
+    Body, Error, Mime, StatusCode, Version,
 };
-use mime::Mime;
+
+use async_std::io::BufRead;
+use futures::prelude::*;
 use serde::de::DeserializeOwned;
 
 use std::fmt;
 use std::io;
+use std::ops::Index;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
@@ -18,14 +18,14 @@ pin_project_lite::pin_project! {
     /// An HTTP response, returned by `Request`.
     pub struct Response {
         #[pin]
-        response: http_client::Response,
+        res: http_client::Response,
     }
 }
 
 impl Response {
     /// Create a new instance.
-    pub(crate) fn new(response: http_client::Response) -> Self {
-        Self { response }
+    pub(crate) fn new(res: http_client::Response) -> Self {
+        Self { res }
     }
 
     /// Get the HTTP status code.
@@ -40,7 +40,7 @@ impl Response {
     /// # Ok(()) }
     /// ```
     pub fn status(&self) -> StatusCode {
-        self.response.status()
+        self.res.status()
     }
 
     /// Get the HTTP protocol version.
@@ -50,14 +50,14 @@ impl Response {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::http_types::Version;
+    /// use surf::http::Version;
     ///
     /// let res = surf::get("https://httpbin.org/get").await?;
     /// assert_eq!(res.version(), Some(Version::Http1_1));
     /// # Ok(()) }
     /// ```
     pub fn version(&self) -> Option<Version> {
-        self.response.version()
+        self.res.version()
     }
 
     /// Get a header.
@@ -71,11 +71,67 @@ impl Response {
     /// assert!(res.header("Content-Length").is_some());
     /// # Ok(()) }
     /// ```
-    pub fn header(&self, key: impl Into<HeaderName>) -> Option<&HeaderValues> {
-        self.response.header(key)
+    pub fn header(&self, name: impl Into<HeaderName>) -> Option<&HeaderValues> {
+        self.res.header(name)
     }
 
-    /// Get the request MIME.
+    /// Get an HTTP header mutably.
+    pub fn header_mut(&mut self, name: impl Into<HeaderName>) -> Option<&mut HeaderValues> {
+        self.res.header_mut(name)
+    }
+
+    /// Remove a header.
+    pub fn remove_header(&mut self, name: impl Into<HeaderName>) -> Option<HeaderValues> {
+        self.res.remove_header(name)
+    }
+
+    /// Insert an HTTP header.
+    pub fn insert_header(&mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) {
+        self.res.insert_header(key, value);
+    }
+
+    /// Append an HTTP header.
+    pub fn append_header(&mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) {
+        self.res.append_header(key, value);
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order.
+    #[must_use]
+    pub fn iter(&self) -> headers::Iter<'_> {
+        self.res.iter()
+    }
+
+    /// An iterator visiting all header pairs in arbitrary order, with mutable references to the
+    /// values.
+    #[must_use]
+    pub fn iter_mut(&mut self) -> headers::IterMut<'_> {
+        self.res.iter_mut()
+    }
+
+    /// An iterator visiting all header names in arbitrary order.
+    #[must_use]
+    pub fn header_names(&self) -> headers::Names<'_> {
+        self.res.header_names()
+    }
+
+    /// An iterator visiting all header values in arbitrary order.
+    #[must_use]
+    pub fn header_values(&self) -> headers::Values<'_> {
+        self.res.header_values()
+    }
+
+    /// Get a response scoped extension value.
+    #[must_use]
+    pub fn ext<T: Send + Sync + 'static>(&self) -> Option<&T> {
+        self.res.ext().get()
+    }
+
+    /// Set a response scoped extension value.
+    pub fn insert_ext<T: Send + Sync + 'static>(&mut self, val: T) {
+        self.res.ext_mut().insert(val);
+    }
+
+    /// Get the response content type as a `Mime`.
     ///
     /// Gets the `Content-Type` header and parses it to a `Mime` type.
     ///
@@ -90,14 +146,50 @@ impl Response {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    /// use surf::mime;
+    /// use surf::http::mime;
     /// let res = surf::get("https://httpbin.org/json").await?;
-    /// assert_eq!(res.mime(), Some(mime::APPLICATION_JSON));
+    /// assert_eq!(res.content_type(), Some(mime::JSON));
     /// # Ok(()) }
     /// ```
-    pub fn mime(&self) -> Option<Mime> {
-        self.header(&CONTENT_TYPE)
-            .and_then(|header| header.last().as_str().parse().ok())
+    pub fn content_type(&self) -> Option<Mime> {
+        self.res.content_type()
+    }
+
+    /// Get the length of the body stream, if it has been set.
+    ///
+    /// This value is set when passing a fixed-size object into as the body.
+    /// E.g. a string, or a buffer. Consumers of this API should check this
+    /// value to decide whether to use `Chunked` encoding, or set the
+    /// response length.
+    pub fn len(&self) -> Option<usize> {
+        self.res.len()
+    }
+
+    /// Returns `true` if the set length of the body stream is zero, `false`
+    /// otherwise.
+    pub fn is_empty(&self) -> Option<bool> {
+        self.res.is_empty()
+    }
+
+    /// Set the body reader.
+    pub fn set_body(&mut self, body: impl Into<Body>) {
+        self.res.set_body(body);
+    }
+
+    /// Take the response body as a `Body`.
+    ///
+    /// This method can be called after the body has already been taken or read,
+    /// but will return an empty `Body`.
+    ///
+    /// Useful for adjusting the whole body, such as in middleware.
+    pub fn take_body(&mut self) -> Body {
+        self.res.take_body()
+    }
+
+    /// Swaps the value of the body with another body, without deinitializing
+    /// either one.
+    pub fn swap_body(&mut self, body: &mut Body) {
+        self.res.swap_body(body)
     }
 
     /// Reads the entire request body into a byte buffer.
@@ -119,10 +211,8 @@ impl Response {
     /// let bytes: Vec<u8> = res.body_bytes().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_bytes(&mut self) -> io::Result<Vec<u8>> {
-        let mut buf = Vec::with_capacity(1024);
-        self.response.read_to_end(&mut buf).await?;
-        Ok(buf)
+    pub async fn body_bytes(&mut self) -> crate::Result<Vec<u8>> {
+        self.res.body_bytes().await
     }
 
     /// Reads the entire request body into a string.
@@ -155,14 +245,14 @@ impl Response {
     /// let string: String = res.body_string().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_string(&mut self) -> Result<String, Error> {
+    pub async fn body_string(&mut self) -> crate::Result<String> {
         let bytes = self.body_bytes().await?;
-        let mime = self.mime();
+        let mime = self.content_type();
         let claimed_encoding = mime
             .as_ref()
-            .and_then(|mime| mime.get_param("charset"))
-            .map(|name| name.as_str());
-        decode_body(bytes, claimed_encoding)
+            .and_then(|mime| mime.param("charset"))
+            .map(|name| name.to_string());
+        decode_body(bytes, claimed_encoding.as_deref())
     }
 
     /// Reads and deserialized the entire request body from json.
@@ -190,9 +280,9 @@ impl Response {
     /// let Ip { ip } = res.body_json().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_json<T: DeserializeOwned>(&mut self) -> std::io::Result<T> {
+    pub async fn body_json<T: DeserializeOwned>(&mut self) -> crate::Result<T> {
         let body_bytes = self.body_bytes().await?;
-        Ok(serde_json::from_slice(&body_bytes).map_err(io::Error::from)?)
+        Ok(serde_json::from_slice(&body_bytes).map_err(crate::Error::from)?)
     }
 
     /// Reads and deserialized the entire request body from form encoding.
@@ -220,10 +310,32 @@ impl Response {
     /// let Body { apples } = res.body_form().await?;
     /// # Ok(()) }
     /// ```
-    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> Result<T, Error> {
-        let string = self.body_string().await?;
-        Ok(serde_urlencoded::from_str(&string)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?)
+    pub async fn body_form<T: serde::de::DeserializeOwned>(&mut self) -> crate::Result<T> {
+        self.res.body_form().await
+    }
+}
+
+impl From<http::Response> for Response {
+    fn from(response: http::Response) -> Self {
+        Self::new(response)
+    }
+}
+
+impl Into<http::Response> for Response {
+    fn into(self) -> http::Response {
+        self.res
+    }
+}
+
+impl AsRef<http::Response> for Response {
+    fn as_ref(&self) -> &http::Response {
+        &self.res
+    }
+}
+
+impl AsMut<http::Response> for Response {
+    fn as_mut(&mut self) -> &mut http::Response {
+        &mut self.res
     }
 }
 
@@ -234,7 +346,7 @@ impl AsyncRead for Response {
         cx: &mut Context<'_>,
         buf: &mut [u8],
     ) -> Poll<Result<usize, io::Error>> {
-        Pin::new(&mut self.response).poll_read(cx, buf)
+        Pin::new(&mut self.res).poll_read(cx, buf)
     }
 }
 
@@ -242,11 +354,11 @@ impl BufRead for Response {
     #[allow(missing_doc_code_examples)]
     fn poll_fill_buf(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<&'_ [u8]>> {
         let this = self.project();
-        this.response.poll_fill_buf(cx)
+        this.res.poll_fill_buf(cx)
     }
 
     fn consume(mut self: Pin<&mut Self>, amt: usize) {
-        Pin::new(&mut self.response).consume(amt)
+        Pin::new(&mut self.res).consume(amt)
     }
 }
 
@@ -254,8 +366,36 @@ impl fmt::Debug for Response {
     #[allow(missing_doc_code_examples)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
-            .field("response", &self.response)
+            .field("response", &self.res)
             .finish()
+    }
+}
+
+impl Index<HeaderName> for Response {
+    type Output = HeaderValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Response`.
+    #[inline]
+    fn index(&self, name: HeaderName) -> &HeaderValues {
+        &self.res[name]
+    }
+}
+
+impl Index<&str> for Response {
+    type Output = HeaderValues;
+
+    /// Returns a reference to the value corresponding to the supplied name.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the name is not present in `Response`.
+    #[inline]
+    fn index(&self, name: &str) -> &HeaderValues {
+        &self.res[name]
     }
 }
 
@@ -350,7 +490,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
                 encoding: encoding_used.name().into(),
                 data: bytes,
             };
-            Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+            Err(io::Error::new(io::ErrorKind::InvalidData, err).into())
         } else {
             Ok(match decoded {
                 // If encoding_rs returned a `Cow::Borrowed`, the bytes are guaranteed to be valid
@@ -365,7 +505,7 @@ fn decode_body(bytes: Vec<u8>, content_encoding: Option<&str>) -> Result<String,
             encoding: content_encoding.to_string(),
             data: bytes,
         };
-        Err(io::Error::new(io::ErrorKind::InvalidData, err))?
+        Err(io::Error::new(io::ErrorKind::InvalidData, err).into())
     }
 }
 
