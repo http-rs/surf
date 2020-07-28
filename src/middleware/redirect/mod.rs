@@ -19,8 +19,6 @@ use crate::middleware::{HttpClient, Middleware, Next, Request, Response};
 use crate::url::Url;
 use crate::Result;
 
-use futures::future::BoxFuture;
-
 // List of acceptible 300-series redirect codes.
 const REDIRECT_CODES: &[StatusCode] = &[
     StatusCode::MovedPermanently,
@@ -76,46 +74,45 @@ impl Redirect {
     }
 }
 
+#[async_trait::async_trait]
 impl Middleware for Redirect {
     #[allow(missing_doc_code_examples)]
-    fn handle<'a>(
-        &'a self,
+    async fn handle(
+        &self,
         mut req: Request,
         client: Arc<dyn HttpClient>,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response>> {
-        Box::pin(async move {
-            let mut redirect_count: u8 = 0;
+        next: Next<'_>,
+    ) -> Result<Response> {
+        let mut redirect_count: u8 = 0;
 
-            // Note(Jeremiah): This is not ideal.
-            //
-            // HttpClient is currently too limiting for efficient redirects.
-            // We do not want to make unnecessary full requests, but it is
-            // presently required due to how Body streams work.
-            //
-            // Ideally we'd have methods to send a partial request stream,
-            // without sending the body, that would potnetially be able to
-            // get a server status before we attempt to send the body.
-            //
-            // As a work around we clone the request first (without the body),
-            // and try sending it until we get some status back that is not a
-            // redirect.
+        // Note(Jeremiah): This is not ideal.
+        //
+        // HttpClient is currently too limiting for efficient redirects.
+        // We do not want to make unnecessary full requests, but it is
+        // presently required due to how Body streams work.
+        //
+        // Ideally we'd have methods to send a partial request stream,
+        // without sending the body, that would potnetially be able to
+        // get a server status before we attempt to send the body.
+        //
+        // As a work around we clone the request first (without the body),
+        // and try sending it until we get some status back that is not a
+        // redirect.
 
-            while redirect_count < self.attempts {
-                redirect_count += 1;
-                let r: Request = req.clone();
-                let res: Response = client.send(r).await?;
-                if REDIRECT_CODES.contains(&res.status()) {
-                    if let Some(location) = res.header(headers::LOCATION) {
-                        *req.url_mut() = Url::parse(location.last().as_str())?;
-                    }
-                } else {
-                    break;
+        while redirect_count < self.attempts {
+            redirect_count += 1;
+            let r: Request = req.clone();
+            let res: Response = client.send(r).await?;
+            if REDIRECT_CODES.contains(&res.status()) {
+                if let Some(location) = res.header(headers::LOCATION) {
+                    *req.url_mut() = Url::parse(location.last().as_str())?;
                 }
+            } else {
+                break;
             }
+        }
 
-            Ok(next.run(req, client).await?)
-        })
+        Ok(next.run(req, client).await?)
     }
 }
 

@@ -6,7 +6,7 @@ use crate::http::{
 use crate::middleware::{Middleware, Next};
 use crate::Response;
 
-use futures::future::BoxFuture;
+use futures_util::future::BoxFuture;
 use http_client::{self, HttpClient};
 use serde::Serialize;
 use url::Url;

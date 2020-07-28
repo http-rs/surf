@@ -5,7 +5,7 @@ use crate::http::{
 };
 
 use async_std::io::BufRead;
-use futures::prelude::*;
+use futures_util::io::AsyncRead;
 use serde::de::DeserializeOwned;
 
 use std::fmt;
