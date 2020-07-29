@@ -85,7 +85,7 @@ impl Request {
         };
 
         #[cfg(feature = "middleware-logger")]
-        let client = client.middleware(crate::middleware::logger::new());
+        let client = client.middleware(crate::middleware::Logger::new());
 
         client
     }
