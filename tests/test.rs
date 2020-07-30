@@ -1,6 +1,9 @@
 use mockito::mock;
 
+use futures_util::future::BoxFuture;
 use http_types::Body;
+
+use surf::{middleware::Next, Client, Request, Response};
 
 #[async_std::test]
 async fn post_json() -> Result<(), http_types::Error> {
@@ -121,3 +124,48 @@ SOFTWARE.
 //     assert_eq!(res.status(), http_types::StatusCode::Ok);
 //     Ok(())
 // }
+
+#[async_std::test]
+async fn cloned() -> Result<(), http_types::Error> {
+    femme::start(log::LevelFilter::Trace).ok();
+
+    let original_client = surf::client().with(mw_1);
+    let cloned_client = original_client.clone().with(mw_2);
+
+    let req = surf::get("https://httpbin.org/get");
+    let res = original_client.send(req).await?;
+    assert!(res.ext::<MW1Marker>().is_some());
+    assert!(res.ext::<MW2Marker>().is_none()); // None
+
+    let req = surf::get("https://httpbin.org/get");
+    let res = cloned_client.send(req).await?;
+    assert!(res.ext::<MW1Marker>().is_some());
+    assert!(res.ext::<MW2Marker>().is_some()); // Some
+
+    Ok(())
+}
+
+struct MW1Marker;
+fn mw_1(
+    req: Request,
+    client: Client,
+    next: Next<'_>,
+) -> BoxFuture<Result<Response, http_types::Error>> {
+    Box::pin(async move {
+        let mut res: Response = next.run(req, client).await?;
+        res.insert_ext(MW1Marker);
+        Ok(res)
+    })
+}
+struct MW2Marker;
+fn mw_2(
+    req: Request,
+    client: Client,
+    next: Next<'_>,
+) -> BoxFuture<Result<Response, http_types::Error>> {
+    Box::pin(async move {
+        let mut res = next.run(req, client).await?;
+        res.insert_ext(MW2Marker);
+        Ok(res)
+    })
+}
