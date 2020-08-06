@@ -55,6 +55,8 @@ use std::task::{Context, Poll};
 pub struct RequestBuilder {
     /// Holds the state of the request.
     req: Option<Request>,
+    /// Hold an optional Client.
+    client: Option<Client>,
     /// Holds the state of the `impl Future`.
     fut: Option<BoxFuture<'static, Result<Response>>>,
 }
@@ -82,8 +84,14 @@ impl RequestBuilder {
     pub fn new(method: Method, url: Url) -> Self {
         Self {
             req: Some(Request::new(method, url)),
+            client: None,
             fut: None,
         }
+    }
+
+    pub(crate) fn with_client(mut self, client: Client) -> Self {
+        self.client = Some(client);
+        self
     }
 
     /// Sets a header on the request.
@@ -217,8 +225,12 @@ impl RequestBuilder {
 
     /// Create a `Client` and send the constructed `Request` from it.
     pub fn send(self) -> BoxFuture<'static, Result<Response>> {
-        let client = Client::new();
-        client.send(self.build())
+        if let Some(client) = self.client {
+            client.send(self.req.unwrap()) // Ownership nonsense, same as `build()`.
+        } else {
+            let client = Client::new();
+            client.send(self.build())
+        }
     }
 }
 
@@ -234,8 +246,13 @@ impl Future for RequestBuilder {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {
             let req = self.req.take().unwrap();
-            let client = Client::new();
-            self.fut = Some(client.send(req));
+
+            if let Some(client) = &self.client {
+                self.fut = Some(client.send(req))
+            } else {
+                let client = Client::new();
+                self.fut = Some(client.send(req))
+            }
         }
 
         // We can safely unwrap here because this is the only time we take ownership of the

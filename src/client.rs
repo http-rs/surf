@@ -1,8 +1,9 @@
 use std::fmt;
 use std::sync::Arc;
 
+use crate::http::Method;
 use crate::middleware::{Middleware, Next};
-use crate::{HttpClient, Request, Response, Result};
+use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 
 use futures_util::future::BoxFuture;
 
@@ -223,5 +224,221 @@ impl Client {
     ) -> Result<T> {
         let mut res = self.send(req.into()).await?;
         Ok(res.body_form::<T>().await?)
+    }
+
+    /// Perform an HTTP `GET` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.get("https://httpbin.org/get").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn get(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Get, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `HEAD` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.head("https://httpbin.org/head").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn head(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Head, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `POST` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.post("https://httpbin.org/post").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn post(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Post, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `PUT` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.put("https://httpbin.org/put").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn put(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Put, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `DELETE` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.delete("https://httpbin.org/delete").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn delete(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Delete, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `CONNECT` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.connect("https://httpbin.org/connect").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn connect(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Connect, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `OPTIONS` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.options("https://httpbin.org/options").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn options(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Options, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `TRACE` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.trace("https://httpbin.org/trace").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn trace(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Trace, uri).with_client(self.clone())
+    }
+
+    /// Perform an HTTP `PATCH` request using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let client = surf::client();
+    /// let string = client.patch("https://httpbin.org/patch").recv_string().await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn patch(&self, uri: impl AsRef<str>) -> RequestBuilder {
+        let uri = uri.as_ref().parse().unwrap();
+        RequestBuilder::new(Method::Patch, uri).with_client(self.clone())
     }
 }
