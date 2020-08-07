@@ -46,7 +46,7 @@ async fn main() -> Result<(), http_types::Error> {
     femme::start(log::LevelFilter::Info)?;
 
     let req = surf::get("https://httpbin.org/get");
-    let mut res = surf::client().middleware(Doubler {}).send(req).await?;
+    let mut res = surf::client().with(Doubler {}).send(req).await?;
     dbg!(&res);
     let body = res.body_bytes().await?;
     let body = String::from_utf8_lossy(&body);

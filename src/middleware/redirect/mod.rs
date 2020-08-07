@@ -6,7 +6,7 @@
 //! # #[async_std::main]
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let req = surf::get("https://httpbin.org/redirect/2");
-//! let client = surf::client().middleware(surf::middleware::Redirect::new(5));
+//! let client = surf::client().with(surf::middleware::Redirect::new(5));
 //! let mut res = client.send(req).await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
@@ -62,7 +62,7 @@ impl Redirect {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/redirect/2");
-    /// let client = surf::client().middleware(surf::middleware::Redirect::new(5));
+    /// let client = surf::client().with(surf::middleware::Redirect::new(5));
     /// let mut res = client.send(req).await?;
     /// dbg!(res.body_string().await?);
     /// # Ok(()) }

@@ -9,7 +9,7 @@
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let req = surf::get("https://httpbin.org/get");
 //! let mut res = surf::client()
-//!     .middleware(surf::middleware::Logger::new())
+//!     .with(surf::middleware::Logger::new())
 //!     .send(req).await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }

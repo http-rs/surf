@@ -91,11 +91,11 @@ impl Client {
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// let req = surf::get("https://httpbin.org/get");
     /// let client = surf::client()
-    ///     .middleware(surf::middleware::Redirect::default());
+    ///     .with(surf::middleware::Redirect::default());
     /// let res = client.send(req).await?;
     /// # Ok(()) }
     /// ```
-    pub fn middleware(mut self, middleware: impl Middleware) -> Self {
+    pub fn with(mut self, middleware: impl Middleware) -> Self {
         let m = Arc::get_mut(&mut self.middleware)
             .expect("Registering middleware is not possible after the Client has been used");
         m.push(Arc::new(middleware));

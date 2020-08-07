@@ -49,7 +49,7 @@
 //! #
 //! # #[async_std::main]
 //! # async fn main() -> Result<()> {
-//! #     surf::client().middleware(logger);
+//! #     surf::client().with(logger);
 //! #     Ok(())
 //! # }
 //! ```
