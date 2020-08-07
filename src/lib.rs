@@ -41,7 +41,7 @@
 //!
 //! let uri = "https://httpbin.org/post";
 //! let data = &Ip { ip: "129.0.0.1".into() };
-//! let res = surf::post(uri).body_json(data)?.await?;
+//! let res = surf::post(uri).body(surf::Body::from_json(data)?).await?;
 //! assert_eq!(res.status(), 200);
 //!
 //! let uri = "https://api.ipify.org?format=json";
@@ -57,7 +57,7 @@
 //! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
 //! let req = surf::get("https://img.fyi/q6YvNqP").await?;
 //! let body = surf::http::Body::from_reader(req, None);
-//! let res = surf::post("https://box.rs/upload").set_body(body).await?;
+//! let res = surf::post("https://box.rs/upload").body(body).await?;
 //! # Ok(()) }
 //! ```
 //!
@@ -79,6 +79,7 @@
 
 mod client;
 mod request;
+mod request_builder;
 mod response;
 
 pub mod middleware;
@@ -87,16 +88,25 @@ pub mod utils;
 #[doc(inline)]
 pub use http_types::{self as http, Body, Error, Status, StatusCode};
 
+#[doc(inline)]
+pub use http_client::HttpClient;
+
 pub use url;
 
 pub use client::Client;
 pub use request::Request;
+pub use request_builder::RequestBuilder;
 pub use response::{DecodeError, Response};
 
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 mod one_off;
 #[cfg(any(feature = "native-client", feature = "h1-client"))]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
+
+/// Construct a new `Client`.
+pub fn client() -> Client {
+    Client::new()
+}
 
 /// A specialized Result type for Surf.
 pub type Result<T = Response> = std::result::Result<T, Error>;

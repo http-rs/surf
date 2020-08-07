@@ -1,6 +1,6 @@
 use futures_util::io::AsyncReadExt;
-use std::sync::Arc;
-use surf::middleware::{Body, HttpClient, Middleware, Next, Request, Response};
+use surf::middleware::{Middleware, Next};
+use surf::{Body, Client, Request, Response};
 
 struct Doubler;
 
@@ -9,12 +9,14 @@ impl Middleware for Doubler {
     async fn handle(
         &self,
         req: Request,
-        client: Arc<dyn HttpClient>,
+        client: Client,
         next: Next<'_>,
     ) -> Result<Response, http_types::Error> {
         if req.method().is_safe() {
-            let mut new_req = Request::new(req.method(), req.url().clone());
-            new_req.set_version(req.version());
+            let mut new_req = http_types::Request::new(req.method(), req.url().clone());
+            new_req.set_version(req.as_ref().version());
+            let mut new_req: Request = new_req.into();
+
             for (name, value) in &req {
                 new_req.insert_header(name, value);
             }
@@ -43,9 +45,8 @@ impl Middleware for Doubler {
 async fn main() -> Result<(), http_types::Error> {
     femme::start(log::LevelFilter::Info)?;
 
-    let mut res = surf::get("https://httpbin.org/get")
-        .middleware(Doubler {})
-        .await?;
+    let req = surf::get("https://httpbin.org/get");
+    let mut res = surf::client().middleware(Doubler {}).send(req).await?;
     dbg!(&res);
     let body = res.body_bytes().await?;
     let body = String::from_utf8_lossy(&body);

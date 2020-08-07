@@ -1,5 +1,7 @@
 use mockito::mock;
 
+use http_types::Body;
+
 #[async_std::test]
 async fn post_json() -> Result<(), http_types::Error> {
     #[derive(serde::Deserialize, serde::Serialize)]
@@ -17,8 +19,8 @@ async fn post_json() -> Result<(), http_types::Error> {
         .with_body(&serde_json::to_string(&cat)?[..])
         .create();
     let res = surf::post(mockito::server_url())
-        .set_header("Accept", "application/json")
-        .body_json(&cat)?
+        .header("Accept", "application/json")
+        .body(Body::from_json(&cat)?)
         .await?;
     m.assert();
     assert_eq!(res.status(), http_types::StatusCode::Ok);
@@ -47,10 +49,10 @@ async fn get_google() -> Result<(), http_types::Error> {
     femme::start(log::LevelFilter::Trace).ok();
 
     let url = "https://www.google.com";
-    let mut req = surf::get(url).await?;
-    assert_eq!(req.status(), http_types::StatusCode::Ok);
+    let mut res = surf::get(url).await?;
+    assert_eq!(res.status(), http_types::StatusCode::Ok);
 
-    let msg = req.body_bytes().await?;
+    let msg = res.body_bytes().await?;
     let msg = String::from_utf8_lossy(&msg);
     println!("recieved: '{}'", msg);
     assert!(msg.contains("<!doctype html>"));
@@ -72,10 +74,10 @@ async fn get_github() -> Result<(), http_types::Error> {
     femme::start(log::LevelFilter::Trace).ok();
 
     let url = "https://raw.githubusercontent.com/http-rs/surf/6627d9fc15437aea3c0a69e0b620ae7769ea6765/LICENSE-MIT";
-    let mut req = surf::get(url).await?;
-    assert_eq!(req.status(), http_types::StatusCode::Ok, "{:?}", &req);
+    let mut res = surf::get(url).await?;
+    assert_eq!(res.status(), http_types::StatusCode::Ok, "{:?}", &res);
 
-    let msg = req.body_string().await?;
+    let msg = res.body_string().await?;
 
     assert_eq!(
         msg,
