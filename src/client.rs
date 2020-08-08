@@ -26,11 +26,25 @@ use http_client::h1::H1Client;
 /// let (str1, str2) = futures_util::future::try_join(res1, res2).await?;
 /// # Ok(()) }
 /// ```
-#[derive(Clone)]
 pub struct Client {
     http_client: Arc<dyn HttpClient>,
     /// Holds the middleware stack.
     middleware: Arc<Vec<Arc<dyn Middleware>>>,
+}
+
+impl Clone for Client {
+    /// Clones the Client.
+    ///
+    /// This copies the middleware stack from the original, but shares
+    /// the `HttpClient` of the original.
+    /// Note that individual middleware in the middleware stack are
+    /// still shared by reference.
+    fn clone(&self) -> Self {
+        Self {
+            http_client: self.http_client.clone(),
+            middleware: Arc::new(self.middleware.iter().cloned().collect()),
+        }
+    }
 }
 
 impl fmt::Debug for Client {
@@ -116,10 +130,8 @@ impl Client {
     /// ```
     pub fn send(&self, req: impl Into<Request>) -> BoxFuture<'static, Result<Response>> {
         let req: Request = req.into();
-        let Self {
-            http_client,
-            middleware,
-        } = self.clone();
+        let http_client = self.http_client.clone();
+        let middleware = self.middleware.clone();
         Box::pin(async move {
             let next = Next::new(&middleware, &|req, client| {
                 Box::pin(async move {
