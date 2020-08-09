@@ -31,7 +31,7 @@
       API Docs
     </a>
     <span> | </span>
-    <a href="https://github.com/http-rs/surf/blob/master/.github/CONTRIBUTING.md">
+    <a href="https://github.com/http-rs/surf/blob/main/.github/CONTRIBUTING.md">
       Contributing
     </a>
     <span> | </span>
@@ -175,13 +175,13 @@ use `async` curl client that saved us countless hours.
 
 [1]: https://img.shields.io/crates/v/surf.svg?style=flat-square
 [2]: https://crates.io/crates/surf
-[3]: https://img.shields.io/travis/http-rs/surf/master.svg?style=flat-square
+[3]: https://img.shields.io/travis/http-rs/surf/main.svg?style=flat-square
 [4]: https://travis-ci.org/http-rs/surf
 [5]: https://img.shields.io/crates/d/surf.svg?style=flat-square
 [6]: https://crates.io/crates/surf
 [7]: https://img.shields.io/badge/docs-latest-blue.svg?style=flat-square
 [8]: https://docs.rs/surf
 [releases]: https://github.com/http-rs/surf/releases
-[contributing]: https://github.com/http-rs/surf/blob/master/.github/CONTRIBUTING.md
+[contributing]: https://github.com/http-rs/surf/blob/main/.github/CONTRIBUTING.md
 [good-first-issue]: https://github.com/http-rs/surf/labels/good%20first%20issue
 [help-wanted]: https://github.com/http-rs/surf/labels/help%20wanted
