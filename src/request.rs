@@ -20,7 +20,7 @@ pub struct Request {
     req: http_client::Request,
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(feature = "curl-client", feature = "wasm-client", feature = "h1-client"))]
 impl Request {
     /// Create a new instance.
     ///
@@ -395,7 +395,7 @@ impl AsMut<http::Request> for Request {
     }
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(feature = "curl-client", feature = "wasm-client", feature = "h1-client"))]
 impl From<http::Request> for Request {
     /// Converts an `http::Request` to a `surf::Request`.
     fn from(http_request: http::Request) -> Self {
@@ -420,7 +420,7 @@ impl fmt::Debug for Request {
     }
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(feature = "curl-client", feature = "wasm-client", feature = "h1-client"))]
 impl IntoIterator for Request {
     type Item = (HeaderName, HeaderValues);
     type IntoIter = headers::IntoIter;
@@ -432,7 +432,7 @@ impl IntoIterator for Request {
     }
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(feature = "curl-client", feature = "wasm-client", feature = "h1-client"))]
 impl<'a> IntoIterator for &'a Request {
     type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = headers::Iter<'a>;

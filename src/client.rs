@@ -7,7 +7,7 @@ use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 
 use futures_util::future::BoxFuture;
 
-#[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+#[cfg(all(any(feature = "curl-client", feature = "wasm-client"), not(feature = "h1-client")))]
 use http_client::native::NativeClient;
 
 #[cfg(feature = "h1-client")]
@@ -71,7 +71,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn new() -> Self {
-        #[cfg(all(feature = "native-client", not(feature = "h1-client")))]
+        #[cfg(all(any(feature = "curl-client", feature = "wasm-client"), not(feature = "h1-client")))]
         let client = NativeClient::new();
         #[cfg(feature = "h1-client")]
         let client = H1Client::new();
