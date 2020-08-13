@@ -459,7 +459,11 @@ impl<'a> IntoIterator for &'a Request {
     }
 }
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(
+    feature = "wasm-client",
+    feature = "curl-client",
+    feature = "h1-client"
+))]
 impl<'a> IntoIterator for &'a mut Request {
     type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = headers::IterMut<'a>;
