@@ -1,7 +1,7 @@
 use std::fmt;
 use std::sync::Arc;
 
-use crate::http::Method;
+use crate::http::{Method, Url};
 use crate::middleware::{Middleware, Next};
 use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 
@@ -27,6 +27,7 @@ use http_client::h1::H1Client;
 /// # Ok(()) }
 /// ```
 pub struct Client {
+    base_url: Option<Url>,
     http_client: Arc<dyn HttpClient>,
     /// Holds the middleware stack.
     middleware: Arc<Vec<Arc<dyn Middleware>>>,
@@ -41,6 +42,7 @@ impl Clone for Client {
     /// still shared by reference.
     fn clone(&self) -> Self {
         Self {
+            base_url: self.base_url.clone(),
             http_client: self.http_client.clone(),
             middleware: Arc::new(self.middleware.iter().cloned().collect()),
         }
@@ -64,11 +66,8 @@ impl Client {
     ///
     /// # Examples
     ///
-    /// ```no_run
-    /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// ```rust
     /// let client = surf::Client::new();
-    /// # Ok(()) }
     /// ```
     pub fn new() -> Self {
         #[cfg(all(feature = "native-client", not(feature = "h1-client")))]
@@ -79,11 +78,18 @@ impl Client {
     }
 
     /// Create a new instance with an `http_client::HttpClient` instance.
-    // TODO(yw): hidden from docs until we make the traits public.
-    #[doc(hidden)]
-    #[allow(missing_doc_code_examples)]
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use std::sync::Arc;
+    /// # use http_client::h1::H1Client;
+    /// let client = surf::Client::with_http_client(Arc::new(H1Client::new()));
+    /// ```
+
     pub fn with_http_client(http_client: Arc<dyn HttpClient>) -> Self {
         Self {
+            base_url: None,
             http_client,
             middleware: Arc::new(vec![
                 #[cfg(feature = "middleware-logger")]
@@ -258,8 +264,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn get(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Get, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Get, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `HEAD` request using the `Client` connection.
@@ -282,8 +287,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn head(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Head, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Head, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `POST` request using the `Client` connection.
@@ -306,8 +310,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn post(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Post, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Post, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `PUT` request using the `Client` connection.
@@ -330,8 +333,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn put(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Put, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Put, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `DELETE` request using the `Client` connection.
@@ -354,8 +356,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn delete(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Delete, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Delete, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `CONNECT` request using the `Client` connection.
@@ -378,8 +379,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn connect(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Connect, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Connect, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `OPTIONS` request using the `Client` connection.
@@ -402,8 +402,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn options(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Options, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Options, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `TRACE` request using the `Client` connection.
@@ -426,8 +425,7 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn trace(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Trace, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Trace, self.url(uri)).with_client(self.clone())
     }
 
     /// Perform an HTTP `PATCH` request using the `Client` connection.
@@ -450,7 +448,27 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub fn patch(&self, uri: impl AsRef<str>) -> RequestBuilder {
-        let uri = uri.as_ref().parse().unwrap();
-        RequestBuilder::new(Method::Patch, uri).with_client(self.clone())
+        RequestBuilder::new(Method::Patch, self.url(uri)).with_client(self.clone())
+    }
+
+    /// sets the base path for this client
+    /// ```no_run
+    /// # use http_types::Url;
+    /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
+    /// let mut client = surf::client();
+    /// client.set_base_url(Url::parse("http://example.com/api/v1")?);
+    /// client.get("/posts.json").recv_json().await?; /// http://example.com/api/v1/posts.json
+    /// # Ok(()) }) }
+    /// ```
+    pub fn set_base_url(&mut self, base: Url) {
+        self.base_url = Some(base);
+    }
+
+    // private function to generate a url based on the base_path
+    fn url(&self, uri: impl AsRef<str>) -> Url {
+        match &self.base_url {
+            None => uri.as_ref().parse().unwrap(),
+            Some(base) => base.join(uri.as_ref()).unwrap(),
+        }
     }
 }
