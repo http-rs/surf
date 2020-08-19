@@ -451,7 +451,9 @@ impl Client {
         RequestBuilder::new(Method::Patch, self.url(uri)).with_client(self.clone())
     }
 
-    /// sets the base path for this client
+    /// Sets the base URL for this client. All request URLs will be relative to this path.
+    ///
+    /// # Examples
     /// ```no_run
     /// # use http_types::Url;
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
