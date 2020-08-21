@@ -98,9 +98,17 @@ pub use request::Request;
 pub use request_builder::RequestBuilder;
 pub use response::{DecodeError, Response};
 
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(
+    feature = "curl-client",
+    feature = "wasm-client",
+    feature = "h1-client"
+))]
 mod one_off;
-#[cfg(any(feature = "native-client", feature = "h1-client"))]
+#[cfg(any(
+    feature = "curl-client",
+    feature = "wasm-client",
+    feature = "h1-client"
+))]
 pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 
 /// Construct a new `Client`.
