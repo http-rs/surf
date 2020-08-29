@@ -1,10 +1,8 @@
-use crate::middleware::{Middleware, Next, Request, Response};
-use http_client::HttpClient;
+use crate::middleware::{Middleware, Next};
+use crate::{Client, Request, Response};
 
-use futures::future::BoxFuture;
 use std::fmt::Arguments;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
 use std::time;
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -22,53 +20,52 @@ impl Logger {
     }
 }
 
+#[async_trait::async_trait]
 impl Middleware for Logger {
     #[allow(missing_doc_code_examples)]
-    fn handle<'a>(
-        &'a self,
+    async fn handle(
+        &self,
         req: Request,
-        client: Arc<dyn HttpClient>,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
-        Box::pin(async move {
-            let start_time = time::Instant::now();
-            let uri = format!("{}", req.url());
-            let method = format!("{}", req.method());
-            let id = COUNTER.fetch_add(1, Ordering::SeqCst);
-            print(
-                log::Level::Info,
-                format_args!("sending request"),
-                RequestPairs {
-                    id,
-                    uri: &uri,
-                    method: &method,
-                },
-            );
+        client: Client,
+        next: Next<'_>,
+    ) -> Result<Response, http_types::Error> {
+        let start_time = time::Instant::now();
+        let uri = format!("{}", req.url());
+        let method = format!("{}", req.method());
+        let id = COUNTER.fetch_add(1, Ordering::SeqCst);
+        print(
+            log::Level::Info,
+            format_args!("sending request"),
+            RequestPairs {
+                id,
+                uri: &uri,
+                method: &method,
+            },
+        );
 
-            let res = next.run(req, client).await?;
+        let res = next.run(req, client).await?;
 
-            let status = res.status();
-            let elapsed = start_time.elapsed();
-            let level = if status.is_server_error() {
-                log::Level::Error
-            } else if status.is_client_error() {
-                log::Level::Warn
-            } else {
-                log::Level::Info
-            };
+        let status = res.status();
+        let elapsed = start_time.elapsed();
+        let level = if status.is_server_error() {
+            log::Level::Error
+        } else if status.is_client_error() {
+            log::Level::Warn
+        } else {
+            log::Level::Info
+        };
 
-            print(
-                level,
-                format_args!("request completed"),
-                ResponsePairs {
-                    id,
-                    elapsed: &format!("{:?}", elapsed),
-                    status: status.into(),
-                },
-            );
+        print(
+            level,
+            format_args!("request completed"),
+            ResponsePairs {
+                id,
+                elapsed: &format!("{:?}", elapsed),
+                status: status.into(),
+            },
+        );
 
-            Ok(res)
-        })
+        Ok(res)
     }
 }
 

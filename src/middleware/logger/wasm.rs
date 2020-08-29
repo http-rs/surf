@@ -1,10 +1,7 @@
 use crate::middleware::{Middleware, Next, Request, Response};
-use http_client::HttpClient;
-
-use futures::future::BoxFuture;
+use crate::Client;
 
 use std::fmt::Arguments;
-use std::sync::Arc;
 
 /// Log each request's duration.
 #[derive(Debug)]
@@ -19,44 +16,45 @@ impl Logger {
     }
 }
 
+#[async_trait::async_trait]
 impl Middleware for Logger {
     #[allow(missing_doc_code_examples)]
-    fn handle<'a>(
-        &'a self,
+    async fn handle(
+        &self,
         req: Request,
-        client: Arc<dyn HttpClient>,
-        next: Next<'a>,
-    ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
-        Box::pin(async move {
-            print(
-                log::Level::Info,
-                format_args!("sending request"),
-                RequestPairs {
-                    uri: req.url().as_ref(),
-                    method: req.method().as_ref(),
-                },
-            );
+        client: Client,
+        next: Next<'_>,
+    ) -> Result<Response, http_types::Error> {
+        let uri = format!("{}", req.url());
+        let method = format!("{}", req.method());
+        print(
+            log::Level::Info,
+            format_args!("sending request"),
+            RequestPairs {
+                uri: &uri,
+                method: &method,
+            },
+        );
 
-            let res = next.run(req, client).await?;
+        let res = next.run(req, client).await?;
 
-            let status = res.status();
-            let level = if status.is_server_error() {
-                log::Level::Error
-            } else if status.is_client_error() {
-                log::Level::Warn
-            } else {
-                log::Level::Info
-            };
+        let status = res.status();
+        let level = if status.is_server_error() {
+            log::Level::Error
+        } else if status.is_client_error() {
+            log::Level::Warn
+        } else {
+            log::Level::Info
+        };
 
-            print(
-                level,
-                format_args!("request completed"),
-                ResponsePairs {
-                    status: status.into(),
-                },
-            );
-            Ok(res)
-        })
+        print(
+            level,
+            format_args!("request completed"),
+            ResponsePairs {
+                status: status.into(),
+            },
+        );
+        Ok(res)
     }
 }
 

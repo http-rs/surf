@@ -1,5 +1,5 @@
-use super::Request;
 use crate::http::Method;
+use crate::RequestBuilder;
 
 /// Perform a one-off `GET` request.
 ///
@@ -28,9 +28,9 @@ use crate::http::Method;
 /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn get(uri: impl AsRef<str>) -> Request {
+pub fn get(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Get, uri)
+    RequestBuilder::new(Method::Get, uri)
 }
 
 /// Perform a one-off `HEAD` request.
@@ -69,9 +69,9 @@ pub fn get(uri: impl AsRef<str>) -> Request {
 /// let string = surf::head("https://httpbin.org/head").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn head(uri: impl AsRef<str>) -> Request {
+pub fn head(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Head, uri)
+    RequestBuilder::new(Method::Head, uri)
 }
 
 /// Perform a one-off `POST` request.
@@ -127,9 +127,9 @@ pub fn head(uri: impl AsRef<str>) -> Request {
 /// let string = surf::post("https://httpbin.org/post").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn post(uri: impl AsRef<str>) -> Request {
+pub fn post(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Post, uri)
+    RequestBuilder::new(Method::Post, uri)
 }
 
 /// Perform a one-off `PUT` request.
@@ -163,9 +163,9 @@ pub fn post(uri: impl AsRef<str>) -> Request {
 /// let string = surf::put("https://httpbin.org/put").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn put(uri: impl AsRef<str>) -> Request {
+pub fn put(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Put, uri)
+    RequestBuilder::new(Method::Put, uri)
 }
 
 /// Perform a one-off `DELETE` request.
@@ -194,9 +194,9 @@ pub fn put(uri: impl AsRef<str>) -> Request {
 /// let string = surf::delete("https://httpbin.org/delete").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn delete(uri: impl AsRef<str>) -> Request {
+pub fn delete(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Delete, uri)
+    RequestBuilder::new(Method::Delete, uri)
 }
 
 /// Perform a one-off `CONNECT` request.
@@ -234,9 +234,9 @@ pub fn delete(uri: impl AsRef<str>) -> Request {
 /// let string = surf::connect("https://httpbin.org/connect").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn connect(uri: impl AsRef<str>) -> Request {
+pub fn connect(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Connect, uri)
+    RequestBuilder::new(Method::Connect, uri)
 }
 
 /// Perform a one-off `OPTIONS` request.
@@ -267,9 +267,9 @@ pub fn connect(uri: impl AsRef<str>) -> Request {
 /// let string = surf::options("https://httpbin.org/options").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn options(uri: impl AsRef<str>) -> Request {
+pub fn options(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Options, uri)
+    RequestBuilder::new(Method::Options, uri)
 }
 
 /// Perform a one-off `TRACE` request.
@@ -304,9 +304,9 @@ pub fn options(uri: impl AsRef<str>) -> Request {
 /// let string = surf::trace("https://httpbin.org/trace").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn trace(uri: impl AsRef<str>) -> Request {
+pub fn trace(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Trace, uri)
+    RequestBuilder::new(Method::Trace, uri)
 }
 
 /// Perform a one-off `PATCH` request.
@@ -347,7 +347,7 @@ pub fn trace(uri: impl AsRef<str>) -> Request {
 /// let string = surf::patch("https://httpbin.org/patch").recv_string().await?;
 /// # Ok(()) }
 /// ```
-pub fn patch(uri: impl AsRef<str>) -> Request {
+pub fn patch(uri: impl AsRef<str>) -> RequestBuilder {
     let uri = uri.as_ref().parse().unwrap();
-    Request::new(Method::Patch, uri)
+    RequestBuilder::new(Method::Patch, uri)
 }
