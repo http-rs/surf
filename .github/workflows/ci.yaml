@@ -85,4 +85,4 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --target wasm32-unknown-unknown
+        args: --target wasm32-unknown-unknown --features "native-client,wasm-client"
