@@ -7,6 +7,94 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.0.0-alpha.5] - 2020-09-07
+
+This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable futures. There may be significant breaking changes before the final 2.0 release. Until thin, we recommend pinning to the particular alpha:
+
+```toml
+[dependencies]
+surf = "= 2.0.0-alpha.5"
+```
+
+This alpha release notably contains much more API parity with Tide, particularly for `surf::Request`, `surf::Response`, and `surf::middleware::Middleware`. Middleware also is now implemented using [async-trait](https://crates.io/crates/async-trait). Additionally, `surf::Client` is no longer generic and now instead holds the internal `HttpClient` as a dynamic trait object.
+
+These changes mean that surf middleware must undergo the following changes:
+
+**Old middleware:**
+```rust
+impl<C: HttpClient> Middleware<C> for Logger {
+    fn handle<'a>(
+        &'a self,
+        req: Request,
+        client: C,
+        next: Next<'a, C>,
+    ) -> BoxFuture<'a, Result<Response, http_types::Error>> {
+        Box::pin(async move {
+            Ok(res)
+        })
+    }
+}
+```
+
+**New middleware:**
+```rust
+#[surf::utils::async_trait]
+impl Middleware for Logger {
+    async fn handle(
+        &self,
+        req: Request,
+        client: Client,
+        next: Next<'_>,
+    ) -> Result<Response> {
+        Ok(res)
+    }
+}
+```
+
+This alpha release also contains large changes to how the `surf::Request` and `surf::Client` APIs are structured, adding a `surf::RequestBuilder` which is now returned from methods such as `surf::get(...)`. Overall usage structure was kept the same where possible and reasonable, however now a `surf::Client` must be used when using middleware.
+
+```rust
+let client = surf::client()
+    .with(some_middleware);
+
+let req = surf::post(url) // Now returns a `surf::RequestBuilder`!
+    .header(a_header, a_value)
+    .body(a_body);
+let res = client.send(req).await?;
+```
+
+# Additions
+- `surf::Request` added many methods that exist in `tide::Request`.
+- `surf::Response` added many methods that exist in `tide::Response`.
+- `surf::http`, an export of `http_types`, similar to `tide::http`.
+- `surf::middleware::Redirect`, a middleware to handle redirect status codes.
+- All conversions for `Request` and `Response` between `http_types` and `surf` now exist.
+
+# Changes
+- `surf::Request` changed many methods to be like those in `tide::Request`.
+- `surf::Response` changed many methods to be like those in `tide::Response`.
+- Surf now uses `http-types::mime` instead of the `mime` crate.
+- `TryFrom<http_types::Request> for Request` is now `From<http_types::Request> for Request`.
+- `surf::Client` is no longer generic for `C: HttpClient`.
+- Middleware now receives `surf::Request` and returns `Result<surf::Response, E>`, and no longer requires a generic bound.
+- Middleware now uses [async-trait](https://crates.io/crates/async-trait), which is exported as `surf::utils::async_trait`.
+- The logger middleware is now exported as `surf::middleware::Logger`. (Note: this middleware is used by default.)
+- `surf::{method}()` e.g. `surf::get()` now returns a `surf::RequestBuilder` rather than a `surf::Request`.
+  - Middleware can no longer be set for individual requests.
+  - Instead, use a `surf::Client` and register middleware via `client.with(middleware)`.
+  - Then, send the request from that client via `client.send()` e.g. `let res = client.send(request).await?;`.
+- `surf::Client` now can set a "base url" for that client via `client.set_base_url()`.
+
+# Fixes
+- `From<http_types::Request> for Request` now properly propagates all properties.
+- A cloned `surf::Client` no longer adds middleware onto its ancestor's middleware stack.
+- Some feature flags are now correct.
+
+# Internal
+- Use Clippy in CI.
+- Improved examples.
+- Now only depends on `futures_util` rather than all of `futures`.
+
 ## [2.0.0-alpha.2] - 2020-04-29
 
 This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable `futures`. There may be significant breaking changes before the final 2.0 release. Until then, we recommend pinning to the particular alpha:
