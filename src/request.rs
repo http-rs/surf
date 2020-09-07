@@ -399,19 +399,10 @@ impl AsMut<http::Request> for Request {
     }
 }
 
-#[cfg(any(
-    feature = "curl-client",
-    feature = "wasm-client",
-    feature = "h1-client"
-))]
 impl From<http::Request> for Request {
     /// Converts an `http::Request` to a `surf::Request`.
-    fn from(http_request: http::Request) -> Self {
-        let method = http_request.method();
-        let url = http_request.url().clone();
-        let mut req = Self::new(method, url);
-        req.set_body(http_request);
-        req
+    fn from(req: http::Request) -> Self {
+        Self { req }
     }
 }
 
