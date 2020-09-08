@@ -12,11 +12,10 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-// #[derive(Debug)]
-
-/// Response Builder
+/// Request Builder
 ///
-/// Provides an ergonomic way to chain the creation of a response. This is generally accessed through `surf::{method}()`,
+/// Provides an ergonomic way to chain the creation of a request.
+/// This is generally accessed as the return value from `surf::{method}()`,
 /// however [`Request::builder`](crate::Request::builder) is also provided.
 ///
 /// # Examples
@@ -252,8 +251,7 @@ impl Future for RequestBuilder {
             }
         }
 
-        // We can safely unwrap here because this is the only time we take ownership of the
-        // request and middleware stack.
+        // We can safely unwrap here because this is the only time we take ownership of the request.
         self.fut.as_mut().unwrap().as_mut().poll(cx)
     }
 }
