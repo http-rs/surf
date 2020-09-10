@@ -62,14 +62,11 @@ quick script, or a cross-platform SDK, Surf will make it work.
 ## Examples
 
 ```rust
-use async_std::task;
-
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    task::block_on(async {
-        let mut res = surf::get("https://httpbin.org/get").await?;
-        dbg!(res.body_string().await?);
-        Ok(())
-    })
+#[async_std::main]
+async fn main() -> surf::Result<()> {
+    let mut res = surf::get("https://httpbin.org/get").await?;
+    dbg!(res.body_string().await?);
+    Ok(()) 
 }
 ```
 
@@ -77,53 +74,47 @@ It's also possible to skip the intermediate `Response`, and access the response
 type directly.
 
 ```rust
-use async_std::task;
-
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    task::block_on(async {
-        dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
-        Ok(())
-    })
+#[async_std::main]
+async fn main() -> surf::Result<()> {
+    dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
+    Ok(())
 }
 ```
 
 Both sending and receiving JSON is real easy too.
 
 ```rust
-use async_std::task;
 use serde::{Deserialize, Serialize};
 
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    #[derive(Deserialize, Serialize)]
-    struct Ip {
-        ip: String
-    }
+#[derive(Deserialize, Serialize)]
+struct Ip {
+    ip: String
+}
 
-    task::block_on(async {
-        let uri = "https://httpbin.org/post";
-        let data = &Ip { ip: "129.0.0.1".into() };
-        let res = surf::post(uri).body_json(data)?.await?;
-        assert_eq!(res.status(), 200);
+#[async_std::main]
+async fn main() -> surf::Result<()> {
+    let uri = "https://httpbin.org/post";
+    let data = &Ip { ip: "129.0.0.1".into() };
+    let res = surf::post(uri).body(surf::Body::from_json(data)?).await?;
+    assert_eq!(res.status(), 200);
 
-        let uri = "https://api.ipify.org?format=json";
-        let Ip { ip } = surf::get(uri).recv_json().await?;
-        assert!(ip.len() > 10);
-        Ok(())
-    })
+    let uri = "https://api.ipify.org?format=json";
+    let Ip { ip } = surf::get(uri).recv_json().await?;
+    assert!(ip.len() > 10);
+
+    Ok(())
 }
 ```
 
 And even creating streaming proxies is no trouble at all.
 
 ```rust
-use async_std::task;
-
-fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-    task::block_on(async {
-        let reader = surf::get("https://img.fyi/q6YvNqP").await?;
-        let res = surf::post("https://box.rs/upload").body(reader).await?;
-        Ok(())
-    })
+#[async_std::main]
+async fn main() -> surf::Result<()> {
+    let req = surf::get("https://img.fyi/q6YvNqP").await?;
+    let body = surf::http::Body::from_reader(req, None);
+    let res = surf::post("https://box.rs/upload").body(body).await?;
+    Ok(())
 }
 ```
 
