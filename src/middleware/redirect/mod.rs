@@ -60,7 +60,7 @@ impl Redirect {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let req = surf::get("https://httpbin.org/redirect/2");
     /// let client = surf::client().with(surf::middleware::Redirect::new(5));
     /// let mut res = client.send(req).await?;

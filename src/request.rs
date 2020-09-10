@@ -29,7 +29,7 @@ impl Request {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// use surf::http::Method;
     /// use surf::url::Url;
     ///
@@ -50,7 +50,7 @@ impl Request {
     /// # use surf::url::Url;
     /// # use surf::{http, Request};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let url = Url::parse("https://httpbin.org/post")?;
     /// let mut request = Request::builder(http::Method::Post, url.clone())
     ///     .body("<html>hi</html>")
@@ -78,7 +78,7 @@ impl Request {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
     ///     page: u32
@@ -106,7 +106,7 @@ impl Request {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// #[derive(Serialize, Deserialize)]
     /// struct Index {
     ///     page: u32
@@ -137,7 +137,7 @@ impl Request {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let mut req = surf::get("https://httpbin.org/get").build();
     /// req.set_header("X-Requested-With", "surf");
     /// assert_eq!(req.header("X-Requested-With").unwrap(), "surf");
@@ -205,7 +205,7 @@ impl Request {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let mut req = surf::get("https://httpbin.org/get").build();
     /// req.set_header("X-Requested-With", "surf");
     /// assert_eq!(req.header("X-Requested-With").unwrap(), "surf");
@@ -232,7 +232,7 @@ impl Request {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let req = surf::get("https://httpbin.org/get").build();
     /// assert_eq!(req.method(), surf::http::Method::Get);
     /// # Ok(()) }
@@ -247,7 +247,7 @@ impl Request {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// use surf::url::Url;
     /// let req = surf::get("https://httpbin.org/get").build();
     /// assert_eq!(req.url(), &Url::parse("https://httpbin.org/get")?);
