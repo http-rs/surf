@@ -78,6 +78,7 @@
 #![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
 mod client;
+mod client_ext;
 mod request;
 mod request_builder;
 mod response;
@@ -94,6 +95,7 @@ pub use http_client::HttpClient;
 pub use url;
 
 pub use client::Client;
+pub use client_ext::ClientExt;
 pub use request::Request;
 pub use request_builder::RequestBuilder;
 pub use response::{DecodeError, Response};
