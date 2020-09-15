@@ -28,6 +28,17 @@ use http_client::h1::H1Client;
 ))]
 use http_client::wasm::WasmClient;
 
+#[cfg(all(
+    feature = "curl-client",
+    not(any(feature = "h1-client", feature = "wasm-client"))
+))]
+use once_cell::sync::Lazy;
+#[cfg(all(
+    feature = "curl-client",
+    not(any(feature = "h1-client", feature = "wasm-client"))
+))]
+static GLOBAL_CLIENT: Lazy<IsahcClient> = Lazy::new(IsahcClient::new);
+
 /// An HTTP client, capable of sending `Request`s and running a middleware stack.
 ///
 /// # Examples
@@ -126,6 +137,26 @@ impl Client {
                 Arc::new(crate::middleware::Logger::new()),
             ]),
         }
+    }
+
+    pub(crate) fn new_shared() -> Self {
+        #[cfg(all(
+            feature = "curl-client",
+            not(any(feature = "h1-client", feature = "wasm-client"))
+        ))]
+        let client = GLOBAL_CLIENT.clone();
+        #[cfg(all(
+            feature = "h1-client",
+            not(any(feature = "curl-client", feature = "wasm-client"))
+        ))]
+        let client = H1Client::new();
+        #[cfg(all(
+            feature = "wasm-client",
+            not(any(feature = "h1-client", feature = "curl-client"))
+        ))]
+        let client = WasmClient::new();
+
+        Self::with_http_client(Arc::new(client))
     }
 
     /// Push middleware onto the middleware stack.
