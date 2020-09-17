@@ -19,9 +19,12 @@ use http_client::isahc::IsahcClient;
 ))]
 use http_client::h1::H1Client;
 
-#[cfg(all(
-    feature = "wasm-client",
-    not(any(feature = "h1-client", feature = "curl-client"))
+#[cfg(any(
+    all(
+        feature = "wasm-client",
+        not(any(feature = "h1-client", feature = "curl-client"))
+    ),
+    feature = "wasm_bindgen"
 ))]
 use http_client::wasm::WasmClient;
 
@@ -92,9 +95,12 @@ impl Client {
             not(any(feature = "curl-client", feature = "wasm-client"))
         ))]
         let client = H1Client::new();
-        #[cfg(all(
-            feature = "wasm-client",
-            not(any(feature = "h1-client", feature = "curl-client"))
+        #[cfg(any(
+            all(
+                feature = "wasm-client",
+                not(any(feature = "h1-client", feature = "curl-client"))
+            ),
+            feature = "wasm_bindgen"
         ))]
         let client = WasmClient::new();
 
