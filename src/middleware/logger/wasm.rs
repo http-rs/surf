@@ -1,8 +1,5 @@
-use crate::middleware::{Middleware, Next, Request, Response};
-use http_client::HttpClient;
-
+use crate::middleware::{Client, Middleware, Next, Request, Response};
 use std::fmt::Arguments;
-use std::sync::Arc;
 
 /// Log each request's duration.
 #[derive(Debug)]
@@ -23,10 +20,10 @@ impl Middleware for Logger {
     async fn handle(
         &self,
         req: Request,
-        client: Arc<dyn HttpClient>,
+        client: Client,
         next: Next<'_>,
     ) -> Result<Response, http_types::Error> {
-        let uri = format!("{}", req.uri());
+        let uri = format!("{}", req.url());
         let method = format!("{}", req.method());
         print(
             log::Level::Info,
@@ -52,7 +49,7 @@ impl Middleware for Logger {
             level,
             format_args!("request completed"),
             ResponsePairs {
-                status: status.as_u16(),
+                status: status.into(),
             },
         );
         Ok(res)

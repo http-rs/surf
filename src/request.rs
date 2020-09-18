@@ -9,9 +9,7 @@ use serde::Serialize;
 use url::Url;
 
 use std::fmt;
-use std::io;
 use std::ops::Index;
-use std::path::Path;
 
 /// An HTTP request, returns a `Response`.
 #[derive(Clone)]
@@ -367,7 +365,8 @@ impl Request {
     /// # Errors
     ///
     /// This method will return an error if the file couldn't be read.
-    pub async fn body_file(&mut self, path: impl AsRef<Path>) -> io::Result<()> {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn body_file(&mut self, path: impl AsRef<std::path::Path>) -> std::io::Result<()> {
         self.set_body(Body::from_file(path).await?);
         Ok(())
     }
