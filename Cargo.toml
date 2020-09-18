@@ -20,10 +20,11 @@ edition = "2018"
 # when the default feature set is updated, verify that the `--features` flags in
 # `.github/workflows/ci.yaml` are updated accordingly
 default = ["native-client", "middleware-logger", "encoding"]
-h1-client = ["wasm-client", "http-client/h1_client"]
-native-client = ["curl-client", "wasm-client", "http-client/native_client"]
+h1-client = ["http-client/h1_client"]
+native-client = ["curl-client"]
 curl-client = ["http-client/curl_client"]
 wasm-client = ["http-client/wasm_client"]
+wasm_bindgen = ["wasm-client"]
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
 encoding = ["encoding_rs", "web-sys"]

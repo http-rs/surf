@@ -8,13 +8,25 @@ use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 use futures_util::future::BoxFuture;
 
 #[cfg(all(
-    any(feature = "curl-client", feature = "wasm-client"),
-    not(feature = "h1-client")
+    feature = "curl-client",
+    not(any(feature = "h1-client", feature = "wasm-client"))
 ))]
-use http_client::native::NativeClient;
+use http_client::isahc::IsahcClient;
 
-#[cfg(feature = "h1-client")]
+#[cfg(all(
+    feature = "h1-client",
+    not(any(feature = "curl-client", feature = "wasm-client"))
+))]
 use http_client::h1::H1Client;
+
+#[cfg(any(
+    all(
+        feature = "wasm-client",
+        not(any(feature = "h1-client", feature = "curl-client"))
+    ),
+    feature = "wasm_bindgen"
+))]
+use http_client::wasm::WasmClient;
 
 /// An HTTP client, capable of sending `Request`s and running a middleware stack.
 ///
@@ -74,12 +86,24 @@ impl Client {
     /// ```
     pub fn new() -> Self {
         #[cfg(all(
-            any(feature = "curl-client", feature = "wasm-client"),
-            not(feature = "h1-client")
+            feature = "curl-client",
+            not(any(feature = "h1-client", feature = "wasm-client"))
         ))]
-        let client = NativeClient::new();
-        #[cfg(feature = "h1-client")]
+        let client = IsahcClient::new();
+        #[cfg(all(
+            feature = "h1-client",
+            not(any(feature = "curl-client", feature = "wasm-client"))
+        ))]
         let client = H1Client::new();
+        #[cfg(any(
+            all(
+                feature = "wasm-client",
+                not(any(feature = "h1-client", feature = "curl-client"))
+            ),
+            feature = "wasm_bindgen"
+        ))]
+        let client = WasmClient::new();
+
         Self::with_http_client(Arc::new(client))
     }
 

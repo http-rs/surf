@@ -63,8 +63,8 @@
 //!
 //! # Features
 //! The following features are available.
-//! - __`h1-client`:__ use `async-h1` on the server and `window.fetch` in the browser.
-//! - __`native-client` (default):__ use `curl` on the server and `window.fetch` in the browser.
+//! - __`h1-client`:__ use `async-h1`as the HTTP backend.
+//! - __`native-client` (default):__ same as `curl-client`.
 //! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
 //! - __`curl-client`:__ use `curl` (through `isahc`) as the HTTP backend.
 //! - __`wasm-client`:__ use `window.fetch` as the HTTP backend.
@@ -76,6 +76,13 @@
 #![cfg_attr(test, deny(warnings))]
 #![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]
 #![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
+
+#[cfg(not(any(
+    feature = "h1-client",
+    feature = "curl-client",
+    feature = "wasm-client"
+)))]
+compile_error!("A client backend must be set via surf features. Choose one: \"h1-client\", \"curl-client\", \"wasm-client\".");
 
 mod client;
 mod request;
