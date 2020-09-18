@@ -228,7 +228,7 @@ impl RequestBuilder {
         if let Some(client) = self.client {
             client.send(self.req.unwrap()) // Ownership nonsense, same as `build()`.
         } else {
-            let client = Client::new();
+            let client = Client::new_shared();
             client.send(self.build())
         }
     }
@@ -250,7 +250,7 @@ impl Future for RequestBuilder {
             if let Some(client) = &self.client {
                 self.fut = Some(client.send(req))
             } else {
-                let client = Client::new();
+                let client = Client::new_shared();
                 self.fut = Some(client.send(req))
             }
         }

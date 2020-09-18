@@ -22,7 +22,7 @@ edition = "2018"
 default = ["native-client", "middleware-logger", "encoding"]
 h1-client = ["http-client/h1_client"]
 native-client = ["curl-client"]
-curl-client = ["http-client/curl_client"]
+curl-client = ["http-client/curl_client", "once_cell"]
 wasm-client = ["http-client/wasm_client"]
 wasm_bindgen = ["wasm-client"]
 middleware-logger = []
@@ -42,6 +42,7 @@ http-types = "2.0.0"
 async-std = { version = "1.6.0", default-features = false, features = ["std"] }
 async-trait = "0.1.36"
 pin-project-lite = "0.1.1"
+once_cell = { version = "1.4.1", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # encoding
