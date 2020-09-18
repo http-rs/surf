@@ -1,11 +1,11 @@
-use crate::{Client, RequestBuilder};
-use std::sync::Arc;
+use crate::RequestBuilder;
+
 /// Extension trait that adds http request methods
 ///
 /// Blanket implementation provided for all `http_client::HttpClient`s
-pub trait ClientExt {
+pub trait MethodsExt {
     /// Construct a new surf Client
-    fn client(&self) -> Client;
+    fn client(&self) -> surf::Client;
 
     /// Builds a `CONNECT` request.
     fn connect(&self, path: &str) -> RequestBuilder {
@@ -53,9 +53,9 @@ pub trait ClientExt {
     }
 }
 
-impl<HC: http_client::HttpClient + Clone> ClientExt for HC {
+impl<HC: http_client::HttpClient + Clone> MethodsExt for HC {
     fn client(&self) -> Client {
-        Client::with_http_client(Arc::new(self.clone()))
+        Client::with_http_client(std::sync::Arc::new(self.clone()))
     }
 }
 
@@ -77,7 +77,7 @@ mod tests {
                 })
             }
         }
-        use super::ClientExt;
+        use super::MethodsExt;
         let mut response = MyClient.get("http://hello.example").await?;
         assert_eq!(response.body_string().await?, "hello");
         assert!(response.status().is_success());
