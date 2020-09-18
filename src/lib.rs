@@ -62,12 +62,13 @@
 //! ```
 //!
 //! # Features
-//! The following features are available.
-//! - __`h1-client`:__ use `async-h1`as the HTTP backend.
-//! - __`native-client` (default):__ same as `curl-client`.
-//! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
-//! - __`curl-client`:__ use `curl` (through `isahc`) as the HTTP backend.
+//! The following features are available. The default features are
+//! `curl-client`, `middleware-logger`, and `encoding`
+//! - __`h1-client`:__ use `async-h1` as the HTTP backend.
+//! - __`curl-client` (default):__ use `curl` (through `isahc`) as the HTTP backend.
 //! - __`wasm-client`:__ use `window.fetch` as the HTTP backend.
+//! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
+//! - __`encoding` (default):__ enables support for body encodings other than utf-8
 
 #![forbid(rust_2018_idioms)]
 #![deny(missing_debug_implementations, nonstandard_style)]

@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches:
+      - main
       - staging
       - trying
 
@@ -18,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         rust: [nightly]
-        backend: [native-client, h1-client]
+        backend: [curl-client, h1-client]
 
     steps:
     - uses: actions/checkout@master
@@ -33,12 +34,6 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --all --bins --examples
-
-    - name: check unstable
-      uses: actions-rs/cargo@v1
-      with:
-        command:  check
         args: --all --benches --bins --examples --tests
 
     - name: tests
@@ -46,6 +41,32 @@ jobs:
       with:
         command: test
         args: --all --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
+
+  check_wasm:
+    name: Check wasm targets
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Install nightly with wasm32-unknown-unknown
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        target: wasm32-unknown-unknown
+        override: true
+
+    - name: check
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --target wasm32-unknown-unknown --no-default-features --features wasm-client
+
+    - name: check with middleware and encoding
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --target wasm32-unknown-unknown --no-default-features --features wasm-client,middleware-logger,encoding
 
   check_fmt_and_docs:
     name: Checking fmt, clippy, and docs

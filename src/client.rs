@@ -123,9 +123,11 @@ impl Client {
     /// # Examples
     ///
     /// ```rust
+    /// # #[cfg(feature = "curl-client")] {
     /// # use std::sync::Arc;
-    /// # use http_client::h1::H1Client;
-    /// let client = surf::Client::with_http_client(Arc::new(H1Client::new()));
+    /// use http_client::isahc::IsahcClient;
+    /// let client = surf::Client::with_http_client(Arc::new(IsahcClient::new()));
+    /// # }
     /// ```
 
     pub fn with_http_client(http_client: Arc<dyn HttpClient>) -> Self {

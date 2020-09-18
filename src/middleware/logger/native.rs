@@ -32,7 +32,7 @@ impl Middleware for Logger {
         let start_time = time::Instant::now();
         let uri = format!("{}", req.url());
         let method = format!("{}", req.method());
-        let id = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let id = COUNTER.fetch_add(1, Ordering::Relaxed);
         print(
             log::Level::Info,
             format_args!("sending request"),
