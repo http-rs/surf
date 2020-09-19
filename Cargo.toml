@@ -23,7 +23,6 @@ default = ["curl-client", "middleware-logger", "encoding"]
 h1-client = ["http-client/h1_client"]
 curl-client = ["http-client/curl_client", "once_cell"]
 wasm-client = ["http-client/wasm_client"]
-wasm_bindgen = ["wasm-client"]
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
 encoding = ["encoding_rs", "web-sys"]
