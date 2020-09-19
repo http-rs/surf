@@ -42,31 +42,23 @@ jobs:
         command: test
         args: --all --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
 
-  check_wasm:
-    name: Check wasm targets
+  test_wasm:
+    name: Test wasm
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@master
 
-    - name: Install nightly with wasm32-unknown-unknown
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: nightly
-        target: wasm32-unknown-unknown
-        override: true
+    - name: Install
+      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-    - name: check
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --target wasm32-unknown-unknown --no-default-features --features wasm-client
+    - name: Chrome
+      run: wasm-pack test --headless --chrome
+      working-directory: wasm-test
 
-    - name: check with middleware and encoding
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --target wasm32-unknown-unknown --no-default-features --features wasm-client,middleware-logger,encoding
+    - name: Firefox
+      run: wasm-pack test --headless --firefox
+      working-directory: wasm-test
 
   check_fmt_and_docs:
     name: Checking fmt, clippy, and docs

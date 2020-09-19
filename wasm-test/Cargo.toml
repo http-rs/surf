@@ -1,0 +1,10 @@
+[package]
+name = "wasm-test"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+surf = {path = "..", default-features = false, features = ["wasm-client"]}
+wasm-bindgen-test = "0.3.18"
+async-std = "1.6.4"
+serde_json = "1.0.57"
