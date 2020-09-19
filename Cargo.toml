@@ -61,5 +61,5 @@ femme = "1.1.0"
 serde = { version = "1.0.97", features = ["derive"] }
 mockito = "0.23.3"
 
-[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-wasm-bindgen = "0.2.48"
+[workspace]
+members = [ "wasm-test" ]
