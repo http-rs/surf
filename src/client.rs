@@ -7,37 +7,20 @@ use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 
 use futures_util::future::BoxFuture;
 
-#[cfg(all(
-    feature = "curl-client",
-    not(any(feature = "h1-client", feature = "wasm-client"))
-))]
-use http_client::isahc::IsahcClient;
+#[cfg(feature = "curl-client")]
+use http_client::isahc::IsahcClient as DefaultClient;
 
-#[cfg(all(
-    feature = "h1-client",
-    not(any(feature = "curl-client", feature = "wasm-client"))
-))]
-use http_client::h1::H1Client;
+#[cfg(feature = "wasm-client")]
+use http_client::wasm::WasmClient as DefaultClient;
 
-#[cfg(any(
-    all(
-        feature = "wasm-client",
-        not(any(feature = "h1-client", feature = "curl-client"))
-    ),
-    feature = "wasm_bindgen"
-))]
-use http_client::wasm::WasmClient;
+#[cfg(feature = "h1-client")]
+use http_client::h1::H1Client as DefaultClient;
 
-#[cfg(all(
-    feature = "curl-client",
-    not(any(feature = "h1-client", feature = "wasm-client"))
-))]
+#[cfg(feature = "curl-client")]
 use once_cell::sync::Lazy;
-#[cfg(all(
-    feature = "curl-client",
-    not(any(feature = "h1-client", feature = "wasm-client"))
-))]
-static GLOBAL_CLIENT: Lazy<IsahcClient> = Lazy::new(IsahcClient::new);
+#[cfg(feature = "curl-client")]
+static GLOBAL_CLIENT: Lazy<http_client::isahc::IsahcClient> =
+    Lazy::new(http_client::isahc::IsahcClient::new);
 
 /// An HTTP client, capable of sending `Request`s and running a middleware stack.
 ///
@@ -96,26 +79,7 @@ impl Client {
     /// let client = surf::Client::new();
     /// ```
     pub fn new() -> Self {
-        #[cfg(all(
-            feature = "curl-client",
-            not(any(feature = "h1-client", feature = "wasm-client"))
-        ))]
-        let client = IsahcClient::new();
-        #[cfg(all(
-            feature = "h1-client",
-            not(any(feature = "curl-client", feature = "wasm-client"))
-        ))]
-        let client = H1Client::new();
-        #[cfg(any(
-            all(
-                feature = "wasm-client",
-                not(any(feature = "h1-client", feature = "curl-client"))
-            ),
-            feature = "wasm_bindgen"
-        ))]
-        let client = WasmClient::new();
-
-        Self::with_http_client(Arc::new(client))
+        Self::with_http_client(Arc::new(DefaultClient::new()))
     }
 
     /// Create a new instance with an `http_client::HttpClient` instance.
@@ -131,34 +95,24 @@ impl Client {
     /// ```
 
     pub fn with_http_client(http_client: Arc<dyn HttpClient>) -> Self {
-        Self {
+        let client = Self {
             base_url: None,
             http_client,
-            middleware: Arc::new(vec![
-                #[cfg(feature = "middleware-logger")]
-                Arc::new(crate::middleware::Logger::new()),
-            ]),
-        }
+            middleware: Arc::new(vec![]),
+        };
+
+        #[cfg(feature = "middleware-logger")]
+        let client = client.with(crate::middleware::Logger::new());
+
+        client
     }
 
     pub(crate) fn new_shared() -> Self {
-        #[cfg(all(
-            feature = "curl-client",
-            not(any(feature = "h1-client", feature = "wasm-client"))
-        ))]
-        let client = GLOBAL_CLIENT.clone();
-        #[cfg(all(
-            feature = "h1-client",
-            not(any(feature = "curl-client", feature = "wasm-client"))
-        ))]
-        let client = H1Client::new();
-        #[cfg(all(
-            feature = "wasm-client",
-            not(any(feature = "h1-client", feature = "curl-client"))
-        ))]
-        let client = WasmClient::new();
+        #[cfg(feature = "curl-client")]
+        return Self::with_http_client(Arc::new(GLOBAL_CLIENT.clone()));
 
-        Self::with_http_client(Arc::new(client))
+        #[cfg(not(feature = "curl-client"))]
+        Self::new()
     }
 
     /// Push middleware onto the middleware stack.
