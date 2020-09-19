@@ -34,13 +34,13 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --all --benches --bins --examples --tests
+        args: --examples
 
     - name: tests
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --all --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
+        args:  --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
 
   test_wasm:
     name: Test wasm
