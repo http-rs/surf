@@ -11,13 +11,18 @@ use futures_util::future::BoxFuture;
 cfg_if! {
     if #[cfg(feature = "curl-client")] {
         use http_client::isahc::IsahcClient as DefaultClient;
-        use once_cell::sync::Lazy;
-        static GLOBAL_CLIENT: Lazy<http_client::isahc::IsahcClient> =
-            Lazy::new(http_client::isahc::IsahcClient::new);
     } else if #[cfg(feature = "wasm-client")] {
         use http_client::wasm::WasmClient as DefaultClient;
     } else if #[cfg(feature = "h1-client")] {
         use http_client::h1::H1Client as DefaultClient;
+    } else if #[cfg(feature = "hyper-client")] {
+        use http_client::hyper::HyperClient as DefaultClient;
+    }
+}
+cfg_if! {
+    if #[cfg(any(feature = "curl-client", feature = "hyper-client"))] {
+        use once_cell::sync::Lazy;
+        static GLOBAL_CLIENT: Lazy<DefaultClient> = Lazy::new(DefaultClient::new);
     }
 }
 
@@ -121,7 +126,7 @@ impl Client {
     #[cfg(feature = "default-client")]
     pub(crate) fn new_shared() -> Self {
         cfg_if! {
-            if #[cfg(feature = "curl-client")] {
+            if #[cfg(any(feature = "curl-client", feature = "hyper-client"))] {
                 Self::with_http_client(Arc::new(GLOBAL_CLIENT.clone()))
             } else {
                 Self::new()
