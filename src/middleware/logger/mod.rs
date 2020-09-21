@@ -15,14 +15,12 @@
 //! # Ok(()) }
 //! ```
 
-#[cfg(target_arch = "wasm32")]
-mod wasm;
-
-#[cfg(target_arch = "wasm32")]
-pub use wasm::Logger;
-
-#[cfg(not(target_arch = "wasm32"))]
-mod native;
-
-#[cfg(not(target_arch = "wasm32"))]
-pub use native::Logger;
+cfg_if::cfg_if! {
+    if #[cfg(target_arch = "wasm32")] {
+        mod wasm;
+        pub use wasm::Logger;
+    } else {
+        mod native;
+        pub use native::Logger;
+    }
+}

@@ -78,13 +78,6 @@
 #![doc(html_favicon_url = "https://yoshuawuyts.com/assets/http-rs/favicon.ico")]
 #![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
-#[cfg(not(any(
-    feature = "h1-client",
-    feature = "curl-client",
-    feature = "wasm-client"
-)))]
-compile_error!("A client backend must be set via surf features. Choose one: \"h1-client\", \"curl-client\", \"wasm-client\".");
-
 mod client;
 mod request;
 mod request_builder;
@@ -106,22 +99,15 @@ pub use request::Request;
 pub use request_builder::RequestBuilder;
 pub use response::{DecodeError, Response};
 
-#[cfg(any(
-    feature = "curl-client",
-    feature = "wasm-client",
-    feature = "h1-client"
-))]
-mod one_off;
-#[cfg(any(
-    feature = "curl-client",
-    feature = "wasm-client",
-    feature = "h1-client"
-))]
-pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
-
-/// Construct a new `Client`.
-pub fn client() -> Client {
-    Client::new()
+cfg_if::cfg_if! {
+    if #[cfg(feature = "default-client")] {
+        mod one_off;
+        pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
+        /// Construct a new `Client`.
+        pub fn client() -> Client {
+            Client::new()
+        }
+    }
 }
 
 /// A specialized Result type for Surf.

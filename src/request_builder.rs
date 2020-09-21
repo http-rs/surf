@@ -224,13 +224,11 @@ impl RequestBuilder {
     }
 
     /// Create a `Client` and send the constructed `Request` from it.
-    pub fn send(self) -> BoxFuture<'static, Result<Response>> {
-        if let Some(client) = self.client {
-            client.send(self.req.unwrap()) // Ownership nonsense, same as `build()`.
-        } else {
-            let client = Client::new_shared();
-            client.send(self.build())
-        }
+    pub fn send(mut self) -> BoxFuture<'static, Result<Response>> {
+        self.client
+            .take()
+            .unwrap_or_else(Client::new_shared_or_panic)
+            .send(self.build())
     }
 }
 
@@ -246,11 +244,10 @@ impl Future for RequestBuilder {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if self.fut.is_none() {
             let req = self.req.take().unwrap();
-
             if let Some(client) = &self.client {
                 self.fut = Some(client.send(req))
             } else {
-                let client = Client::new_shared();
+                let client = Client::new_shared_or_panic();
                 self.fut = Some(client.send(req))
             }
         }
