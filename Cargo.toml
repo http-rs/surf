@@ -20,9 +20,10 @@ edition = "2018"
 # when the default feature set is updated, verify that the `--features` flags in
 # `.github/workflows/ci.yaml` are updated accordingly
 default = ["curl-client", "middleware-logger", "encoding"]
-h1-client = ["http-client/h1_client"]
-curl-client = ["http-client/curl_client", "once_cell"]
-wasm-client = ["http-client/wasm_client"]
+h1-client = ["http-client/h1_client", "default-client"]
+curl-client = ["http-client/curl_client", "once_cell", "default-client"]
+wasm-client = ["http-client/wasm_client", "default-client"]
+default-client = []
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
 encoding = ["encoding_rs", "web-sys"]
@@ -41,6 +42,7 @@ async-std = { version = "1.6.0", default-features = false, features = ["std"] }
 async-trait = "0.1.36"
 pin-project-lite = "0.1.1"
 once_cell = { version = "1.4.1", optional = true }
+cfg-if = "0.1.10"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # encoding

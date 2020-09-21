@@ -18,11 +18,6 @@ pub struct Request {
     req: http_client::Request,
 }
 
-#[cfg(any(
-    feature = "curl-client",
-    feature = "wasm-client",
-    feature = "h1-client"
-))]
 impl Request {
     /// Create a new instance.
     ///
@@ -418,11 +413,6 @@ impl fmt::Debug for Request {
     }
 }
 
-#[cfg(any(
-    feature = "curl-client",
-    feature = "wasm-client",
-    feature = "h1-client"
-))]
 impl IntoIterator for Request {
     type Item = (HeaderName, HeaderValues);
     type IntoIter = headers::IntoIter;
@@ -434,11 +424,6 @@ impl IntoIterator for Request {
     }
 }
 
-#[cfg(any(
-    feature = "curl-client",
-    feature = "wasm-client",
-    feature = "h1-client"
-))]
 impl<'a> IntoIterator for &'a Request {
     type Item = (&'a HeaderName, &'a HeaderValues);
     type IntoIter = headers::Iter<'a>;
@@ -449,11 +434,6 @@ impl<'a> IntoIterator for &'a Request {
     }
 }
 
-#[cfg(any(
-    feature = "wasm-client",
-    feature = "curl-client",
-    feature = "h1-client"
-))]
 impl<'a> IntoIterator for &'a mut Request {
     type Item = (&'a HeaderName, &'a mut HeaderValues);
     type IntoIter = headers::IterMut<'a>;

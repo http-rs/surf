@@ -5,22 +5,21 @@ use crate::http::{Method, Url};
 use crate::middleware::{Middleware, Next};
 use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 
+use cfg_if::cfg_if;
 use futures_util::future::BoxFuture;
 
-#[cfg(feature = "curl-client")]
-use http_client::isahc::IsahcClient as DefaultClient;
-
-#[cfg(feature = "wasm-client")]
-use http_client::wasm::WasmClient as DefaultClient;
-
-#[cfg(feature = "h1-client")]
-use http_client::h1::H1Client as DefaultClient;
-
-#[cfg(feature = "curl-client")]
-use once_cell::sync::Lazy;
-#[cfg(feature = "curl-client")]
-static GLOBAL_CLIENT: Lazy<http_client::isahc::IsahcClient> =
-    Lazy::new(http_client::isahc::IsahcClient::new);
+cfg_if! {
+    if #[cfg(feature = "curl-client")] {
+        use http_client::isahc::IsahcClient as DefaultClient;
+        use once_cell::sync::Lazy;
+        static GLOBAL_CLIENT: Lazy<http_client::isahc::IsahcClient> =
+            Lazy::new(http_client::isahc::IsahcClient::new);
+    } else if #[cfg(feature = "wasm-client")] {
+        use http_client::wasm::WasmClient as DefaultClient;
+    } else if #[cfg(feature = "h1-client")] {
+        use http_client::h1::H1Client as DefaultClient;
+    }
+}
 
 /// An HTTP client, capable of sending `Request`s and running a middleware stack.
 ///
@@ -64,6 +63,7 @@ impl fmt::Debug for Client {
     }
 }
 
+#[cfg(feature = "default-client")]
 impl Default for Client {
     fn default() -> Self {
         Self::new()
@@ -78,8 +78,19 @@ impl Client {
     /// ```rust
     /// let client = surf::Client::new();
     /// ```
+    #[cfg(feature = "default-client")]
     pub fn new() -> Self {
         Self::with_http_client(Arc::new(DefaultClient::new()))
+    }
+
+    pub(crate) fn new_shared_or_panic() -> Self {
+        cfg_if! {
+            if #[cfg(feature = "default-client")] {
+                Self::new_shared()
+            } else {
+                panic!("default client not configured")
+            }
+        }
     }
 
     /// Create a new instance with an `http_client::HttpClient` instance.
@@ -107,12 +118,15 @@ impl Client {
         client
     }
 
+    #[cfg(feature = "default-client")]
     pub(crate) fn new_shared() -> Self {
-        #[cfg(feature = "curl-client")]
-        return Self::with_http_client(Arc::new(GLOBAL_CLIENT.clone()));
-
-        #[cfg(not(feature = "curl-client"))]
-        Self::new()
+        cfg_if! {
+            if #[cfg(feature = "curl-client")] {
+                Self::with_http_client(Arc::new(GLOBAL_CLIENT.clone()))
+            } else {
+                Self::new()
+            }
+        }
     }
 
     /// Push middleware onto the middleware stack.
