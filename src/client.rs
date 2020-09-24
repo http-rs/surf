@@ -80,7 +80,7 @@ impl Client {
     /// ```
     #[cfg(feature = "default-client")]
     pub fn new() -> Self {
-        Self::with_http_client(Arc::new(DefaultClient::new()))
+        Self::with_http_client(DefaultClient::new())
     }
 
     pub(crate) fn new_shared_or_panic() -> Self {
@@ -101,11 +101,14 @@ impl Client {
     /// # #[cfg(feature = "curl-client")] {
     /// # use std::sync::Arc;
     /// use http_client::isahc::IsahcClient;
-    /// let client = surf::Client::with_http_client(Arc::new(IsahcClient::new()));
+    /// let client = surf::Client::with_http_client(IsahcClient::new());
     /// # }
     /// ```
+    pub fn with_http_client<C: HttpClient>(http_client: C) -> Self {
+        Self::with_http_client_internal(Arc::new(http_client))
+    }
 
-    pub fn with_http_client(http_client: Arc<dyn HttpClient>) -> Self {
+    fn with_http_client_internal(http_client: Arc<dyn HttpClient>) -> Self {
         let client = Self {
             base_url: None,
             http_client,
@@ -122,7 +125,7 @@ impl Client {
     pub(crate) fn new_shared() -> Self {
         cfg_if! {
             if #[cfg(feature = "curl-client")] {
-                Self::with_http_client(Arc::new(GLOBAL_CLIENT.clone()))
+                Self::with_http_client(GLOBAL_CLIENT.clone())
             } else {
                 Self::new()
             }
@@ -177,7 +180,9 @@ impl Client {
                 })
             });
 
-            let res = next.run(req, Client::with_http_client(http_client)).await?;
+            let res = next
+                .run(req, Self::with_http_client_internal(http_client))
+                .await?;
             Ok(Response::new(res.into()))
         })
     }
