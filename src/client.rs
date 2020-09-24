@@ -22,7 +22,7 @@ cfg_if! {
 cfg_if! {
     if #[cfg(any(feature = "curl-client", feature = "hyper-client"))] {
         use once_cell::sync::Lazy;
-        static GLOBAL_CLIENT: Lazy<DefaultClient> = Lazy::new(DefaultClient::new);
+        static GLOBAL_CLIENT: Lazy<Arc<DefaultClient>> = Lazy::new(|| Arc::new(DefaultClient::new()));
     }
 }
 
@@ -127,7 +127,7 @@ impl Client {
     pub(crate) fn new_shared() -> Self {
         cfg_if! {
             if #[cfg(any(feature = "curl-client", feature = "hyper-client"))] {
-                Self::with_http_client(Arc::new(GLOBAL_CLIENT.clone()))
+                Self::with_http_client(GLOBAL_CLIENT.clone())
             } else {
                 Self::new()
             }
