@@ -22,6 +22,8 @@ cfg_if! {
 
 /// An HTTP client, capable of sending `Request`s and running a middleware stack.
 ///
+/// Can be optionally set with a base url.
+///
 /// # Examples
 ///
 /// ```no_run
@@ -77,12 +79,18 @@ impl Default for Client {
 }
 
 impl Client {
-    /// Create a new instance.
+    /// Create a new `Client` instance.
     ///
     /// # Examples
     ///
     /// ```rust
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::Client::new();
+    ///
+    /// let req = surf::get("https://httpbin.org/get");
+    /// let res = client.send(req).await?;
+    /// # Ok(()) }
     /// ```
     #[cfg(feature = "default-client")]
     pub fn new() -> Self {
@@ -99,7 +107,7 @@ impl Client {
         }
     }
 
-    /// Create a new instance with an `http_client::HttpClient` instance.
+    /// Create a new `Client` instance with an `http_client::HttpClient` backend.
     ///
     /// # Examples
     ///
@@ -162,7 +170,7 @@ impl Client {
         self
     }
 
-    /// Send a Request using this client.
+    /// Send a `Request` using this client.
     ///
     /// # Examples
     ///
@@ -193,7 +201,7 @@ impl Client {
         })
     }
 
-    /// Submit the request and get the response body as bytes.
+    /// Submit a `Request` and get the response body as bytes.
     ///
     /// # Examples
     ///
@@ -210,7 +218,7 @@ impl Client {
         Ok(res.body_bytes().await?)
     }
 
-    /// Submit the request and get the response body as a string.
+    /// Submit a `Request` and get the response body as a string.
     ///
     /// # Examples
     ///
@@ -227,7 +235,7 @@ impl Client {
         Ok(res.body_string().await?)
     }
 
-    /// Submit the request and decode the response body from json into a struct.
+    /// Submit a `Request` and decode the response body from json into a struct.
     ///
     /// # Examples
     ///
@@ -253,7 +261,7 @@ impl Client {
         Ok(res.body_json::<T>().await?)
     }
 
-    /// Submit the request and decode the response body from form encoding into a struct.
+    /// Submit a `Request` and decode the response body from form encoding into a struct.
     ///
     /// # Errors
     ///
@@ -493,7 +501,7 @@ impl Client {
         RequestBuilder::new(Method::Patch, self.url(uri)).with_client(self.clone())
     }
 
-    /// Sets the base URL for this client. All request URLs will be relative to this path.
+    /// Sets the base URL for this client. All request URLs will be relative to this URL.
     ///
     /// # Examples
     /// ```no_run

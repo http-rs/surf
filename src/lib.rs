@@ -103,7 +103,20 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "default-client")] {
         mod one_off;
         pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
-        /// Construct a new `Client`.
+
+        /// Construct a new `Client`, capable of sending `Request`s and running a middleware stack.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// # #[async_std::main]
+        /// # async fn main() -> surf::Result<()> {
+        /// let client = surf::client();
+        ///
+        /// let req = surf::get("https://httpbin.org/get");
+        /// let res = client.send(req).await?;
+        /// # Ok(()) }
+        /// ```
         pub fn client() -> Client {
             Client::new()
         }
