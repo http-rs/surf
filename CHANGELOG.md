@@ -63,14 +63,14 @@ let req = surf::post(url) // Now returns a `surf::RequestBuilder`!
 let res = client.send(req).await?;
 ```
 
-# Additions
+### Additions
 - `surf::Request` added many methods that exist in `tide::Request`.
 - `surf::Response` added many methods that exist in `tide::Response`.
 - `surf::http`, an export of `http_types`, similar to `tide::http`.
 - `surf::middleware::Redirect`, a middleware to handle redirect status codes.
 - All conversions for `Request` and `Response` between `http_types` and `surf` now exist.
 
-# Changes
+### Changes
 - `surf::Request` changed many methods to be like those in `tide::Request`.
 - `surf::Response` changed many methods to be like those in `tide::Response`.
 - Surf now uses `http-types::mime` instead of the `mime` crate.
@@ -85,12 +85,12 @@ let res = client.send(req).await?;
   - Then, send the request from that client via `client.send()` e.g. `let res = client.send(request).await?;`.
 - `surf::Client` now can set a "base url" for that client via `client.set_base_url()`.
 
-# Fixes
+### Fixes
 - `From<http_types::Request> for Request` now properly propagates all properties.
 - A cloned `surf::Client` no longer adds middleware onto its ancestor's middleware stack.
 - Some feature flags are now correct.
 
-# Internal
+### Internal
 - Use Clippy in CI.
 - Improved examples.
 - Now only depends on `futures_util` rather than all of `futures`.
