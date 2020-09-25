@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.0.0-alpha.6] - 2020-09-27
+
+This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable futures. The aim is for this to be the last 2.0 alpha release.
+
+As of this release, `surf::get()`, `surf::post()`, etc, now use a globally shared client internally, allowing for easier access to optimizations such as connection pooling.
+
+### Removals
+- Removed `native-client` feature flag in favor of direct `curl-client` default.
+
+### Changes
+- `wasm-client` feature is no longer automatic and must be set via cargo features.
+- All client feature flags are now mutually exclusive. `curl-client` is the default.
+- `surf::method_name` "one-off" methods now use a shared client internally if the client is `curl-client`. (Default)
+- `Client::with_http_client()` is now generic for any `HttpClient` rather than taking an `Arc<dyn HttpClient>`.
+  - (The http client is still stored internally as a dynamic pointer.)
+- `HttpClient` has been upgraded to 6.0, removing `Clone` from the built in client backends.
+
+### Fixes
+- Surf can once again build with `--no-default-features` (and no client).
+- Doc updates
+
+### Internal
+- `wasm-client` now has proper headless browser CI testing.
+
 ## [2.0.0-alpha.5] - 2020-09-07
 
 This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable futures. There may be significant breaking changes before the final 2.0 release. Until thin, we recommend pinning to the particular alpha:
