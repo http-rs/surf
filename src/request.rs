@@ -31,7 +31,7 @@ impl Request {
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
     /// use surf::http::Method;
-    /// use surf::url::Url;
+    /// use surf::Url;
     ///
     /// let method = Method::Get;
     /// let url = Url::parse("https://httpbin.org/get")?;
@@ -47,7 +47,7 @@ impl Request {
     ///
     /// # Example:
     /// ```rust
-    /// # use surf::url::Url;
+    /// # use surf::Url;
     /// # use surf::{http, Request};
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
@@ -234,7 +234,7 @@ impl Request {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
-    /// use surf::url::Url;
+    /// use surf::http::Url;
     /// let req = surf::get("https://httpbin.org/get").build();
     /// assert_eq!(req.url(), &Url::parse("https://httpbin.org/get")?);
     /// # Ok(()) }
