@@ -37,6 +37,13 @@ pub struct Client {
     base_url: Option<Url>,
     http_client: Arc<dyn HttpClient>,
     /// Holds the middleware stack.
+    ///
+    /// Note(Fishrock123): We do actually want this structure.
+    /// The outer Arc allows us to clone in .send() without cloning the array.
+    /// The Vec allows us to add middleware at runtime.
+    /// The inner Arc-s allow us to implement Clone without sharing the vector with the parent.
+    /// We don't use a Mutex around the Vec here because adding a middleware during execution should be an error.
+    #[allow(clippy::rc_buffer)]
     middleware: Arc<Vec<Arc<dyn Middleware>>>,
 }
 
