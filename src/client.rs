@@ -12,8 +12,7 @@ cfg_if! {
     if #[cfg(feature = "curl-client")] {
         use http_client::isahc::IsahcClient as DefaultClient;
         use once_cell::sync::Lazy;
-        static GLOBAL_CLIENT: Lazy<http_client::isahc::IsahcClient> =
-            Lazy::new(http_client::isahc::IsahcClient::new);
+        static GLOBAL_CLIENT: Lazy<Arc<DefaultClient>> = Lazy::new(|| Arc::new(DefaultClient::new()));
     } else if #[cfg(feature = "wasm-client")] {
         use http_client::wasm::WasmClient as DefaultClient;
     } else if #[cfg(feature = "h1-client")] {
@@ -125,7 +124,7 @@ impl Client {
     pub(crate) fn new_shared() -> Self {
         cfg_if! {
             if #[cfg(feature = "curl-client")] {
-                Self::with_http_client(GLOBAL_CLIENT.clone())
+                Self::with_http_client_internal(GLOBAL_CLIENT.clone())
             } else {
                 Self::new()
             }
