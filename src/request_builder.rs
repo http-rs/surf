@@ -22,7 +22,7 @@ use std::task::{Context, Poll};
 /// # Examples
 ///
 /// ```rust
-/// # use surf::url::Url;
+/// # use surf::Url;
 /// # use surf::{http, Request};
 /// # #[async_std::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -42,7 +42,7 @@ use std::task::{Context, Poll};
 /// ```
 ///
 /// ```rust
-/// # use surf::url::Url;
+/// # use surf::Url;
 /// # use surf::{http, Request};
 /// # #[async_std::main]
 /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -74,7 +74,7 @@ impl RequestBuilder {
     /// # #[async_std::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     /// use surf::http::Method;
-    /// use surf::url::Url;
+    /// use surf::Url;
     ///
     /// let method = Method::Get;
     /// let url = Url::parse("https://httpbin.org/get")?;

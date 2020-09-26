@@ -12,9 +12,8 @@
 //! # Ok(()) }
 //! ```
 
-use crate::http::{headers, StatusCode};
+use crate::http::{headers, StatusCode, Url};
 use crate::middleware::{Middleware, Next, Request, Response};
-use crate::url::Url;
 use crate::{Client, Result};
 
 // List of acceptible 300-series redirect codes.

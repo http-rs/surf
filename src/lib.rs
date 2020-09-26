@@ -87,12 +87,10 @@ pub mod middleware;
 pub mod utils;
 
 #[doc(inline)]
-pub use http_types::{self as http, Body, Error, Status, StatusCode};
+pub use http_types::{self as http, Body, Error, Status, StatusCode, Url};
 
 #[doc(inline)]
 pub use http_client::HttpClient;
-
-pub use url;
 
 pub use client::Client;
 pub use request::Request;
