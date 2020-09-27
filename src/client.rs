@@ -22,11 +22,13 @@ cfg_if! {
 
 /// An HTTP client, capable of sending `Request`s and running a middleware stack.
 ///
+/// Can be optionally set with a base url.
+///
 /// # Examples
 ///
 /// ```no_run
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> surf::Result<()> {
 /// let client = surf::Client::new();
 /// let res1 = client.recv_string(surf::get("https://httpbin.org/get"));
 /// let res2 = client.recv_string(surf::get("https://httpbin.org/get"));
@@ -77,12 +79,18 @@ impl Default for Client {
 }
 
 impl Client {
-    /// Create a new instance.
+    /// Create a new `Client` instance.
     ///
     /// # Examples
     ///
     /// ```rust
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::Client::new();
+    ///
+    /// let req = surf::get("https://httpbin.org/get");
+    /// let res = client.send(req).await?;
+    /// # Ok(()) }
     /// ```
     #[cfg(feature = "default-client")]
     pub fn new() -> Self {
@@ -99,7 +107,7 @@ impl Client {
         }
     }
 
-    /// Create a new instance with an `http_client::HttpClient` instance.
+    /// Create a new `Client` instance with an `http_client::HttpClient` backend.
     ///
     /// # Examples
     ///
@@ -148,7 +156,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let req = surf::get("https://httpbin.org/get");
     /// let client = surf::client()
     ///     .with(surf::middleware::Redirect::default());
@@ -162,13 +170,13 @@ impl Client {
         self
     }
 
-    /// Send a Request using this client.
+    /// Send a `Request` using this client.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let req = surf::get("https://httpbin.org/get");
     /// let client = surf::client();
     /// let res = client.send(req).await?;
@@ -193,13 +201,13 @@ impl Client {
         })
     }
 
-    /// Submit the request and get the response body as bytes.
+    /// Submit a `Request` and get the response body as bytes.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let req = surf::get("https://httpbin.org/get");
     /// let bytes = surf::client().recv_bytes(req).await?;
     /// assert!(bytes.len() > 0);
@@ -210,13 +218,13 @@ impl Client {
         Ok(res.body_bytes().await?)
     }
 
-    /// Submit the request and get the response body as a string.
+    /// Submit a `Request` and get the response body as a string.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let req = surf::get("https://httpbin.org/get");
     /// let string = surf::client().recv_string(req).await?;
     /// assert!(string.len() > 0);
@@ -227,14 +235,14 @@ impl Client {
         Ok(res.body_string().await?)
     }
 
-    /// Submit the request and decode the response body from json into a struct.
+    /// Submit a `Request` and decode the response body from json into a struct.
     ///
     /// # Examples
     ///
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
     ///     ip: String
@@ -253,7 +261,7 @@ impl Client {
         Ok(res.body_json::<T>().await?)
     }
 
-    /// Submit the request and decode the response body from form encoding into a struct.
+    /// Submit a `Request` and decode the response body from form encoding into a struct.
     ///
     /// # Errors
     ///
@@ -268,7 +276,7 @@ impl Client {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {
     ///     apples: u32
@@ -300,7 +308,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.get("https://httpbin.org/get").recv_string().await?;
     /// # Ok(()) }
@@ -323,7 +331,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.head("https://httpbin.org/head").recv_string().await?;
     /// # Ok(()) }
@@ -346,7 +354,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.post("https://httpbin.org/post").recv_string().await?;
     /// # Ok(()) }
@@ -369,7 +377,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.put("https://httpbin.org/put").recv_string().await?;
     /// # Ok(()) }
@@ -392,7 +400,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.delete("https://httpbin.org/delete").recv_string().await?;
     /// # Ok(()) }
@@ -415,7 +423,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.connect("https://httpbin.org/connect").recv_string().await?;
     /// # Ok(()) }
@@ -438,7 +446,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.options("https://httpbin.org/options").recv_string().await?;
     /// # Ok(()) }
@@ -461,7 +469,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.trace("https://httpbin.org/trace").recv_string().await?;
     /// # Ok(()) }
@@ -484,7 +492,7 @@ impl Client {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let client = surf::client();
     /// let string = client.patch("https://httpbin.org/patch").recv_string().await?;
     /// # Ok(()) }
@@ -493,7 +501,7 @@ impl Client {
         RequestBuilder::new(Method::Patch, self.url(uri)).with_client(self.clone())
     }
 
-    /// Sets the base URL for this client. All request URLs will be relative to this path.
+    /// Sets the base URL for this client. All request URLs will be relative to this URL.
     ///
     /// # Examples
     /// ```no_run

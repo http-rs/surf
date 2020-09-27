@@ -12,11 +12,10 @@ use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-// #[derive(Debug)]
-
-/// Response Builder
+/// Request Builder
 ///
-/// Provides an ergonomic way to chain the creation of a response. This is generally accessed through `surf::{method}()`,
+/// Provides an ergonomic way to chain the creation of a request.
+/// This is generally accessed as the return value from `surf::{method}()`,
 /// however [`Request::builder`](crate::Request::builder) is also provided.
 ///
 /// # Examples
@@ -25,7 +24,7 @@ use std::task::{Context, Poll};
 /// # use surf::url::Url;
 /// # use surf::{http, Request};
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> surf::Result<()> {
 /// let mut request = surf::post("https://httpbin.org/post")
 ///     .body("<html>hi</html>")
 ///     .header("custom-header", "value")
@@ -45,7 +44,7 @@ use std::task::{Context, Poll};
 /// # use surf::url::Url;
 /// # use surf::{http, Request};
 /// # #[async_std::main]
-/// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+/// # async fn main() -> surf::Result<()> {
 /// let url = Url::parse("https://httpbin.org/post")?;
 /// let request = Request::builder(http::Method::Post, url).build();
 /// # Ok(())
@@ -72,7 +71,7 @@ impl RequestBuilder {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// use surf::http::Method;
     /// use surf::url::Url;
     ///
@@ -121,7 +120,7 @@ impl RequestBuilder {
     /// Sets the body of the request.
     /// ```
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// use serde_json::json;
     /// let mut req = surf::post("https://httpbin.org/post").body(json!({ "any": "Into<Body>"})).build();
     /// assert_eq!(req.take_body().into_string().await.unwrap(), "{\"any\":\"Into<Body>\"}");
@@ -139,7 +138,7 @@ impl RequestBuilder {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let bytes = surf::get("https://httpbin.org/get").recv_bytes().await?;
     /// assert!(bytes.len() > 0);
     /// # Ok(()) }
@@ -155,7 +154,7 @@ impl RequestBuilder {
     ///
     /// ```no_run
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// let string = surf::get("https://httpbin.org/get").recv_string().await?;
     /// assert!(string.len() > 0);
     /// # Ok(()) }
@@ -172,7 +171,7 @@ impl RequestBuilder {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Ip {
     ///     ip: String
@@ -203,7 +202,7 @@ impl RequestBuilder {
     /// ```no_run
     /// # use serde::{Deserialize, Serialize};
     /// # #[async_std::main]
-    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// # async fn main() -> surf::Result<()> {
     /// #[derive(Deserialize, Serialize)]
     /// struct Body {
     ///     apples: u32
@@ -252,8 +251,7 @@ impl Future for RequestBuilder {
             }
         }
 
-        // We can safely unwrap here because this is the only time we take ownership of the
-        // request and middleware stack.
+        // We can safely unwrap here because this is the only time we take ownership of the request.
         self.fut.as_mut().unwrap().as_mut().poll(cx)
     }
 }

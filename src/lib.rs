@@ -15,7 +15,7 @@
 //! # Examples
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> surf::Result<()> {
 //! let mut res = surf::get("https://httpbin.org/get").await?;
 //! dbg!(res.body_string().await?);
 //! # Ok(()) }
@@ -24,7 +24,7 @@
 //! It's also possible to skip the intermediate `Response`, and access the response type directly.
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> surf::Result<()> {
 //! dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
 //! # Ok(()) }
 //! ```
@@ -33,7 +33,7 @@
 //! ```no_run
 //! # use serde::{Deserialize, Serialize};
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> surf::Result<()> {
 //! #[derive(Deserialize, Serialize)]
 //! struct Ip {
 //!     ip: String
@@ -54,7 +54,7 @@
 //!
 //! ```no_run
 //! # #[async_std::main]
-//! # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+//! # async fn main() -> surf::Result<()> {
 //! let req = surf::get("https://img.fyi/q6YvNqP").await?;
 //! let body = surf::http::Body::from_reader(req, None);
 //! let res = surf::post("https://box.rs/upload").body(body).await?;
@@ -103,7 +103,20 @@ cfg_if::cfg_if! {
     if #[cfg(feature = "default-client")] {
         mod one_off;
         pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
-        /// Construct a new `Client`.
+
+        /// Construct a new `Client`, capable of sending `Request`s and running a middleware stack.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// # #[async_std::main]
+        /// # async fn main() -> surf::Result<()> {
+        /// let client = surf::client();
+        ///
+        /// let req = surf::get("https://httpbin.org/get");
+        /// let res = client.send(req).await?;
+        /// # Ok(()) }
+        /// ```
         pub fn client() -> Client {
             Client::new()
         }
