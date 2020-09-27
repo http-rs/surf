@@ -5,7 +5,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/http-rs/surf"
 documentation = "https://docs.rs/surf"
 description = "Surf the web - HTTP client framework"
-keywords = ["http", "client", "framework", "request", "async", "async-std"]
+keywords = ["http", "client", "framework", "request", "async"]
 categories = ["web-programming", "web-programming::http-client"]
 authors = [
     "Yoshua Wuyts <yoshuawuyts@gmail.com>", 
