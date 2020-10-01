@@ -2,7 +2,7 @@ use crate::http::{
     headers::{HeaderName, ToHeaderValues},
     Body, Method, Mime,
 };
-use crate::{Client, Request, Response, Result};
+use crate::{Client, Error, Request, Response, Result};
 
 use futures_util::future::BoxFuture;
 use serde::Serialize;
@@ -161,10 +161,7 @@ impl RequestBuilder {
     /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
-    pub fn query(
-        mut self,
-        query: &(impl Serialize + ?Sized),
-    ) -> std::result::Result<Self, serde_urlencoded::ser::Error> {
+    pub fn query(mut self, query: &impl Serialize) -> std::result::Result<Self, Error> {
         self.req.as_mut().unwrap().set_query(query)?;
 
         Ok(self)
