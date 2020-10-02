@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.0.0-alpha.7] - 2020-09-29
+
+### Fixes
+- Downgrade rust_2018_idioms from forbid to warn for compilation with newer deps.
+
+
 ## [2.0.0-alpha.6] - 2020-09-27
 
 This is an alpha release in preparation of 2.0.0, so you can start using Surf with stable futures. The aim is for this to be the last 2.0 alpha release.
