@@ -6,7 +6,6 @@ use crate::middleware::{Middleware, Next};
 use crate::{HttpClient, Request, RequestBuilder, Response, Result};
 
 use cfg_if::cfg_if;
-use futures_util::future::BoxFuture;
 
 cfg_if! {
     if #[cfg(feature = "curl-client")] {
@@ -182,23 +181,22 @@ impl Client {
     /// let res = client.send(req).await?;
     /// # Ok(()) }
     /// ```
-    pub fn send(&self, req: impl Into<Request>) -> BoxFuture<'static, Result<Response>> {
+    pub async fn send(&self, req: impl Into<Request>) -> Result<Response> {
         let req: Request = req.into();
         let http_client = self.http_client.clone();
         let middleware = self.middleware.clone();
-        Box::pin(async move {
-            let next = Next::new(&middleware, &|req, client| {
-                Box::pin(async move {
-                    let req: http_types::Request = req.into();
-                    client.http_client.send(req).await.map(Into::into)
-                })
-            });
 
-            let res = next
-                .run(req, Self::with_http_client_internal(http_client))
-                .await?;
-            Ok(Response::new(res.into()))
-        })
+        let next = Next::new(&middleware, &|req, client| {
+            Box::pin(async move {
+                let req: http_types::Request = req.into();
+                client.http_client.send(req).await.map(Into::into)
+            })
+        });
+
+        let res = next
+            .run(req, Self::with_http_client_internal(http_client))
+            .await?;
+        Ok(Response::new(res.into()))
     }
 
     /// Submit a `Request` and get the response body as bytes.
