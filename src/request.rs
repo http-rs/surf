@@ -1,7 +1,7 @@
 use crate::http::{
     self,
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
-    Body, Error, Method, Mime,
+    Body, Method, Mime,
 };
 use crate::RequestBuilder;
 
@@ -89,14 +89,8 @@ impl Request {
     /// assert_eq!(page, 2);
     /// # Ok(()) }
     /// ```
-    pub fn query<T: serde::de::DeserializeOwned>(&self) -> Result<T, Error> {
-        use std::io::{Error, ErrorKind};
-        let query = self
-            .req
-            .url()
-            .query()
-            .ok_or_else(|| Error::from(ErrorKind::InvalidData))?;
-        Ok(serde_urlencoded::from_str(query)?)
+    pub fn query<T: serde::de::DeserializeOwned>(&self) -> crate::Result<T> {
+        self.req.query()
     }
 
     /// Set the URL querystring.
@@ -119,16 +113,8 @@ impl Request {
     /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
-    pub fn set_query(
-        &mut self,
-        query: &(impl Serialize + ?Sized),
-    ) -> Result<(), serde_urlencoded::ser::Error> {
-        let query = serde_urlencoded::to_string(query)?;
-        self.req.url_mut().set_query(Some(&query));
-
-        *self.req.url_mut() = self.req.url().clone();
-
-        Ok(())
+    pub fn set_query(&mut self, query: &impl Serialize) -> crate::Result<()> {
+        self.req.set_query(query)
     }
 
     /// Get an HTTP header.

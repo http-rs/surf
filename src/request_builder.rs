@@ -2,9 +2,10 @@ use crate::http::{
     headers::{HeaderName, ToHeaderValues},
     Body, Method, Mime,
 };
-use crate::{Client, Request, Response, Result};
+use crate::{Client, Error, Request, Response, Result};
 
 use futures_util::future::BoxFuture;
+use serde::Serialize;
 use url::Url;
 
 use std::fmt;
@@ -94,6 +95,9 @@ impl RequestBuilder {
     }
 
     /// Sets a header on the request.
+    ///
+    /// # Examples
+    ///
     /// ```
     /// let req = surf::get("https://httpbin.org/get").header("header-name", "header-value").build();
     /// assert_eq!(req["header-name"], "header-value");
@@ -104,6 +108,9 @@ impl RequestBuilder {
     }
 
     /// Sets the Content-Type header on the request.
+    ///
+    /// # Examples
+    ///
     /// ```
     /// # use surf::http::mime;
     /// let req = surf::post("https://httpbin.org/post").content_type(mime::HTML).build();
@@ -118,6 +125,9 @@ impl RequestBuilder {
     }
 
     /// Sets the body of the request.
+    ///
+    /// # Examples
+    ///
     /// ```
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
@@ -130,6 +140,31 @@ impl RequestBuilder {
     pub fn body(mut self, body: impl Into<Body>) -> Self {
         self.req.as_mut().unwrap().set_body(body);
         self
+    }
+
+    /// Set the URL querystring.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// #[derive(Serialize, Deserialize)]
+    /// struct Index {
+    ///     page: u32
+    /// }
+    ///
+    /// let query = Index { page: 2 };
+    /// let mut req = surf::get("https://httpbin.org/get").query(&query)?.build();
+    /// assert_eq!(req.url().query(), Some("page=2"));
+    /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
+    /// # Ok(()) }
+    /// ```
+    pub fn query(mut self, query: &impl Serialize) -> std::result::Result<Self, Error> {
+        self.req.as_mut().unwrap().set_query(query)?;
+
+        Ok(self)
     }
 
     /// Submit the request and get the response body as bytes.
