@@ -7,6 +7,175 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.0.0] - 2020-10-05
+
+[Docs](https://docs.rs/surf/2.0.0)
+
+This major release of Surf contains substantial improvements through a variety of changes and additions.
+
+_(Note: this is a cumulative list of changes since Surf 1.0.3)_
+
+Notable mentions include:
+- Uses stable standard library [`futures`][]!
+- Much more type compatibility with [Tide][] via [http-types][]!
+- Re-usable `Client` which is able to make use of connection pooling [under the hood](https://github.com/http-rs/http-client).
+- Reduced generics for `Client` and `Middleware`.
+- Re-worked `Middleware` to use [`async_trait`][].
+
+### Major Changes
+Surf 2 contains some large API changes, as noted here:
+
+#### http-types
+
+Surf has switched the common backing type interface (`surf::http`) from the [http][] (`hyperium/http`) crate to [http-types][], which covers a larger set of HTTP-related functionality than `hyperium/http` does, and allows Surf to use the [url standard][].
+
+This affects any type that came from `surf::http`, such as `StatusCode` ([old][StatusCode http]|[new][StatusCode http-types]), and includes some new patterns, such as [`Body`][].
+
+For more information, see [this blog post](https://blog.yoshuawuyts.com/async-http/#shared-abstractions).
+
+#### Errors
+
+`surf::Exception`, which was a plain `Box<dyn Error + Send + Sync + 'static>`, is no more.
+
+Surf now exports a structured [`surf::Error`][] type, which holds a `StatusCode` alongside a dynamic error object.
+Just like [`anyhow`][], any error can be cast to this type using the `?` operator.
+
+For more information, see [this blog post](https://blog.yoshuawuyts.com/async-http/#error-handling).
+
+#### Middleware
+
+**New middleware:**
+```rust
+use surf::middleware::{Middleware, Next};
+use surf::{Client, Request, Response, Result};
+
+#[surf::utils::async_trait]
+impl Middleware for Logger {
+    async fn handle(
+        &self,
+        req: Request,
+        client: Client,
+        next: Next<'_>,
+    ) -> Result<Response> {
+        Ok(res)
+    }
+}
+```
+
+#### RequestBuilder
+
+The top-level convenience request methods, `surf::get()`, `surf::post()`, etc, now return a [`RequestBuilder`][] rather than a [`Request`][] directly.
+Most `RequestBuilder` functions have shorthand names: `RequestBuilder::body()` compared to `Request::set_body()`.
+
+```rust
+let res = surf::get("http://example.org") // Now returns a `surf::RequestBuilder`!
+    .header(a_header, a_value)
+    .body(a_body)
+    .await?;
+```
+
+Overall usage was kept the same where possible and reasonable, however now a `surf::Client` must be used when using middleware.
+
+```rust
+let client = surf::client()
+    .with(some_middleware);
+
+let res = client::post(url)
+    .header(a_header, a_value)
+    .body(a_body)
+    .await?;
+```
+
+Alternately:
+```rust
+let client = surf::client()
+    .with(some_middleware);
+
+let req = surf::post(url)
+    .header(a_header, a_value)
+    .body(a_body);
+let res = client.send(req).await?;
+```
+
+#### Mime
+
+Surf has switched from the [`mime`][] crate to [`surf::http::Mime`][] from [http-types][].
+
+For more information, see [this blog post](https://blog.yoshuawuyts.com/async-http/#shared-abstractions).
+
+### Additions
+- Switched from [`hyperium/http`][http] to [http-types][].
+- `surf::Request` added many methods that exist in `tide::Request`.
+- `surf::Response` added many methods that exist in `tide::Response`.
+- `surf::http`, an export of `http_types`, similar to `tide::http`.
+- `surf::middleware::Redirect`, a middleware to handle redirect status codes.
+- All conversions for `Request` and `Response` between `http_types` and `surf` now exist.
+- `http_types::{Error, Result}` are re-exported as `surf::{Error, Result}`.
+- A new `h1-client` feature enables the new [async-h1] backend.
+- Transcode responses from non-UTF8 charsets using the on-by-default `encoding` feature.
+
+### Removals
+- Removed `native-client` feature flag in favor of direct `curl-client` default.
+- Removed `hyper-client` feature flag. (Pending re-addition, see: [#234][])
+- Removed `Request::body_string()`, `Request::body_json()`, etc.
+  - This functionality is now done via [`Body`], or `Client::recv_json()`, `RequestBuilder::recv_json()`, etc.
+
+### Changes
+- Updated to use stable [`futures`].
+- `wasm-client` feature is no longer automatic and must be set via cargo features.
+- All client feature flags are now mutually exclusive. `curl-client` is the default.
+- `surf::method_name` "one-off" methods now use a shared client internally if the client is `curl-client`. (Default)
+- `Client::with_http_client()` is now generic for any `HttpClient` rather than taking an `Arc<dyn HttpClient>`.
+  - (The http client is still stored internally as a dynamic pointer.)
+- `HttpClient` has been upgraded to 6.0, removing `Clone` from the built in client backends.
+- `surf::Request` changed many methods to be like those in `tide::Request`.
+- `surf::Response` changed many methods to be like those in `tide::Response`.
+- Surf now uses `http-types::mime` instead of the `mime` crate.
+- `TryFrom<http_types::Request> for Request` is now `From<http_types::Request> for Request`.
+- `surf::Client` is no longer generic for `C: HttpClient`.
+- Middleware now receives `surf::Request` and returns `Result<surf::Response, E>`, and no longer requires a generic bound.
+- Middleware now uses [async-trait](https://crates.io/crates/async-trait), which is exported as `surf::utils::async_trait`.
+- The logger middleware is now exported as `surf::middleware::Logger`. (Note: this middleware is used by default.)
+- `surf::{method}()` e.g. `surf::get()` now returns a `surf::RequestBuilder` rather than a `surf::Request`.
+  - Middleware can no longer be set for individual requests.
+  - Instead, use a `surf::Client` and register middleware via `client.with(middleware)`.
+  - Then, send the request from that client via `client.send()` e.g. `let res = client.send(request).await?;`.
+- `surf::Client` now can set a "base url" for that client via `client.set_base_url()`.
+- `Client` is now built on top of [`http-client`](https://github.com/http-rs/http-client).
+- `surf::url` has been moved to `surf::http::url`, with a `surf::Url` shortcut.
+
+### Internal
+- Reduce copies when parsing URLs.
+- Now only depends on `futures_util` rather than all of `futures`.
+- `wasm-client` now has proper headless browser CI testing.
+- Use Clippy in CI.
+- Set up an MSRV in CI.
+- Stop hitting the network when running tests.
+
+### Changes since 2.0.0-alpha.7
+- Added: `RequestBuilder` now has a `.query()` function for setting structured querystrings.
+- Changed: `Client::send()` and `RequestBuilder::send()` are now plain async functions and no longer return [`BoxFuture`][]s.
+- Changed: `surf::url` has been moved to `surf::http::url`, with a `surf::Url` shortcut.
+
+[#234]: https://github.com/http-rs/surf/pull/234
+[`anyhow`]: https://crates.io/crates/anyhow
+[`async_trait`]: https://docs.rs/async-trait/0.1.41/async_trait/
+[`futures`]: https://doc.rust-lang.org/stable/std/future/trait.Future.html
+[`mime`]: https://docs.rs/mime/0.3.14/mime/index.html
+[`surf::http::Mime`]: https://docs.rs/surf/2.0.0/surf/http/struct.Mime.html
+[`surf::Error`]: https://docs.rs/surf/2.0.0/surf/struct.Error.html
+[`Body`]: https://docs.rs/surf/2.0.0/surf/struct.Body.html
+[`BoxFuture`]: https://docs.rs/futures-util/0.3.5/futures_util/future/type.BoxFuture.html
+[`Request`]: https://docs.rs/surf/2.0.0/surf/struct.Request.html
+[`RequestBuilder`]: https://docs.rs/surf/2.0.0/surf/struct.RequestBuilder.html
+[async-h1]: https://crates.io/crates/async-h1
+[http]: https://docs.rs/http/0.2.1/http
+[http-types]: https://github.com/http-rs/http-types
+[url standard]: https://crates.io/crates/url
+[StatusCode http]: https://docs.rs/http/0.2.1/http/status/struct.StatusCode.html
+[StatusCode http-types]: https://docs.rs/http-types/2.5.0/http_types/enum.StatusCode.html
+[Tide]: https://github.com/http-rs/tide
+
 ## [2.0.0-alpha.7] - 2020-09-29
 
 ### Fixes
