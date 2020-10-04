@@ -1,12 +1,11 @@
 use crate::http::{
     self,
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
-    Body, Method, Mime,
+    Body, Method, Mime, Url,
 };
 use crate::RequestBuilder;
 
 use serde::Serialize;
-use url::Url;
 
 use std::fmt;
 use std::ops::Index;
@@ -30,12 +29,10 @@ impl Request {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
-    /// use surf::http::Method;
-    /// use surf::Url;
+    /// use surf::http::{Url, Method};
     ///
-    /// let method = Method::Get;
     /// let url = Url::parse("https://httpbin.org/get")?;
-    /// let req = surf::Request::new(method, url);
+    /// let req = surf::Request::new(Method::Get, url);
     /// # Ok(()) }
     /// ```
     pub fn new(method: Method, url: Url) -> Self {
@@ -47,19 +44,18 @@ impl Request {
     ///
     /// # Example:
     /// ```rust
-    /// # use surf::Url;
-    /// # use surf::{http, Request};
+    /// use surf::http::{Method, mime::HTML, Url};
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
     /// let url = Url::parse("https://httpbin.org/post")?;
-    /// let mut request = Request::builder(http::Method::Post, url.clone())
+    /// let mut request = surf::Request::builder(Method::Post, url.clone())
     ///     .body("<html>hi</html>")
     ///     .header("custom-header", "value")
-    ///     .content_type(http::mime::HTML)
+    ///     .content_type(HTML)
     ///     .build();
     ///
     /// assert_eq!(request.take_body().into_string().await.unwrap(), "<html>hi</html>");
-    /// assert_eq!(request.method(), http::Method::Post);
+    /// assert_eq!(request.method(), Method::Post);
     /// assert_eq!(request.url(), &url);
     /// assert_eq!(request["custom-header"], "value");
     /// assert_eq!(request["content-type"], "text/html;charset=utf-8");
