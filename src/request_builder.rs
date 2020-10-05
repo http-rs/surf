@@ -1,12 +1,11 @@
 use crate::http::{
     headers::{HeaderName, ToHeaderValues},
-    Body, Method, Mime,
+    Body, Method, Mime, Url,
 };
 use crate::{Client, Error, Request, Response, Result};
 
 use futures_util::future::BoxFuture;
 use serde::Serialize;
-use url::Url;
 
 use std::fmt;
 use std::future::Future;
@@ -22,18 +21,17 @@ use std::task::{Context, Poll};
 /// # Examples
 ///
 /// ```rust
-/// # use surf::url::Url;
-/// # use surf::{http, Request};
+/// use surf::http::{Method, mime::HTML, Url};
 /// # #[async_std::main]
 /// # async fn main() -> surf::Result<()> {
 /// let mut request = surf::post("https://httpbin.org/post")
 ///     .body("<html>hi</html>")
 ///     .header("custom-header", "value")
-///     .content_type(http::mime::HTML)
+///     .content_type(HTML)
 ///     .build();
 ///
 /// assert_eq!(request.take_body().into_string().await.unwrap(), "<html>hi</html>");
-/// assert_eq!(request.method(), http::Method::Post);
+/// assert_eq!(request.method(), Method::Post);
 /// assert_eq!(request.url(), &Url::parse("https://httpbin.org/post")?);
 /// assert_eq!(request["custom-header"], "value");
 /// assert_eq!(request["content-type"], "text/html;charset=utf-8");
@@ -42,12 +40,11 @@ use std::task::{Context, Poll};
 /// ```
 ///
 /// ```rust
-/// # use surf::url::Url;
-/// # use surf::{http, Request};
+/// use surf::http::{Method, Url};
 /// # #[async_std::main]
 /// # async fn main() -> surf::Result<()> {
 /// let url = Url::parse("https://httpbin.org/post")?;
-/// let request = Request::builder(http::Method::Post, url).build();
+/// let request = surf::Request::builder(Method::Post, url).build();
 /// # Ok(())
 /// # }
 /// ```
@@ -73,10 +70,8 @@ impl RequestBuilder {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
-    /// use surf::http::Method;
-    /// use surf::url::Url;
+    /// use surf::http::{Method, Url};
     ///
-    /// let method = Method::Get;
     /// let url = Url::parse("https://httpbin.org/get")?;
     /// let req = surf::RequestBuilder::new(Method::Get, url).build();
     /// # Ok(()) }
