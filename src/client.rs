@@ -507,13 +507,17 @@ impl Client {
 
     /// Sets the base URL for this client. All request URLs will be relative to this URL.
     ///
+    /// Note: a trailing slash is significant.
+    /// Without it, the last path component is considered to be a “file” name
+    /// to be removed to get at the “directory” that is used as the base.
+    ///
     /// # Examples
     /// ```no_run
     /// # use http_types::Url;
     /// # fn main() -> http_types::Result<()> { async_std::task::block_on(async {
     /// let mut client = surf::client();
-    /// client.set_base_url(Url::parse("http://example.com/api/v1")?);
-    /// client.get("/posts.json").recv_json().await?; /// http://example.com/api/v1/posts.json
+    /// client.set_base_url(Url::parse("http://example.com/api/v1/")?);
+    /// client.get("posts.json").recv_json().await?; /// http://example.com/api/v1/posts.json
     /// # Ok(()) }) }
     /// ```
     pub fn set_base_url(&mut self, base: Url) {
@@ -526,5 +530,19 @@ impl Client {
             None => uri.as_ref().parse().unwrap(),
             Some(base) => base.join(uri.as_ref()).unwrap(),
         }
+    }
+}
+
+#[cfg(test)]
+mod client_tests {
+    use super::Client;
+    use crate::Url;
+
+    #[test]
+    fn base_url() {
+        let mut client = Client::new();
+        client.set_base_url(Url::parse("http://example.com/api/v1/").unwrap());
+        let url = client.url("posts.json");
+        assert_eq!(url.as_str(), "http://example.com/api/v1/posts.json");
     }
 }
