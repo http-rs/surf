@@ -193,9 +193,15 @@ impl Client {
             })
         });
 
-        let res = next
-            .run(req, Self::with_http_client_internal(http_client))
-            .await?;
+        let client = Self {
+            base_url: self.base_url.clone(),
+            http_client,
+            // Erase the middleware stack for the Client accessible from within middleware.
+            // This avoids gratuitous circular borrow & logic issues.
+            middleware: Arc::new(vec![]),
+        };
+
+        let res = next.run(req, client).await?;
         Ok(Response::new(res.into()))
     }
 
