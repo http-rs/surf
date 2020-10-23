@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.1.0] - 2020-10-23
+
+This minor release contains follow-up fixes and improvements to Surf 2.0.
+
+### Additions
+- Added a `hyper-client` cargo feature for enabeling a [hyper][] client backend via [http-client][].
+
+### Fixes
+- Fixed `base_url` not being propagated to the `Client` instance in middleware.
+
+### Documentation
+- Updated documentation for `set_base_url()`.
+
+[http-client]: https://crates.io/crates/http-client
+[hyper]: https://crates.io/crates/hyper
+
 ## [2.0.0] - 2020-10-05
 
 [Docs](https://docs.rs/surf/2.0.0)
