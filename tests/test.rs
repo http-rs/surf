@@ -48,7 +48,7 @@ async fn get_json() -> Result<(), http_types::Error> {
 
 #[async_std::test]
 async fn head_example_org() -> Result<(), http_types::Error> {
-    let mut res = surf::head("http://example.com").await?;
+    let mut res = surf::head("http://example.com").await.unwrap();
 
     assert_eq!(res.status(), surf::StatusCode::Ok);
     assert!(res.len().is_some());
