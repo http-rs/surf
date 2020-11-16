@@ -52,6 +52,7 @@ wasm-client = [
     "getrandom/js",
     "web-sys",
 ]
+native-client = ["http-client/native_client", "default-client"]
 default-client = []
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
