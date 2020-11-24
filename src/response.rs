@@ -327,6 +327,18 @@ impl Into<http::Response> for Response {
     }
 }
 
+impl AsRef<http::Headers> for Response {
+    fn as_ref(&self) -> &http::Headers {
+        self.res.as_ref()
+    }
+}
+
+impl AsMut<http::Headers> for Response {
+    fn as_mut(&mut self) -> &mut http::Headers {
+        self.res.as_mut()
+    }
+}
+
 impl AsRef<http::Response> for Response {
     fn as_ref(&self) -> &http::Response {
         &self.res

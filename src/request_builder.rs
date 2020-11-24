@@ -153,7 +153,7 @@ impl RequestBuilder {
     /// let query = Index { page: 2 };
     /// let mut req = surf::get("https://httpbin.org/get").query(&query)?.build();
     /// assert_eq!(req.url().query(), Some("page=2"));
-    /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
+    /// assert_eq!(req.url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
     pub fn query(mut self, query: &impl Serialize) -> std::result::Result<Self, Error> {
