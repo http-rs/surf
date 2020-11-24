@@ -1,4 +1,5 @@
 use futures_util::io::AsyncReadExt;
+use surf::http;
 use surf::middleware::{Middleware, Next};
 use surf::{Body, Client, Request, Response};
 
@@ -14,7 +15,8 @@ impl Middleware for Doubler {
     ) -> Result<Response, http_types::Error> {
         if req.method().is_safe() {
             let mut new_req = http_types::Request::new(req.method(), req.url().clone());
-            new_req.set_version(req.as_ref().version());
+            let http_req: &http::Request = req.as_ref();
+            new_req.set_version(http_req.version());
             let mut new_req: Request = new_req.into();
 
             for (name, value) in &req {

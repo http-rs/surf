@@ -12,7 +12,7 @@
 //! # Ok(()) }
 //! ```
 
-use crate::http::{headers, StatusCode, Url};
+use crate::http::{self, headers, StatusCode, Url};
 use crate::middleware::{Middleware, Next, Request, Response};
 use crate::{Client, Result};
 
@@ -97,7 +97,8 @@ impl Middleware for Redirect {
             let res: Response = client.send(r).await?;
             if REDIRECT_CODES.contains(&res.status()) {
                 if let Some(location) = res.header(headers::LOCATION) {
-                    *req.as_mut().url_mut() = Url::parse(location.last().as_str())?;
+                    let http_req: &mut http::Request = req.as_mut();
+                    *http_req.url_mut() = Url::parse(location.last().as_str())?;
                 }
             } else {
                 break;

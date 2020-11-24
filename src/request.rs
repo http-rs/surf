@@ -106,7 +106,7 @@ impl Request {
     /// let mut req = surf::get("https://httpbin.org/get").build();
     /// req.set_query(&query)?;
     /// assert_eq!(req.url().query(), Some("page=2"));
-    /// assert_eq!(req.as_ref().url().as_str(), "https://httpbin.org/get?page=2");
+    /// assert_eq!(req.url().as_str(), "https://httpbin.org/get?page=2");
     /// # Ok(()) }
     /// ```
     pub fn set_query(&mut self, query: &impl Serialize) -> crate::Result<()> {
@@ -360,6 +360,18 @@ impl Request {
     pub fn body_form(&mut self, form: &impl Serialize) -> crate::Result<()> {
         self.set_body(Body::from_form(form)?);
         Ok(())
+    }
+}
+
+impl AsRef<http::Headers> for Request {
+    fn as_ref(&self) -> &http::Headers {
+        self.req.as_ref()
+    }
+}
+
+impl AsMut<http::Headers> for Request {
+    fn as_mut(&mut self) -> &mut http::Headers {
+        self.req.as_mut()
     }
 }
 
