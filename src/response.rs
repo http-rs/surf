@@ -321,6 +321,7 @@ impl From<http::Response> for Response {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<http::Response> for Response {
     fn into(self) -> http::Response {
         self.res

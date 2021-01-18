@@ -394,6 +394,7 @@ impl From<http::Request> for Request {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<http::Request> for Request {
     /// Converts a `surf::Request` to an `http::Request`.
     fn into(self) -> http::Request {

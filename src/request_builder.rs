@@ -288,9 +288,9 @@ impl Future for RequestBuilder {
     }
 }
 
-impl Into<Request> for RequestBuilder {
+impl From<RequestBuilder> for Request {
     /// Converts a `surf::RequestBuilder` to a `surf::Request`.
-    fn into(self) -> Request {
-        self.build()
+    fn from(builder: RequestBuilder) -> Request {
+        builder.build()
     }
 }
