@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         rust: [nightly]
-        backend: [curl-client, h1-client]
+        backend: [curl-client, h1-client, hyper-client]
 
     steps:
     - uses: actions/checkout@master
@@ -30,23 +30,23 @@ jobs:
         toolchain: ${{ matrix.rust }}
         override: true
 
-    - name: check
-      uses: actions-rs/cargo@v1
-      with:
-        command: check
-        args: --examples
-
     - name: check no features
       uses: actions-rs/cargo@v1
       with:
         command: check
         args: --no-default-features
 
+    - name: check
+      uses: actions-rs/cargo@v1
+      with:
+        command: check
+        args: --benches --bins --examples --tests --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
+
     - name: tests
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args:  --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
+        args: --no-default-features --features '${{ matrix.backend }} middleware-logger encoding'
 
   test_wasm:
     name: Test wasm
@@ -66,22 +66,24 @@ jobs:
       run: wasm-pack test --headless --firefox
       working-directory: wasm-test
 
-  check_fmt_and_docs:
+  check_fmt_clippy_docs:
     name: Checking fmt, clippy, and docs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - uses: actions-rs/toolchain@v1
+
+    - name: Install nightly for docs
+      uses: actions-rs/toolchain@v1
       with:
         toolchain: nightly
-        components: rustfmt, clippy
         override: true
+        components: rustfmt, clippy, rust-docs
 
     - name: clippy
-      run: cargo clippy --tests --examples -- -D warnings
+      run: cargo clippy --benches --bins --examples --tests -- -D warnings
 
     - name: fmt
       run: cargo fmt --all -- --check
 
-    - name: Docs
-      run: cargo doc
+    - name: docs
+      run: cargo doc --no-deps
