@@ -91,6 +91,8 @@ impl Middleware for Redirect {
         // and try sending it until we get some status back that is not a
         // redirect.
 
+        let base_url = req.url().clone();
+
         while redirect_count < self.attempts {
             redirect_count += 1;
             let r: Request = req.clone();
@@ -98,7 +100,15 @@ impl Middleware for Redirect {
             if REDIRECT_CODES.contains(&res.status()) {
                 if let Some(location) = res.header(headers::LOCATION) {
                     let http_req: &mut http::Request = req.as_mut();
-                    *http_req.url_mut() = Url::parse(location.last().as_str())?;
+                    *http_req.url_mut() = match Url::parse(location.last().as_str()) {
+                        Ok(valid_url) => valid_url,
+                        Err(e) => match e {
+                            http::url::ParseError::RelativeUrlWithoutBase => {
+                                base_url.join(location.last().as_str())?
+                            }
+                            e => return Err(e.into()),
+                        },
+                    };
                 }
             } else {
                 break;
