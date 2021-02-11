@@ -3,18 +3,22 @@ use crate::http::{
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
     Body, Method, Mime, Url,
 };
+use crate::middleware::Middleware;
 use crate::RequestBuilder;
 
 use serde::Serialize;
 
 use std::fmt;
 use std::ops::Index;
+use std::sync::Arc;
 
 /// An HTTP request, returns a `Response`.
 #[derive(Clone)]
 pub struct Request {
     /// Holds the state of the request.
     req: http_client::Request,
+    /// Holds an optional per-request middleware stack.
+    middleware: Option<Vec<Arc<dyn Middleware>>>,
 }
 
 impl Request {
@@ -37,7 +41,10 @@ impl Request {
     /// ```
     pub fn new(method: Method, url: Url) -> Self {
         let req = http_client::Request::new(method, url);
-        Self { req }
+        Self {
+            req,
+            middleware: None,
+        }
     }
 
     /// Begin a chained request builder. For more details, see [RequestBuilder](crate::RequestBuilder)
@@ -361,6 +368,35 @@ impl Request {
         self.set_body(Body::from_form(form)?);
         Ok(())
     }
+
+    /// Push middleware onto a per-request middleware stack.
+    ///
+    /// **Important**: Setting per-request middleware incurs extra allocations.
+    /// Creating a `Client` with middleware is recommended.
+    ///
+    /// Client middleware is run before per-request middleware.
+    ///
+    /// See the [middleware] submodule for more information on middleware.
+    ///
+    /// [middleware]: ../middleware/index.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// let mut req = surf::get("https://httpbin.org/get").build();
+    /// req.middleware(surf::middleware::Redirect::default());
+    /// ```
+    pub fn middleware(&mut self, middleware: impl Middleware) {
+        if self.middleware.is_none() {
+            self.middleware = Some(vec![]);
+        }
+
+        self.middleware.as_mut().unwrap().push(Arc::new(middleware));
+    }
+
+    pub(crate) fn take_middleware(&mut self) -> Option<Vec<Arc<dyn Middleware>>> {
+        self.middleware.take()
+    }
 }
 
 impl AsRef<http::Headers> for Request {
@@ -390,7 +426,10 @@ impl AsMut<http::Request> for Request {
 impl From<http::Request> for Request {
     /// Converts an `http::Request` to a `surf::Request`.
     fn from(req: http::Request) -> Self {
-        Self { req }
+        Self {
+            req,
+            middleware: None,
+        }
     }
 }
 
