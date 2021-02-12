@@ -134,18 +134,18 @@ async fn cloned() -> Result<(), http_types::Error> {
 
     let req = surf::get("https://httpbin.org/get");
     let res = original_client.send(req).await?;
-    assert!(res.ext::<MW1Marker>().is_some());
-    assert!(res.ext::<MW2Marker>().is_none()); // None
+    assert!(res.ext::<Mw1Marker>().is_some());
+    assert!(res.ext::<Mw2Marker>().is_none()); // None
 
     let req = surf::get("https://httpbin.org/get");
     let res = cloned_client.send(req).await?;
-    assert!(res.ext::<MW1Marker>().is_some());
-    assert!(res.ext::<MW2Marker>().is_some()); // Some
+    assert!(res.ext::<Mw1Marker>().is_some());
+    assert!(res.ext::<Mw2Marker>().is_some()); // Some
 
     Ok(())
 }
 
-struct MW1Marker;
+struct Mw1Marker;
 fn mw_1(
     req: Request,
     client: Client,
@@ -153,11 +153,11 @@ fn mw_1(
 ) -> BoxFuture<Result<Response, http_types::Error>> {
     Box::pin(async move {
         let mut res: Response = next.run(req, client).await?;
-        res.insert_ext(MW1Marker);
+        res.insert_ext(Mw1Marker);
         Ok(res)
     })
 }
-struct MW2Marker;
+struct Mw2Marker;
 fn mw_2(
     req: Request,
     client: Client,
@@ -165,7 +165,7 @@ fn mw_2(
 ) -> BoxFuture<Result<Response, http_types::Error>> {
     Box::pin(async move {
         let mut res = next.run(req, client).await?;
-        res.insert_ext(MW2Marker);
+        res.insert_ext(Mw2Marker);
         Ok(res)
     })
 }
