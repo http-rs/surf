@@ -2,6 +2,7 @@ use crate::http::{
     headers::{HeaderName, ToHeaderValues},
     Body, Method, Mime, Url,
 };
+use crate::middleware::Middleware;
 use crate::{Client, Error, Request, Response, Result};
 
 use futures_util::future::BoxFuture;
@@ -245,6 +246,32 @@ impl RequestBuilder {
     pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T> {
         let mut res = self.send().await?;
         Ok(res.body_form::<T>().await?)
+    }
+
+    /// Push middleware onto a per-request middleware stack.
+    ///
+    /// **Important**: Setting per-request middleware incurs extra allocations.
+    /// Creating a `Client` with middleware is recommended.
+    ///
+    /// Client middleware is run before per-request middleware.
+    ///
+    /// See the [middleware] submodule for more information on middleware.
+    ///
+    /// [middleware]: ../middleware/index.html
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    /// let res = surf::get("https://httpbin.org/get")
+    ///     .middleware(surf::middleware::Redirect::default())
+    ///     .await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn middleware(mut self, middleware: impl Middleware) -> Self {
+        self.req.as_mut().unwrap().middleware(middleware);
+        self
     }
 
     /// Return the constructed `Request`.

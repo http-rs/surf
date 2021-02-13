@@ -177,6 +177,8 @@ impl Client {
 
     /// Send a `Request` using this client.
     ///
+    /// Client middleware is run before per-request middleware.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -188,11 +190,21 @@ impl Client {
     /// # Ok(()) }
     /// ```
     pub async fn send(&self, req: impl Into<Request>) -> Result<Response> {
-        let req: Request = req.into();
+        let mut req: Request = req.into();
         let http_client = self.http_client.clone();
         let middleware = self.middleware.clone();
 
-        let next = Next::new(&middleware, &|req, client| {
+        let mw_stack = match req.take_middleware() {
+            Some(req_mw) => {
+                let mut mw = Vec::with_capacity(middleware.len() + req_mw.len());
+                mw.extend(middleware.iter().cloned());
+                mw.extend(req_mw);
+                Arc::new(mw)
+            }
+            None => middleware,
+        };
+
+        let next = Next::new(&mw_stack, &|req, client| {
             Box::pin(async move {
                 let req: http_types::Request = req.into();
                 client.http_client.send(req).await.map(Into::into)
