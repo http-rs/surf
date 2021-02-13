@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         rust: [nightly]
-        backend: [curl-client, h1-client, hyper-client]
+        backend: [curl-client, 'h1-client native-tls', hyper-client]
 
     steps:
     - uses: actions/checkout@master
