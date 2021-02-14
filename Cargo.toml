@@ -8,7 +8,7 @@ description = "Surf the web - HTTP client framework"
 keywords = ["http", "client", "framework", "request", "async"]
 categories = ["web-programming", "web-programming::http-client"]
 authors = [
-    "Yoshua Wuyts <yoshuawuyts@gmail.com>", 
+    "Yoshua Wuyts <yoshuawuyts@gmail.com>",
     "dignifiedquire <me@dignifiedquire.com>",
     "Renée Kooi <renee@kooi.me>",
     "Jeremiah Senkpiel <fishrock123@rocketmail.com>"
@@ -21,7 +21,7 @@ edition = "2018"
 # `.github/workflows/ci.yaml` are updated accordingly
 default = ["curl-client", "middleware-logger", "encoding"]
 curl-client = ["http-client/curl_client", "once_cell", "default-client"]
-h1-client = ["http-client/h1_client", "default-client"]
+h1-client = ["http-client/h1_client", "http-client/native-tls", "default-client"]
 hyper-client = ["http-client/hyper_client", "once_cell", "default-client", "async-std/tokio02"]
 wasm-client = ["http-client/wasm_client", "default-client"]
 default-client = []
@@ -35,7 +35,7 @@ log = { version = "0.4.7", features = ["kv_unstable"] }
 mime_guess = "2.0.3"
 serde = "1.0.97"
 serde_json = "1.0.40"
-http-client = { version = "6.1.0", default-features = false }
+http-client = { version = "6.3.0", default-features = false }
 http-types = "2.5.0"
 async-std = { version = "1.6.0", default-features = false, features = ["std"] }
 async-trait = "0.1.36"
