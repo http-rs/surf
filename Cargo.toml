@@ -24,6 +24,7 @@ curl-client = ["http-client/curl_client", "once_cell", "default-client"]
 h1-client = ["http-client/h1_client", "http-client/native-tls", "default-client"]
 hyper-client = ["http-client/hyper_client", "once_cell", "default-client", "async-std/tokio02"]
 wasm-client = ["http-client/wasm_client", "default-client"]
+# this feature flag is no longer necessary.
 default-client = []
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
