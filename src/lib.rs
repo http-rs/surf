@@ -96,15 +96,7 @@ pub use request_builder::RequestBuilder;
 pub use response::{DecodeError, Response};
 
 cfg_if::cfg_if! {
-    if #[cfg(all(
-        feature = "default-client",
-        any(
-            feature = "curl-client",
-            all(feature = "wasm-client", target_arch = "wasm32"),
-            feature = "h1-client",
-            feature = "hyper-client"
-        )
-    ))] {
+    if #[cfg(feature = "default-client")] {
         mod one_off;
         pub use one_off::{connect, delete, get, head, options, patch, post, put, trace};
 

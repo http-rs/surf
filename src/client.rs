@@ -10,7 +10,7 @@ use cfg_if::cfg_if;
 cfg_if! {
     if #[cfg(feature = "curl-client")] {
         use http_client::isahc::IsahcClient as DefaultClient;
-    } else if #[cfg(all(feature = "wasm-client", target_arch = "wasm32"))] {
+    } else if #[cfg(feature = "wasm-client")] {
         use http_client::wasm::WasmClient as DefaultClient;
     } else if #[cfg(feature = "h1-client")] {
         use http_client::h1::H1Client as DefaultClient;
@@ -76,15 +76,7 @@ impl fmt::Debug for Client {
     }
 }
 
-#[cfg(all(
-    feature = "default-client",
-    any(
-        feature = "curl-client",
-        all(feature = "wasm-client", target_arch = "wasm32"),
-        feature = "h1-client",
-        feature = "hyper-client"
-    )
-))]
+#[cfg(feature = "default-client")]
 impl Default for Client {
     fn default() -> Self {
         Self::new()
@@ -105,30 +97,14 @@ impl Client {
     /// let res = client.send(req).await?;
     /// # Ok(()) }
     /// ```
-    #[cfg(all(
-        feature = "default-client",
-        any(
-            feature = "curl-client",
-            all(feature = "wasm-client", target_arch = "wasm32"),
-            feature = "h1-client",
-            feature = "hyper-client"
-        )
-    ))]
+    #[cfg(feature = "default-client")]
     pub fn new() -> Self {
         Self::with_http_client(DefaultClient::new())
     }
 
     pub(crate) fn new_shared_or_panic() -> Self {
         cfg_if! {
-            if #[cfg(all(
-                feature = "default-client",
-                any(
-                    feature = "curl-client",
-                    all(feature = "wasm-client", target_arch = "wasm32"),
-                    feature = "h1-client",
-                    feature = "hyper-client"
-                )
-            ))] {
+            if #[cfg(feature = "default-client")] {
                 Self::new_shared()
             } else {
                 panic!("default client not configured")
@@ -164,15 +140,7 @@ impl Client {
         client
     }
 
-    #[cfg(all(
-        feature = "default-client",
-        any(
-            feature = "curl-client",
-            all(feature = "wasm-client", target_arch = "wasm32"),
-            feature = "h1-client",
-            feature = "hyper-client"
-        )
-    ))]
+    #[cfg(feature = "default-client")]
     pub(crate) fn new_shared() -> Self {
         cfg_if! {
             if #[cfg(any(feature = "curl-client", feature = "hyper-client"))] {
