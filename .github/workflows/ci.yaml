@@ -87,3 +87,17 @@ jobs:
 
     - name: docs
       run: cargo doc --no-deps
+
+  check_features:
+    name: Check feature combinations
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Install cargo-hack
+      run: cargo install cargo-hack
+
+    - name: Check all feature combinations works properly
+      # * `--feature-powerset` - run for the feature powerset of the package
+      # * `--no-dev-deps` - build without dev-dependencies to avoid https://github.com/rust-lang/cargo/issues/4866
+      run: cargo hack check --feature-powerset --no-dev-deps --skip=default-client,wasm-client
