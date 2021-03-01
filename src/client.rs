@@ -12,7 +12,7 @@ cfg_if! {
         use http_client::isahc::IsahcClient as DefaultClient;
     } else if #[cfg(feature = "wasm-client")] {
         use http_client::wasm::WasmClient as DefaultClient;
-    } else if #[cfg(feature = "h1-client")] {
+    } else if #[cfg(any(feature = "h1-client", feature = "h1-client-rustls"))] {
         use http_client::h1::H1Client as DefaultClient;
     } else if #[cfg(feature = "hyper-client")] {
         use http_client::hyper::HyperClient as DefaultClient;
