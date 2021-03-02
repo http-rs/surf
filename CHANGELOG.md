@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.2.0] - 2021-03-02
+
+If you use the `h1-client`, upgrading to this release is reccomended.
+
+### Additions
+- `h1-client-rustls` feature flag, for using the [`async-h1`](https://github.com/http-rs/async-h1) client with [`rustls`](https://github.com/ctz/rustls) as the TLS backend.
+    - The TLS backend for `h1-client` is still `async-native-tls`.
+- Per-request middleware, provided by `RequestBuilder::middleware(&mut self, impl Middleware)`.
+- `AsRef<Headers>` and `AsMut<Headers>` for `surf::Request` and `surf::Response`.
+
+### Fixes
+- Relative redirects should now be handled by the `RedirectMiddleware`.
+- The `h1-client` feature should now properly work with `http-client` 6.3.0+ without additional feature specification.
+
+### Docs
+- The `http` docs now link to the live, up-to-date `http_types` docs.
+
+### Internal
+- Various CI improvements.
+
 ## [2.1.0] - 2020-10-23
 
 This minor release contains follow-up fixes and improvements to Surf 2.0.
