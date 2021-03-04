@@ -21,8 +21,8 @@ edition = "2018"
 # `.github/workflows/ci.yaml` are updated accordingly
 default = ["curl-client", "middleware-logger", "encoding"]
 curl-client = ["http-client/curl_client", "once_cell", "default-client"]
-h1-client = ["http-client/h1_client", "http-client/native-tls", "default-client"]
-h1-client-rustls = ["http-client/h1_client", "http-client/rustls", "default-client"]
+h1-client = ["http-client/h1_client", "http-client/native-tls", "once_cell", "default-client"]
+h1-client-rustls = ["http-client/h1_client", "http-client/rustls", "once_cell", "default-client"]
 hyper-client = ["http-client/hyper_client", "once_cell", "default-client", "async-std/tokio02"]
 wasm-client = ["http-client/wasm_client", "default-client"]
 default-client = []
@@ -36,7 +36,7 @@ log = { version = "0.4.7", features = ["kv_unstable"] }
 mime_guess = "2.0.3"
 serde = "1.0.97"
 serde_json = "1.0.40"
-http-client = { version = "6.3.1", default-features = false }
+http-client = { version = "6.3.4", default-features = false }
 http-types = "2.5.0"
 async-std = { version = "1.6.0", default-features = false, features = ["std"] }
 async-trait = "0.1.36"
