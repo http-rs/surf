@@ -120,7 +120,10 @@ impl RequestBuilder {
         self
     }
 
-    /// Sets the body of the request.
+    /// Pass an `AsyncRead` stream as the request body.
+    /// # Mime
+    ///
+    /// The encoding is set to `application/octet-stream`.
     ///
     /// # Examples
     ///
@@ -136,6 +139,108 @@ impl RequestBuilder {
     pub fn body(mut self, body: impl Into<Body>) -> Self {
         self.req.as_mut().unwrap().set_body(body);
         self
+    }
+
+    /// Pass JSON as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/json`.
+    ///
+    /// # Errors
+    ///
+    /// This method will return an error if the provided data could not be serialized to JSON.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Ip {
+    ///     ip: String
+    /// }
+    ///
+    /// let uri = "https://httpbin.org/post";
+    /// let data = &Ip { ip: "129.0.0.1".into() };
+    /// let res = surf::post(uri).body_json(data)?.await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_json(self, json: &impl Serialize) -> crate::Result<Self> {
+        Ok(self.body(Body::from_json(json)?))
+    }
+
+    /// Pass a string as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `text/plain; charset=utf-8`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = "hello world".to_string();
+    /// let res = surf::post(uri).body_string(data).await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_string(self, string: String) -> Self {
+        self.body(Body::from_string(string))
+    }
+
+    /// Pass bytes as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/octet-stream`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// let uri = "https://httpbin.org/post";
+    /// let data = b"hello world".to_owned();
+    /// let res = surf::post(uri).body_bytes(data).await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_bytes(self, bytes: impl AsRef<[u8]>) -> Self {
+        self.body(Body::from(bytes.as_ref()))
+    }
+
+    /// Pass a file as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set based on the file extension using [`mime_guess`] if the operation was
+    /// successful. If `path` has no extension, or its extension has no known MIME type mapping,
+    /// then `None` is returned.
+    ///
+    /// [`mime_guess`]: https://docs.rs/mime_guess
+    ///
+    /// # Errors
+    ///
+    /// This method will return an error if the file couldn't be read.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// let uri = "https://httpbin.org/post";
+    /// let res = surf::post(uri).body_file("./archive.tgz").await?.await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    #[cfg(not(target_arch = "wasm32"))]
+    pub async fn body_file(self, path: impl AsRef<std::path::Path>) -> std::io::Result<Self> {
+        Ok(self.body(Body::from_file(path).await?))
     }
 
     /// Set the URL querystring.
