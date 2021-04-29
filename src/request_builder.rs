@@ -120,7 +120,7 @@ impl RequestBuilder {
         self
     }
 
-    /// Pass an `AsyncRead` stream as the request body.
+    /// Sets the body of the request from any type with implements `Into<Body>`, for example, any type with is `AsyncRead`.
     /// # Mime
     ///
     /// The encoding is set to `application/octet-stream`.
