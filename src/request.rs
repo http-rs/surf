@@ -308,7 +308,7 @@ impl Request {
     ///
     /// # Mime
     ///
-    /// The encoding is set to `application/json`.
+    /// The `content-type` is set to `application/json`.
     ///
     /// # Errors
     ///
@@ -322,7 +322,7 @@ impl Request {
     ///
     /// # Mime
     ///
-    /// The encoding is set to `text/plain; charset=utf-8`.
+    /// The `content-type` is set to `text/plain; charset=utf-8`.
     pub fn body_string(&mut self, string: String) {
         self.set_body(Body::from_string(string))
     }
@@ -331,7 +331,7 @@ impl Request {
     ///
     /// # Mime
     ///
-    /// The encoding is set to `application/octet-stream`.
+    /// The `content-type` is set to `application/octet-stream`.
     pub fn body_bytes(&mut self, bytes: impl AsRef<[u8]>) {
         self.set_body(Body::from(bytes.as_ref()))
     }
@@ -340,7 +340,7 @@ impl Request {
     ///
     /// # Mime
     ///
-    /// The encoding is set based on the file extension using [`mime_guess`] if the operation was
+    /// The `content-type` is set based on the file extension using [`mime_guess`] if the operation was
     /// successful. If `path` has no extension, or its extension has no known MIME type mapping,
     /// then `None` is returned.
     ///
@@ -359,7 +359,7 @@ impl Request {
     ///
     /// # Mime
     ///
-    /// The encoding is set to `application/x-www-form-urlencoded`.
+    /// The `content-type` is set to `application/x-www-form-urlencoded`.
     ///
     /// # Errors
     ///
