@@ -215,7 +215,7 @@ impl Response {
         self.res.body_bytes().await
     }
 
-    /// Reads the entire request body into a string.
+    /// Reads the entire response body into a string.
     ///
     /// This method can be called after the body has already been read, but will
     /// produce an empty buffer.
