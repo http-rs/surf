@@ -161,6 +161,7 @@ impl Response {
     /// E.g. a string, or a buffer. Consumers of this API should check this
     /// value to decide whether to use `Chunked` encoding, or set the
     /// response length.
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> Option<usize> {
         self.res.len()
     }
