@@ -537,6 +537,7 @@ impl Client {
     /// ```no_run
     /// # #[async_std::main]
     /// # async fn main() -> surf::Result<()> {
+    /// use http_types::Method;
     /// let client = surf::client();
     /// let req = client.request(Method::Get, "http://httpbin.org/get");
     /// let res = client.send(req).await?;
