@@ -523,6 +523,30 @@ impl Client {
         RequestBuilder::new(Method::Patch, self.url(uri)).with_client(self.clone())
     }
 
+    /// Perform a HTTP request with the given verb using the `Client` connection.
+    ///
+    /// # Panics
+    ///
+    /// This will panic if a malformed URL is passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns errors from the middleware, http backend, and network sockets.
+    ///
+    /// # Examples
+    /// ```no_run
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// use http_types::Method;
+    /// let client = surf::client();
+    /// let req = client.request(Method::Get, "http://httpbin.org/get");
+    /// let res = client.send(req).await?;
+    /// # Ok(()) }
+    /// ```
+    pub fn request(&self, verb: Method, uri: impl AsRef<str>) -> RequestBuilder {
+        RequestBuilder::new(verb, self.url(uri)).with_client(self.clone())
+    }
+
     /// Sets the base URL for this client. All request URLs will be relative to this URL.
     ///
     /// Note: a trailing slash is significant.
