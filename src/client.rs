@@ -16,6 +16,10 @@ cfg_if! {
         use http_client::h1::H1Client as DefaultClient;
     } else if #[cfg(feature = "hyper-client")] {
         use http_client::hyper::HyperClient as DefaultClient;
+    } else if #[cfg(all(feature = "native-client", target_arch = "wasm32"))] {
+        use http_client::wasm::WasmClient as DefaultClient;
+    } else if #[cfg(all(feature = "native-client", not(target_arch = "wasm32")))] {
+        use http_client::isahc::IsahcClient as DefaultClient;
     }
 }
 cfg_if! {
