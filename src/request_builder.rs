@@ -86,6 +86,12 @@ impl RequestBuilder {
     }
 
     pub(crate) fn with_client(mut self, client: Client) -> Self {
+        let req = self.req.as_mut().unwrap();
+
+        for (header_name, header_values) in client.config().headers.iter() {
+            req.append_header(header_name, header_values);
+        }
+
         self.client = Some(client);
         self
     }
