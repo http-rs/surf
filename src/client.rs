@@ -1,9 +1,10 @@
+use std::convert::TryFrom;
 use std::fmt;
 use std::sync::Arc;
 
 use crate::http::{Method, Url};
 use crate::middleware::{Middleware, Next};
-use crate::{HttpClient, Request, RequestBuilder, Response, Result};
+use crate::{Config, HttpClient, Request, RequestBuilder, Response, Result};
 
 use cfg_if::cfg_if;
 
@@ -41,7 +42,7 @@ cfg_if! {
 /// # Ok(()) }
 /// ```
 pub struct Client {
-    base_url: Option<Url>,
+    config: Config,
     http_client: Arc<dyn HttpClient>,
     /// Holds the middleware stack.
     ///
@@ -58,12 +59,12 @@ impl Clone for Client {
     /// Clones the Client.
     ///
     /// This copies the middleware stack from the original, but shares
-    /// the `HttpClient` of the original.
+    /// the `HttpClient` and http client config of the original.
     /// Note that individual middleware in the middleware stack are
     /// still shared by reference.
     fn clone(&self) -> Self {
         Self {
-            base_url: self.base_url.clone(),
+            config: self.config.clone(),
             http_client: self.http_client.clone(),
             middleware: Arc::new(self.middleware.iter().cloned().collect()),
         }
@@ -129,7 +130,7 @@ impl Client {
 
     fn with_http_client_internal(http_client: Arc<dyn HttpClient>) -> Self {
         let client = Self {
-            base_url: None,
+            config: Config::default(),
             http_client,
             middleware: Arc::new(vec![]),
         };
@@ -212,7 +213,7 @@ impl Client {
         });
 
         let client = Self {
-            base_url: self.base_url.clone(),
+            config: self.config.clone(),
             http_client,
             // Erase the middleware stack for the Client accessible from within middleware.
             // This avoids gratuitous circular borrow & logic issues.
@@ -562,28 +563,61 @@ impl Client {
     /// client.get("posts.json").recv_json().await?; /// http://example.com/api/v1/posts.json
     /// # Ok(()) }) }
     /// ```
+    #[deprecated(since = "6.5.0", note = "Please use `Config` instead")]
     pub fn set_base_url(&mut self, base: Url) {
-        self.base_url = Some(base);
+        self.config.base_url = Some(base);
+    }
+
+    /// Get the current configuration.
+    pub fn config(&self) -> &Config {
+        &self.config
     }
 
     // private function to generate a url based on the base_path
     fn url(&self, uri: impl AsRef<str>) -> Url {
-        match &self.base_url {
+        match &self.config.base_url {
             None => uri.as_ref().parse().unwrap(),
             Some(base) => base.join(uri.as_ref()).unwrap(),
         }
     }
 }
 
+impl TryFrom<Config> for Client {
+    #[cfg(feature = "default-client")]
+    type Error = <DefaultClient as TryFrom<http_client::Config>>::Error;
+    #[cfg(not(feature = "default-client"))]
+    type Error = std::convert::Infallible;
+
+    fn try_from(mut config: Config) -> std::result::Result<Self, Self::Error> {
+        let http_client = match config.http_client.take() {
+            Some(client) => client,
+            #[cfg(feature = "default-client")]
+            None => Arc::new(DefaultClient::try_from(config.http_config.clone())?),
+            #[cfg(not(feature = "default-client"))]
+            None => panic!("Config without an http client provided to Surf configured without a default client.")
+        };
+
+        Ok(Client {
+            config,
+            http_client,
+            middleware: Arc::new(vec![]),
+        })
+    }
+}
+
 #[cfg(test)]
 mod client_tests {
+    use std::convert::TryInto;
+
     use super::Client;
+    use super::Config;
     use crate::Url;
 
     #[test]
     fn base_url() {
-        let mut client = Client::new();
-        client.set_base_url(Url::parse("http://example.com/api/v1/").unwrap());
+        let base_url = Url::parse("http://example.com/api/v1/").unwrap();
+
+        let client: Client = Config::new().set_base_url(base_url).try_into().unwrap();
         let url = client.url("posts.json");
         assert_eq!(url.as_str(), "http://example.com/api/v1/posts.json");
     }

@@ -7,6 +7,7 @@
 //! - Multi-platform out of the box
 //! - Extensible through a powerful middleware system
 //! - Reuses connections through the `Client` interface
+//! - Has `Client` configurability
 //! - Fully streaming requests and responses
 //! - TLS/SSL enabled by default
 //! - Swappable HTTP backends
@@ -61,6 +62,26 @@
 //! # Ok(()) }
 //! ```
 //!
+//! Setting configuration on a client is also straightforward.
+//!
+//! ```no_run
+//! # #[async_std::main]
+//! # async fn main() -> surf::Result<()> {
+//! use std::convert::TryInto;
+//! use std::time::Duration;
+//! use surf::{Client, Config};
+//! use surf::Url;
+//!
+//! let client: Client = Config::new()
+//!     .set_base_url(Url::parse("http://example.org")?)
+//!     .set_timeout(Some(Duration::from_secs(5)))
+//!     .try_into()?;
+//!    
+//! let mut res = client.get("/").await?;
+//! println!("{}", res.body_string().await?);
+//! # Ok(()) }
+//! ```
+//!
 //! # Features
 //! The following features are available. The default features are
 //! `curl-client`, `middleware-logger`, and `encoding`
@@ -80,6 +101,7 @@
 #![doc(html_logo_url = "https://yoshuawuyts.com/assets/http-rs/logo-rounded.png")]
 
 mod client;
+mod config;
 mod request;
 mod request_builder;
 mod response;
@@ -92,6 +114,7 @@ pub use http_types::{self as http, Body, Error, Status, StatusCode, Url};
 pub use http_client::HttpClient;
 
 pub use client::Client;
+pub use config::Config;
 pub use request::Request;
 pub use request_builder::RequestBuilder;
 pub use response::{DecodeError, Response};
