@@ -11,7 +11,7 @@ authors = [
     "Yoshua Wuyts <yoshuawuyts@gmail.com>",
     "dignifiedquire <me@dignifiedquire.com>",
     "Renée Kooi <renee@kooi.me>",
-    "Jeremiah Senkpiel <fishrock123@rocketmail.com>"
+    "Jeremiah Senkpiel <fishrock123@rocketmail.com>",
 ]
 readme = "README.md"
 edition = "2018"
@@ -21,9 +21,24 @@ edition = "2018"
 # `.github/workflows/ci.yaml` are updated accordingly
 default = ["curl-client", "middleware-logger", "encoding"]
 curl-client = ["http-client/curl_client", "once_cell", "default-client"]
-h1-client = ["http-client/h1_client", "http-client/native-tls", "once_cell", "default-client"]
-h1-client-rustls = ["http-client/h1_client", "http-client/rustls", "once_cell", "default-client"]
-hyper-client = ["http-client/hyper_client", "once_cell", "default-client", "async-std/tokio02"]
+h1-client = [
+    "http-client/h1_client",
+    "http-client/native-tls",
+    "once_cell",
+    "default-client",
+]
+h1-client-rustls = [
+    "http-client/h1_client",
+    "http-client/rustls",
+    "once_cell",
+    "default-client",
+]
+hyper-client = [
+    "http-client/hyper_client",
+    "once_cell",
+    "default-client",
+    "async-std/tokio02",
+]
 wasm-client = ["http-client/wasm_client", "default-client"]
 default-client = []
 middleware-logger = []
@@ -44,20 +59,18 @@ pin-project-lite = "0.2.0"
 once_cell = { version = "1.4.1", optional = true }
 cfg-if = "1.0.0"
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+[target.'cfg(not(feature = "wasm-client"))'.dependencies]
 # encoding
 encoding_rs = { version = "0.8.20", optional = true }
 
 # wasm-client config
-[target.'cfg(target_arch = "wasm32")'.dependencies.getrandom]
+[target.'cfg(feature="wasm-client")'.dependencies.getrandom]
 version = "0.2"
 features = ["js"]
-[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+[target.'cfg(feature="wasm-client")'.dependencies.web-sys]
 version = "0.3.25"
 optional = true
-features = [
-    "TextDecoder",
-]
+features = ["TextDecoder"]
 
 [dev-dependencies]
 async-std = { version = "1.6.0", features = ["attributes"] }
@@ -66,4 +79,4 @@ serde = { version = "1.0.97", features = ["derive"] }
 mockito = "0.23.3"
 
 [workspace]
-members = [ "wasm-test" ]
+members = ["wasm-test"]
