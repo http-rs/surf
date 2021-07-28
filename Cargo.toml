@@ -39,7 +39,12 @@ hyper-client = [
     "default-client",
     "async-std/tokio02",
 ]
-wasm-client = ["http-client/wasm_client", "default-client"]
+wasm-client = [
+    "http-client/wasm_client",
+    "default-client",
+    "getrandom/js",
+    "web-sys",
+]
 default-client = []
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
@@ -58,19 +63,11 @@ async-trait = "0.1.36"
 pin-project-lite = "0.2.0"
 once_cell = { version = "1.4.1", optional = true }
 cfg-if = "1.0.0"
-
-[target.'cfg(not(feature = "wasm-client"))'.dependencies]
-# encoding
+getrandom = "0.2.0"
 encoding_rs = { version = "0.8.20", optional = true }
 
-# wasm-client config
-[target.'cfg(feature="wasm-client")'.dependencies.getrandom]
-version = "0.2"
-features = ["js"]
-[target.'cfg(feature="wasm-client")'.dependencies.web-sys]
-version = "0.3.25"
-optional = true
-features = ["TextDecoder"]
+web-sys = { optional = true, version = "0.3.25", features = ["TextDecoder"] }
+
 
 [dev-dependencies]
 async-std = { version = "1.6.0", features = ["attributes"] }
