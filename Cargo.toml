@@ -11,7 +11,7 @@ authors = [
     "Yoshua Wuyts <yoshuawuyts@gmail.com>",
     "dignifiedquire <me@dignifiedquire.com>",
     "Renée Kooi <renee@kooi.me>",
-    "Jeremiah Senkpiel <fishrock123@rocketmail.com>"
+    "Jeremiah Senkpiel <fishrock123@rocketmail.com>",
 ]
 readme = "README.md"
 edition = "2018"
@@ -21,10 +21,30 @@ edition = "2018"
 # `.github/workflows/ci.yaml` are updated accordingly
 default = ["curl-client", "middleware-logger", "encoding"]
 curl-client = ["http-client/curl_client", "once_cell", "default-client"]
-h1-client = ["http-client/h1_client", "http-client/native-tls", "once_cell", "default-client"]
-h1-client-rustls = ["http-client/h1_client", "http-client/rustls", "once_cell", "default-client"]
-hyper-client = ["http-client/hyper_client", "once_cell", "default-client", "async-std/tokio02"]
-wasm-client = ["http-client/wasm_client", "default-client"]
+h1-client = [
+    "http-client/h1_client",
+    "http-client/native-tls",
+    "once_cell",
+    "default-client",
+]
+h1-client-rustls = [
+    "http-client/h1_client",
+    "http-client/rustls",
+    "once_cell",
+    "default-client",
+]
+hyper-client = [
+    "http-client/hyper_client",
+    "once_cell",
+    "default-client",
+    "async-std/tokio02",
+]
+wasm-client = [
+    "http-client/wasm_client",
+    "default-client",
+    "getrandom/js",
+    "web-sys",
+]
 default-client = []
 middleware-logger = []
 # requires web-sys for TextDecoder on wasm
@@ -43,18 +63,11 @@ async-trait = "0.1.36"
 pin-project-lite = "0.2.0"
 once_cell = { version = "1.4.1", optional = true }
 cfg-if = "1.0.0"
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-# encoding
+getrandom = "0.2.0"
 encoding_rs = { version = "0.8.20", optional = true }
 
-# wasm-client
-[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
-version = "0.3.25"
-optional = true
-features = [
-    "TextDecoder",
-]
+web-sys = { optional = true, version = "0.3.25", features = ["TextDecoder"] }
+
 
 [dev-dependencies]
 async-std = { version = "1.6.0", features = ["attributes"] }
@@ -63,4 +76,4 @@ serde = { version = "1.0.97", features = ["derive"] }
 mockito = "0.23.3"
 
 [workspace]
-members = [ "wasm-test" ]
+members = ["wasm-test"]
