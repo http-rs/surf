@@ -4,7 +4,6 @@ use futures_util::future::BoxFuture;
 use http_types::Body;
 
 use surf::{middleware::Next, Client, Request, Response};
-
 #[async_std::test]
 async fn post_json() -> Result<(), http_types::Error> {
     #[derive(serde::Deserialize, serde::Serialize)]
@@ -44,6 +43,20 @@ async fn get_json() -> Result<(), http_types::Error> {
     let msg: Message = surf::get(uri).recv_json().await?;
     m.assert();
     assert_eq!(msg.message, "hello, world!");
+    Ok(())
+}
+
+#[async_std::test]
+async fn head_example_org() -> Result<(), http_types::Error> {
+    let mut res = surf::head("http://example.com").await.unwrap();
+
+    assert_eq!(res.status(), surf::StatusCode::Ok);
+    assert!(res.len().is_some());
+
+    let body = res.body_bytes().await?;
+
+    assert_eq!(body.len(), 0);
+
     Ok(())
 }
 
