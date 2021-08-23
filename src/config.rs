@@ -58,29 +58,9 @@ impl Default for Config {
 }
 
 impl Config {
-    /// Sets the base URL for this client. All request URLs will be relative to this URL.
-    ///
-    /// Note: a trailing slash is significant.
-    /// Without it, the last path component is considered to be a “file” name
-    /// to be removed to get at the “directory” that is used as the base.
-    ///
-    /// ```
-    /// use std::convert::TryInto;
-    /// use surf::{Client, Config, Url};
-    ///
-    /// # fn main() -> surf::Result<()> {
-    /// let client: Client = Config::new()
-    ///     .set_base_url(Url::parse("https://example.org")?)
-    ///     .try_into()?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn set_base_url(mut self, base: Url) -> Self {
-        self.base_url = Some(base);
-        self
-    }
-
     /// Adds a header to be added to every request by this client.
+    ///
+    /// Default: No extra headers.
     ///
     /// ```
     /// use std::convert::TryInto;
@@ -106,19 +86,55 @@ impl Config {
         Ok(self)
     }
 
+    /// Sets the base URL for this client. All request URLs will be relative to this URL.
+    ///
+    /// Note: a trailing slash is significant.
+    /// Without it, the last path component is considered to be a “file” name
+    /// to be removed to get at the “directory” that is used as the base.
+    ///
+    /// Default: `None` (internally).
+    ///
+    /// ```
+    /// use std::convert::TryInto;
+    /// use surf::{Client, Config, Url};
+    ///
+    /// # fn main() -> surf::Result<()> {
+    /// let client: Client = Config::new()
+    ///     .set_base_url(Url::parse("https://example.org")?)
+    ///     .try_into()?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn set_base_url(mut self, base: Url) -> Self {
+        self.base_url = Some(base);
+        self
+    }
+
     /// Set HTTP/1.1 `keep-alive` (connection pooling).
+    ///
+    /// Default: `true`.
+    ///
+    /// Note: Does nothing on `wasm-client` (or `native-client` on `wasm32`).
     pub fn set_http_keep_alive(mut self, keep_alive: bool) -> Self {
         self.http_config.http_keep_alive = keep_alive;
         self
     }
 
     /// Set TCP `NO_DELAY`.
+    ///
+    /// Default: `false`.
+    ///
+    /// Note: Does nothing on `wasm-client` (or `native-client` on `wasm32`).
     pub fn set_tcp_no_delay(mut self, no_delay: bool) -> Self {
         self.http_config.tcp_no_delay = no_delay;
         self
     }
 
     /// Set connection timeout duration.
+    ///
+    /// Passing `None` will remove the timeout.
+    ///
+    /// Default: `Some(Duration::from_secs(60))`.
     ///
     /// ```
     /// use std::convert::TryInto;
@@ -138,6 +154,15 @@ impl Config {
     }
 
     /// Set the maximum number of simultaneous connections that this client is allowed to keep open to individual hosts at one time.
+    ///
+    /// Default: `50`.
+    /// This number is based on a few random benchmarks and see whatever gave decent perf vs resource use in Orogene.
+    ///
+    /// Note: The behavior of this is different depending on the backend in use.
+    /// - `h1-client`: `0` is disallowed and asserts as otherwise it would cause a semaphore deadlock.
+    /// - `curl-client`: `0` allows for limitless connections per host.
+    /// - `hyper-client`: No effect. Hyper does not support such an option.
+    /// - `wasm-client`: No effect. Web browsers do not support such an option.
     pub fn set_max_connections_per_host(mut self, max_connections_per_host: usize) -> Self {
         self.http_config.max_connections_per_host = max_connections_per_host;
         self
