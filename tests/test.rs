@@ -1,9 +1,11 @@
+use std::convert::TryInto;
+
 use mockito::mock;
 
 use futures_util::future::BoxFuture;
 use http_types::Body;
 
-use surf::{middleware::Next, Client, Request, Response};
+use surf::{middleware::Next, Client, Config, Request, Response};
 
 #[async_std::test]
 async fn post_json() -> Result<(), http_types::Error> {
@@ -168,4 +170,31 @@ fn mw_2(
         res.insert_ext(Mw2Marker);
         Ok(res)
     })
+}
+
+#[async_std::test]
+async fn config_client_headers() -> Result<(), http_types::Error> {
+    femme::start(log::LevelFilter::Trace).ok();
+
+    let mut server = tide::new();
+    server.at("/").get(|req: tide::Request<()>| async {
+        let mut res = tide::Response::new(200);
+
+        for (header_name, header_values) in req {
+            res.append_header(header_name, &header_values);
+        }
+
+        Ok(res)
+    });
+
+    let client: Client = Config::new()
+        .set_http_client(server)
+        .add_header("X-Header-Name", "X-Header-Values")?
+        .try_into()?;
+
+    let res = client.get("http://example.org/").await?;
+
+    assert_eq!(res["X-Header-Name"], "X-Header-Values");
+
+    Ok(())
 }

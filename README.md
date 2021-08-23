@@ -54,6 +54,7 @@ quick script, or a cross-platform SDK, Surf will make it work.
 - Multi-platform out of the box
 - Extensible through a powerful middleware system
 - Reuses connections through the `Client` interface
+- Has `Client` configurability
 - Fully streaming requests and responses
 - TLS/SSL enabled by default
 - Swappable HTTP backends
@@ -116,6 +117,26 @@ async fn main() -> surf::Result<()> {
     let res = surf::post("https://box.rs/upload").body(body).await?;
     Ok(())
 }
+```
+
+Setting configuration on a client is also straightforward.
+
+```rust
+# #[async_std::main]
+# async fn main() -> surf::Result<()> {
+use std::convert::TryInto;
+use std::time::Duration;
+use surf::{Client, Config};
+use surf::Url;
+
+let client: Client = Config::new()
+    .set_base_url(Url::parse("http://example.org")?)
+    .set_timeout(Some(Duration::from_secs(5)))
+    .try_into()?;
+  
+let mut res = client.get("/").await?;
+println!("{}", res.body_string().await?);
+# Ok(()) }
 ```
 
 ## Installation
