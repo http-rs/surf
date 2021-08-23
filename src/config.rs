@@ -165,6 +165,27 @@ impl Config {
         self.http_client = Some(Arc::new(http_client));
         self
     }
+
+    /// Set TLS Configuration (Rustls)
+    #[cfg_attr(feature = "docs", doc(cfg(feature = "h1-client-rustls")))]
+    #[cfg(feature = "h1-client-rustls")]
+    pub fn set_tls_config(
+        mut self,
+        tls_config: Option<std::sync::Arc<rustls_crate::ClientConfig>>,
+    ) -> Self {
+        self.http_config.tls_config = tls_config;
+        self
+    }
+    /// Set TLS Configuration (Native TLS)
+    #[cfg_attr(feature = "docs", doc(cfg(feature = "h1-client")))]
+    #[cfg(feature = "h1_client")]
+    pub fn set_tls_config(
+        mut self,
+        tls_config: Option<std::sync::Arc<async_native_tls::TlsConnector>>,
+    ) -> Self {
+        self.http_config.tls_config = tls_config;
+        self
+    }
 }
 
 impl AsRef<HttpConfig> for Config {
