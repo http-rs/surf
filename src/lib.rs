@@ -1,17 +1,14 @@
-//! ## surf the web.
+//! ## Surf the web - HTTP client framework
 //!
-//! Surf is a friendly HTTP client built for casual Rustaceans and veterans alike.  It's completely
-//! modular, and built directly for `async/await`. Whether it's a quick script, or a cross-platform
-//! SDK, Surf will make it work.
+//! Surf is a Rust HTTP client built for ease-of-use and multi-HTTP-backend flexibility.
+//! Whether it's a quick script, or a cross-platform SDK, Surf will make it work.
 //!
-//! - Multi-platform out of the box
 //! - Extensible through a powerful middleware system
-//! - Reuses connections through the `Client` interface
-//! - Has `Client` configurability
+//! - Multiple HTTP back-ends that can be chosen
+//! - Reuses connections through a configurable `Client` interface
 //! - Fully streaming requests and responses
-//! - TLS/SSL enabled by default
-//! - Swappable HTTP backends
-//! - HTTP/2 enabled by default
+//! - TLS enabled by default (native tls or rustls)
+//! - Built on async-std (with optional tokio support)
 //!
 //! # Examples
 //! ```no_run
@@ -91,7 +88,7 @@
 //! - __`hyper-client`:__ use `hyper` (hyper.rs) as the HTTP backend.
 //! - __`wasm-client`:__ use `window.fetch` as the HTTP backend.
 //! - __`middleware-logger` (default):__ enables logging requests and responses using a middleware.
-//! - __`encoding` (default):__ enables support for body encodings other than utf-8
+//! - __`encoding` (default):__ enables support for body encodings other than utf-8.
 
 #![deny(missing_debug_implementations, nonstandard_style)]
 #![warn(missing_docs, unreachable_pub, rust_2018_idioms)]
