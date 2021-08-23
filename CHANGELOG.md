@@ -7,9 +7,39 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.3.0] - 2021-08-23
+
+### Additions
+- `surf::Config`, a way to configure `surf::Client`-s!
+    - `Config::add_header()` - client-wide headers
+    - `Config::set_base_url()` - client-wide base url
+    - `Config::set_http_keep_alive()`
+    - `Config::set_tcp_no_delay()`
+    - `Config::set_timeout()` - per-request timeout.
+    - `Config::set_max_connections_per_host()`
+    - `Config::set_tls_config()` - only available on `h1-client` or `h1-client-rustls`.
+    - More config may be available from the underlying [`http_client::Config`](https://docs.rs/http-client/6/http_client/struct.Config.html).
+    - Easily turns into a `Client` via `std::convert::TryInto`.
+- Extra `RequestBuilder` helpers for setting the body from different sources.
+    - `body_json()`, `body_string()`, `body_bytes()`, `body_file()`.
+- `Client::request()` for making arbitrary HTTP-method requests from a client.
+
+### Improvements
+- The `h1-client` backend now uses a shared client for 'one-off' style (`surf::get()`, etc) requests.
+    - The `curl-client` and `hyper-client` backends already did this.
+- The `wasm-client` feature now pulls in `getrandom`'s `"js"` feature.
+    - This isn't a problem since the wasm client only works in a web/emscripten environment anyways.
+
+### Deprecations
+- `Client::set_base_url` has been deprecated in favor of `Config`.
+
+### Docs
+- Several docs fixes
+- Minor 'branding' changes
+
 ## [2.2.0] - 2021-03-02
 
-If you use the `h1-client`, upgrading to this release is reccomended.
+If you use the `h1-client`, upgrading to this release is recommended.
 
 ### Additions
 - `h1-client-rustls` feature flag, for using the [`async-h1`](https://github.com/http-rs/async-h1) client with [`rustls`](https://github.com/ctz/rustls) as the TLS backend.
