@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.3.1] - 2021-08-23
+
+Fixed git base of 2.3.0
+
 ## [2.3.0] - 2021-08-23
+
+(Yanked, faulty git base)
 
 ### Additions
 - `surf::Config`, a way to configure `surf::Client`-s!
