@@ -27,6 +27,11 @@ h1-client = [
     "once_cell",
     "default-client",
 ]
+h1-client-no-tls = [
+    "http-client/h1_client",
+    "once_cell",
+    "default-client",
+]
 h1-client-rustls = [
     "http-client/h1_client",
     "http-client/rustls",
