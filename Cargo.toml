@@ -26,6 +26,7 @@ h1-client = [
     "http-client/native-tls",
     "once_cell",
     "default-client",
+    "async-native-tls",
 ]
 h1-client-no-tls = [
     "http-client/h1_client",
@@ -72,6 +73,7 @@ cfg-if = "1.0.0"
 getrandom = "0.2.0"
 encoding_rs = { version = "0.8.20", optional = true }
 rustls_crate = { version = "0.18", optional = true, package = "rustls" }
+async-native-tls = { version = "0.3.3", optional = true }
 
 web-sys = { optional = true, version = "0.3.25", features = ["TextDecoder"] }
 

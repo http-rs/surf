@@ -203,7 +203,7 @@ impl Config {
     }
     /// Set TLS Configuration (Native TLS)
     #[cfg_attr(feature = "docs", doc(cfg(feature = "h1-client")))]
-    #[cfg(feature = "h1_client")]
+    #[cfg(feature = "h1-client")]
     pub fn set_tls_config(
         mut self,
         tls_config: Option<std::sync::Arc<async_native_tls::TlsConnector>>,

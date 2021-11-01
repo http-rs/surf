@@ -100,4 +100,4 @@ jobs:
     - name: Check all feature combinations works properly
       # * `--feature-powerset` - run for the feature powerset of the package
       # * `--no-dev-deps` - build without dev-dependencies to avoid https://github.com/rust-lang/cargo/issues/4866
-      run: cargo hack check --feature-powerset --no-dev-deps --skip=default-client,wasm-client
+      run: cargo hack check --feature-powerset --no-dev-deps --skip=default-client,wasm-client --skip=h1-client,h1-client-rustls
