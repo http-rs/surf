@@ -47,7 +47,7 @@
 
 <br/>
 
-### surf the web.
+### Surf the web - HTTP client framework
 
 Surf is a Rust HTTP client built for ease-of-use and multi-HTTP-backend flexibility.
 Whether it's a quick script, or a cross-platform SDK, Surf will make it work.

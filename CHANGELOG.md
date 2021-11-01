@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+## [2.3.2] - 2021-11-01
+
+### Fixes
+- Fixed `Config::set_tls_config()` when using `h1-client` (`async-h1` with `async-native-tls`).
+    - Previously this function was never exposed due to a faulty feature flag check.
+
 ## [2.3.1] - 2021-08-23
 
 Fixed git base of 2.3.0
