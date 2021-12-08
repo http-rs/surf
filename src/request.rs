@@ -315,7 +315,9 @@ impl Request {
     ///
     /// This method will return an error if the provided data could not be serialized to JSON.
     pub fn body_json(&mut self, json: &impl Serialize) -> crate::Result<()> {
-        self.set_body(Body::from_json(json)?);
+        let body: Body = Body::from_json(json)?;
+        self.set_header("Content-Length", body.len().unwrap().to_string());
+        self.set_body(body);
         Ok(())
     }
 
