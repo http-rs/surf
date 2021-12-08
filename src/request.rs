@@ -327,7 +327,9 @@ impl Request {
     ///
     /// The `content-type` is set to `text/plain; charset=utf-8`.
     pub fn body_string(&mut self, string: String) {
-        self.set_body(Body::from_string(string))
+        let body: Body = Body::from_string(string);
+        self.set_header("Content-Length", body.len().unwrap().to_string());
+        self.set_body(body)
     }
 
     /// Pass bytes as the request body.
@@ -336,7 +338,9 @@ impl Request {
     ///
     /// The `content-type` is set to `application/octet-stream`.
     pub fn body_bytes(&mut self, bytes: impl AsRef<[u8]>) {
-        self.set_body(Body::from(bytes.as_ref()))
+        let body: Body = Body::from(bytes.as_ref());
+        self.set_header("Content-Length", body.len().unwrap().to_string());
+        self.set_body(body)
     }
 
     /// Pass a file as the request body.
@@ -354,7 +358,9 @@ impl Request {
     /// This method will return an error if the file couldn't be read.
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn body_file(&mut self, path: impl AsRef<std::path::Path>) -> std::io::Result<()> {
-        self.set_body(Body::from_file(path).await?);
+        let body: Body = Body::from_file(path).await?;
+        self.set_header("Content-Length", body.len().unwrap().to_string());
+        self.set_body(body);
         Ok(())
     }
 
@@ -368,7 +374,9 @@ impl Request {
     ///
     /// An error will be returned if the encoding failed.
     pub fn body_form(&mut self, form: &impl Serialize) -> crate::Result<()> {
-        self.set_body(Body::from_form(form)?);
+        let body: Body = Body::from_form(form)?;
+        self.set_header("Content-Length", body.len().unwrap().to_string());
+        self.set_body(body);
         Ok(())
     }
 
