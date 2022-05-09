@@ -36,6 +36,8 @@ pub struct Config {
     /// Without it, the last path component is considered to be a “file” name
     /// to be removed to get at the “directory” that is used as the base.
     pub base_url: Option<Url>,
+    /// Require this configuration to *only* be used for requests to the origin of `base_url`.
+    pub(crate) mandatory_base_origin: bool,
     /// Headers to be applied to every request made by this client.
     pub headers: HashMap<HeaderName, HeaderValues>,
     /// Underlying HTTP client config.
@@ -107,6 +109,16 @@ impl Config {
     /// ```
     pub fn set_base_url(mut self, base: Url) -> Self {
         self.base_url = Some(base);
+        self
+    }
+
+    /// Only allow requests to the same origin as the base URL.
+    ///
+    /// Useful if the headers include information that should only get sent to a specific origin.
+    /// Setting this avoids unintentionally making requests to a different origin using those
+    /// headers.
+    pub fn set_mandatory_base_origin(mut self) -> Self {
+        self.mandatory_base_origin = true;
         self
     }
 
@@ -223,6 +235,7 @@ impl From<HttpConfig> for Config {
     fn from(http_config: HttpConfig) -> Self {
         Self {
             base_url: None,
+            mandatory_base_origin: false,
             headers: HashMap::new(),
             http_config,
             http_client: None,

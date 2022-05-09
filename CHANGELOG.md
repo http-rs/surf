@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://book.async.rs/overview
 
 ## [Unreleased]
 
+### Additions
+- `surf::Config::set_mandatory_base_origin()` - require all requests to go to
+  the origin of the base URL. Useful if the `Config` includes authentication
+  headers or similar.
+
 ## [2.3.2] - 2021-11-01
 
 ### Fixes
