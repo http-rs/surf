@@ -575,10 +575,25 @@ impl Client {
 
     // private function to generate a url based on the base_path
     fn url(&self, uri: impl AsRef<str>) -> Url {
-        match &self.config.base_url {
+        let ret = match &self.config.base_url {
             None => uri.as_ref().parse().unwrap(),
             Some(base) => base.join(uri.as_ref()).unwrap(),
+        };
+        if self.config.mandatory_base_origin {
+            let base_url = self
+                .config
+                .base_url
+                .as_ref()
+                .expect("Config::set_mandatory_base_origin without base URL");
+            if ret.origin() != base_url.origin() {
+                panic!(
+                    "URL <{}> not relative to mandatory base origin {}",
+                    ret,
+                    base_url.origin().ascii_serialization(),
+                );
+            }
         }
+        ret
     }
 }
 
@@ -620,5 +635,33 @@ mod client_tests {
         let client: Client = Config::new().set_base_url(base_url).try_into().unwrap();
         let url = client.url("posts.json");
         assert_eq!(url.as_str(), "http://example.com/api/v1/posts.json");
+    }
+
+    #[test]
+    fn mandatory_base_origin_success() {
+        let base_url = Url::parse("http://example.com/api/v1/").unwrap();
+
+        let client: Client = Config::new()
+            .set_base_url(base_url)
+            .set_mandatory_base_origin()
+            .try_into()
+            .unwrap();
+        let url = client.url("posts.json");
+        assert_eq!(url.as_str(), "http://example.com/api/v1/posts.json");
+        let url = client.url("/posts.json");
+        assert_eq!(url.as_str(), "http://example.com/posts.json");
+    }
+
+    #[test]
+    #[should_panic]
+    fn mandatory_base_origin_fail() {
+        let base_url = Url::parse("http://example.com/api/v1/").unwrap();
+
+        let client: Client = Config::new()
+            .set_base_url(base_url)
+            .set_mandatory_base_origin()
+            .try_into()
+            .unwrap();
+        let _ = client.url("https://another.example/some/path");
     }
 }
