@@ -287,7 +287,7 @@ impl RequestBuilder {
     /// ```
     pub async fn recv_bytes(self) -> Result<Vec<u8>> {
         let mut res = self.send().await?;
-        Ok(res.body_bytes().await?)
+        res.body_bytes().await
     }
 
     /// Submit the request and get the response body as a string.
@@ -303,7 +303,7 @@ impl RequestBuilder {
     /// ```
     pub async fn recv_string(self) -> Result<String> {
         let mut res = self.send().await?;
-        Ok(res.body_string().await?)
+        res.body_string().await
     }
 
     /// Submit the request and decode the response body from json into a struct.
@@ -326,7 +326,7 @@ impl RequestBuilder {
     /// ```
     pub async fn recv_json<T: serde::de::DeserializeOwned>(self) -> Result<T> {
         let mut res = self.send().await?;
-        Ok(res.body_json::<T>().await?)
+        res.body_json::<T>().await
     }
 
     /// Submit the request and decode the response body from form encoding into a struct.
@@ -356,7 +356,7 @@ impl RequestBuilder {
     /// ```
     pub async fn recv_form<T: serde::de::DeserializeOwned>(self) -> Result<T> {
         let mut res = self.send().await?;
-        Ok(res.body_form::<T>().await?)
+        res.body_form::<T>().await
     }
 
     /// Push middleware onto a per-request middleware stack.
