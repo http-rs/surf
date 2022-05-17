@@ -178,6 +178,37 @@ impl RequestBuilder {
         Ok(self.body(Body::from_json(json)?))
     }
 
+    /// Pass form data as the request body.
+    ///
+    /// # Mime
+    ///
+    /// The encoding is set to `application/x-www-form-urlencoded`.
+    ///
+    /// # Errors
+    ///
+    /// This method will return an error if the provided data could not be serialized to urlencoded string.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use serde::{Deserialize, Serialize};
+    /// # #[async_std::main]
+    /// # async fn main() -> surf::Result<()> {
+    /// #[derive(Deserialize, Serialize)]
+    /// struct Ip {
+    ///     ip: String
+    /// }
+    ///
+    /// let uri = "https://httpbin.org/post";
+    /// let data = &Ip { ip: "129.0.0.1".into() };
+    /// let res = surf::post(uri).body_form(data)?.await?;
+    /// assert_eq!(res.status(), 200);
+    /// # Ok(()) }
+    /// ```
+    pub fn body_form(self, form: &impl Serialize) -> crate::Result<Self> {
+        Ok(self.body(Body::from_form(form)?))
+    }
+
     /// Pass a string as the request body.
     ///
     /// # Mime
