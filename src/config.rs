@@ -53,7 +53,8 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        HttpConfig::default().into()
+        let conf: Self = HttpConfig::default().into();
+        conf.set_tcp_no_delay(true)
     }
 }
 
@@ -122,7 +123,7 @@ impl Config {
 
     /// Set TCP `NO_DELAY`.
     ///
-    /// Default: `false`.
+    /// Default: `true`.
     ///
     /// Note: Does nothing on `wasm-client` (or `native-client` on `wasm32`).
     pub fn set_tcp_no_delay(mut self, no_delay: bool) -> Self {
