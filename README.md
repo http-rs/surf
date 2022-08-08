@@ -61,13 +61,25 @@ Whether it's a quick script, or a cross-platform SDK, Surf will make it work.
 
 ## Examples
 ```rust
-let mut res = surf::get("https://httpbin.org/get").await?;
-dbg!(res.body_string().await?);
+use http_types;
+
+#[async_std::main]
+async fn main() -> Result<(), http_types::Error> {
+    let mut res = surf::get("https://httpbin.org/get").await?;
+    dbg!(res.body_string().await?);
+    Ok(())
+}
 ```
 
 It's also possible to skip the intermediate `Response`, and access the response type directly.
 ```rust
-dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
+use http_types;
+
+#[async_std::main]
+async fn main() -> Result<(), http_types::Error> {
+    dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
+    Ok(())
+}
 ```
 
 Both sending and receiving JSON is real easy too.
