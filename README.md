@@ -61,10 +61,8 @@ Whether it's a quick script, or a cross-platform SDK, Surf will make it work.
 
 ## Examples
 ```rust
-use http_types;
-
 #[async_std::main]
-async fn main() -> Result<(), http_types::Error> {
+async fn main() -> Result<(), surf::Error> {
     let mut res = surf::get("https://httpbin.org/get").await?;
     dbg!(res.body_string().await?);
     Ok(())
@@ -73,10 +71,8 @@ async fn main() -> Result<(), http_types::Error> {
 
 It's also possible to skip the intermediate `Response`, and access the response type directly.
 ```rust
-use http_types;
-
 #[async_std::main]
-async fn main() -> Result<(), http_types::Error> {
+async fn main() -> Result<(), surf::Error> {
     dbg!(surf::get("https://httpbin.org/get").recv_string().await?);
     Ok(())
 }
