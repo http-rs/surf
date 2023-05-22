@@ -20,7 +20,7 @@ impl Middleware for Doubler {
             let mut new_req: Request = new_req.into();
 
             for (name, value) in &req {
-                new_req.insert_header(name, value);
+                new_req.insert_header(name, value)?;
             }
 
             let mut buf = Vec::new();

@@ -1,7 +1,8 @@
 use crate::http::{
     self,
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
-    Body, Error, Mime, StatusCode, Version,
+    mime::Mime,
+    Body, Error, StatusCode, Version,
 };
 
 use async_std::io::BufRead;
@@ -86,13 +87,21 @@ impl Response {
     }
 
     /// Insert an HTTP header.
-    pub fn insert_header(&mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) {
-        self.res.insert_header(key, value);
+    pub fn insert_header(
+        &mut self,
+        key: impl Into<HeaderName>,
+        value: impl ToHeaderValues,
+    ) -> crate::Result<Option<HeaderValues>> {
+        self.res.insert_header(key, value)
     }
 
     /// Append an HTTP header.
-    pub fn append_header(&mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) {
-        self.res.append_header(key, value);
+    pub fn append_header(
+        &mut self,
+        key: impl Into<HeaderName>,
+        value: impl ToHeaderValues,
+    ) -> crate::Result<()> {
+        self.res.append_header(key, value)
     }
 
     /// An iterator visiting all header pairs in arbitrary order.
@@ -162,7 +171,7 @@ impl Response {
     /// value to decide whether to use `Chunked` encoding, or set the
     /// response length.
     #[allow(clippy::len_without_is_empty)]
-    pub fn len(&self) -> Option<usize> {
+    pub fn len(&self) -> Option<u64> {
         self.res.len()
     }
 
@@ -329,14 +338,14 @@ impl Into<http::Response> for Response {
     }
 }
 
-impl AsRef<http::Headers> for Response {
-    fn as_ref(&self) -> &http::Headers {
+impl AsRef<http::headers::Headers> for Response {
+    fn as_ref(&self) -> &http::headers::Headers {
         self.res.as_ref()
     }
 }
 
-impl AsMut<http::Headers> for Response {
-    fn as_mut(&mut self) -> &mut http::Headers {
+impl AsMut<http::headers::Headers> for Response {
+    fn as_mut(&mut self) -> &mut http::headers::Headers {
         self.res.as_mut()
     }
 }

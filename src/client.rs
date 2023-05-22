@@ -336,7 +336,7 @@ impl Client {
     /// let string = client.get("https://httpbin.org/get").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn get(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn get(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Get, self.url(uri)).with_client(self.clone())
     }
 
@@ -359,7 +359,7 @@ impl Client {
     /// let string = client.head("https://httpbin.org/head").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn head(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn head(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Head, self.url(uri)).with_client(self.clone())
     }
 
@@ -382,7 +382,7 @@ impl Client {
     /// let string = client.post("https://httpbin.org/post").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn post(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn post(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Post, self.url(uri)).with_client(self.clone())
     }
 
@@ -405,7 +405,7 @@ impl Client {
     /// let string = client.put("https://httpbin.org/put").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn put(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn put(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Put, self.url(uri)).with_client(self.clone())
     }
 
@@ -428,7 +428,7 @@ impl Client {
     /// let string = client.delete("https://httpbin.org/delete").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn delete(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn delete(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Delete, self.url(uri)).with_client(self.clone())
     }
 
@@ -451,7 +451,7 @@ impl Client {
     /// let string = client.connect("https://httpbin.org/connect").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn connect(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn connect(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Connect, self.url(uri)).with_client(self.clone())
     }
 
@@ -474,7 +474,7 @@ impl Client {
     /// let string = client.options("https://httpbin.org/options").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn options(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn options(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Options, self.url(uri)).with_client(self.clone())
     }
 
@@ -497,7 +497,7 @@ impl Client {
     /// let string = client.trace("https://httpbin.org/trace").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn trace(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn trace(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Trace, self.url(uri)).with_client(self.clone())
     }
 
@@ -520,7 +520,7 @@ impl Client {
     /// let string = client.patch("https://httpbin.org/patch").recv_string().await?;
     /// # Ok(()) }
     /// ```
-    pub fn patch(&self, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn patch(&self, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(Method::Patch, self.url(uri)).with_client(self.clone())
     }
 
@@ -544,7 +544,7 @@ impl Client {
     /// let res = client.send(req).await?;
     /// # Ok(()) }
     /// ```
-    pub fn request(&self, verb: Method, uri: impl AsRef<str>) -> RequestBuilder {
+    pub fn request(&self, verb: Method, uri: impl AsRef<str>) -> crate::Result<RequestBuilder> {
         RequestBuilder::new(verb, self.url(uri)).with_client(self.clone())
     }
 

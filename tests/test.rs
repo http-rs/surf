@@ -24,7 +24,7 @@ async fn post_json() -> Result<(), http_types::Error> {
         .with_body(&serde_json::to_string(&cat)?[..])
         .create();
     let res = surf::post(mockito::server_url())
-        .header("Accept", "application/json")
+        .header("Accept", "application/json")?
         .body(Body::from_json(&cat)?)
         .await?;
     m.assert();
@@ -192,7 +192,7 @@ async fn config_client_headers() -> Result<(), http_types::Error> {
         .add_header("X-Header-Name", "X-Header-Values")?
         .try_into()?;
 
-    let res = client.get("http://example.org/").await?;
+    let res = client.get("http://example.org/")?.await?;
 
     assert_eq!(res["X-Header-Name"], "X-Header-Values");
 

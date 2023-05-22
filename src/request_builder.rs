@@ -1,6 +1,7 @@
 use crate::http::{
     headers::{HeaderName, ToHeaderValues},
-    Body, Method, Mime, Url,
+    mime::Mime,
+    Body, Method, Url,
 };
 use crate::middleware::Middleware;
 use crate::{Client, Error, Request, Response, Result};
@@ -85,15 +86,15 @@ impl RequestBuilder {
         }
     }
 
-    pub(crate) fn with_client(mut self, client: Client) -> Self {
+    pub(crate) fn with_client(mut self, client: Client) -> crate::Result<Self> {
         let req = self.req.as_mut().unwrap();
 
         for (header_name, header_values) in client.config().headers.iter() {
-            req.append_header(header_name, header_values);
+            req.append_header(header_name, header_values)?;
         }
 
         self.client = Some(client);
-        self
+        Ok(self)
     }
 
     /// Sets a header on the request.
@@ -104,9 +105,13 @@ impl RequestBuilder {
     /// let req = surf::get("https://httpbin.org/get").header("header-name", "header-value").build();
     /// assert_eq!(req["header-name"], "header-value");
     /// ```
-    pub fn header(mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) -> Self {
-        self.req.as_mut().unwrap().insert_header(key, value);
-        self
+    pub fn header(
+        mut self,
+        key: impl Into<HeaderName>,
+        value: impl ToHeaderValues,
+    ) -> crate::Result<Self> {
+        self.req.as_mut().unwrap().insert_header(key, value)?;
+        Ok(self)
     }
 
     /// Sets the Content-Type header on the request.
@@ -245,8 +250,8 @@ impl RequestBuilder {
     /// # Ok(()) }
     /// ```
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn body_file(self, path: impl AsRef<std::path::Path>) -> std::io::Result<Self> {
-        Ok(self.body(Body::from_file(path).await?))
+    pub async fn body_file(self, file: async_std::fs::File) -> std::io::Result<Self> {
+        Ok(self.body(Body::from_file(file).await?))
     }
 
     /// Set the URL querystring.
