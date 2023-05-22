@@ -1,7 +1,8 @@
 use crate::http::{
     self,
     headers::{self, HeaderName, HeaderValues, ToHeaderValues},
-    Body, Method, Mime, Url,
+    mime::Mime,
+    Body, Method, Url,
 };
 use crate::middleware::Middleware;
 use crate::RequestBuilder;
@@ -146,7 +147,7 @@ impl Request {
         &mut self,
         name: impl Into<HeaderName>,
         values: impl ToHeaderValues,
-    ) -> Option<HeaderValues> {
+    ) -> crate::Result<Option<HeaderValues>> {
         self.req.insert_header(name, values)
     }
 
@@ -154,7 +155,11 @@ impl Request {
     ///
     /// Unlike `insert` this function will not override the contents of a header, but insert a
     /// header if there aren't any. Or else append to the existing list of headers.
-    pub fn append_header(&mut self, name: impl Into<HeaderName>, values: impl ToHeaderValues) {
+    pub fn append_header(
+        &mut self,
+        name: impl Into<HeaderName>,
+        values: impl ToHeaderValues,
+    ) -> crate::Result<()> {
         self.req.append_header(name, values)
     }
 
@@ -200,8 +205,12 @@ impl Request {
     /// assert_eq!(req.header("X-Requested-With").unwrap(), "surf");
     /// # Ok(()) }
     /// ```
-    pub fn set_header(&mut self, key: impl Into<HeaderName>, value: impl ToHeaderValues) {
-        self.insert_header(key, value);
+    pub fn set_header(
+        &mut self,
+        key: impl Into<HeaderName>,
+        value: impl ToHeaderValues,
+    ) -> crate::Result<Option<HeaderValues>> {
+        self.insert_header(key, value)
     }
 
     /// Get a request extension value.
@@ -276,7 +285,7 @@ impl Request {
     /// value to decide whether to use `Chunked` encoding, or set the
     /// response length.
     #[allow(clippy::len_without_is_empty)]
-    pub fn len(&self) -> Option<usize> {
+    pub fn len(&self) -> Option<u64> {
         self.req.len()
     }
 
@@ -351,8 +360,8 @@ impl Request {
     ///
     /// This method will return an error if the file couldn't be read.
     #[cfg(not(target_arch = "wasm32"))]
-    pub async fn body_file(&mut self, path: impl AsRef<std::path::Path>) -> std::io::Result<()> {
-        self.set_body(Body::from_file(path).await?);
+    pub async fn body_file(&mut self, file: async_std::fs::File) -> std::io::Result<()> {
+        self.set_body(Body::from_file(file).await?);
         Ok(())
     }
 
@@ -400,14 +409,14 @@ impl Request {
     }
 }
 
-impl AsRef<http::Headers> for Request {
-    fn as_ref(&self) -> &http::Headers {
+impl AsRef<http::headers::Headers> for Request {
+    fn as_ref(&self) -> &http::headers::Headers {
         self.req.as_ref()
     }
 }
 
-impl AsMut<http::Headers> for Request {
-    fn as_mut(&mut self) -> &mut http::Headers {
+impl AsMut<http::headers::Headers> for Request {
+    fn as_mut(&mut self) -> &mut http::headers::Headers {
         self.req.as_mut()
     }
 }
