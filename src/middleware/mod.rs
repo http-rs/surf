@@ -53,6 +53,45 @@
 //! #     Ok(())
 //! # }
 //! ```
+//! When introducing state, some care must be taken to avoid blocking the entire thread.
+//!
+//! ```no_run
+//! use async_std;
+//! use surf;
+//!
+//! // Count how many requests have been made
+//! struct RequestCounter {
+//!     // You must use the async_std Mutex to avoid blocking the entire thread
+//!     seen_count: async_std::sync::Mutex<usize>,
+//! }
+//!
+//! impl Default for RequestCounter {
+//!     fn default() -> Self {
+//!         Self {
+//!             seen_count: async_std::sync::Mutex::new(0),
+//!         }
+//!     }
+//! }
+//!
+//! #[surf::utils::async_trait]
+//! impl surf::middleware::Middleware for RequestCounter {
+//!     async fn handle(
+//!         &self,
+//!         req: surf::Request,
+//!         client: surf::Client,
+//!         next: surf::middleware::Next<'_>,
+//!     ) -> std::result::Result<surf::Response, http_types::Error> {
+//!         {
+//!             let mut guard = self.seen_count.try_lock().unwrap();
+//!             *guard += 1;
+//!
+//!             println!("Seen count: {}", *guard);
+//!         }
+//!
+//!         next.run(req, client).await
+//!     }
+//! }
+//! ```
 
 use std::sync::Arc;
 
